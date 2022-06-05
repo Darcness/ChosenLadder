@@ -83,6 +83,14 @@ function PopulatePlayerList(parentScrollFrame)
     end
 end
 
+function PopulateNames(editBox)
+    local names = ""
+    for k, v in pairs(D.players) do
+        names = names .. v.name .. "\n"
+    end
+    editBox:SetText(names)
+end
+
 function CreateImportFrame()
     local mainFrame = CreateFrame("Frame", "ChosenLadderImportFrame", UIParent, "BasicFrameTemplateWithInset")
     mainFrame:SetPoint("CENTER", 0, 0)
@@ -136,8 +144,9 @@ function CreateImportFrame()
     editBox:SetMultiLine(true)
     editBox:SetWidth(scrollFrame:GetWidth())
     editBox:SetHeight(scrollFrame:GetHeight())
-    editBox:SetScript("OnHide", function(self)
-        self:SetText("")
+    PopulateNames(editBox)
+    editBox:SetScript("OnShow", function(self)
+        PopulateNames(self)
     end)
     scrollFrame:SetScrollChild(editBox)
 
@@ -180,7 +189,7 @@ function CreateMainWindowFrame()
     local importButton = CreateFrame("Button", "ChosenLadderImportButton", mainFrame, "UIPanelButtonTemplate")
     importButton:SetWidth(96)
     importButton:SetPoint("TOPRIGHT", mainFrame, -24, 0)
-    importButton:SetText("Import Players")
+    importButton:SetText("Import/Export")
     importButton:SetScript("OnClick", function(self, button, down)
         ToggleMainWindowFrame()
         ToggleImportFrame()
