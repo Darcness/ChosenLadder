@@ -1,0 +1,11 @@
+## Interface: 20504
+## Title: ChosenLadder
+## Version: 0.0.1
+## Notes: Ladder addon for The Chosen Guild
+## Author: Darc
+
+ChosenLadder.lua
+Data.lua
+UI.lua
+Core.lua
+ChosenLadder.xml
