@@ -88,9 +88,11 @@ function CreateImportFrame()
     mainFrame:SetPoint("CENTER", 0, 0)
     mainFrame:SetSize(400, 400)
     mainFrame:SetMovable(false)
+    mainFrame:SetScript("OnHide", function(self)
+        ToggleMainWindowFrame()
+    end)
     UI.importFrame = mainFrame
     _G["ChosenLadderImportFrame"] = mainFrame
-    tinsert(UISpecialFrames, mainFrame:GetName())
 
     -- Title Text
     local title = mainFrame:CreateFontString("ARTWORK", nil, "GameFontNormal")
@@ -113,7 +115,6 @@ function CreateImportFrame()
         D.BuildPlayerList(lines)
 
         ToggleImportFrame()
-        ToggleMainWindowFrame()
     end)
 
     -- Content Window
@@ -135,9 +136,12 @@ function CreateImportFrame()
     editBox:SetMultiLine(true)
     editBox:SetWidth(scrollFrame:GetWidth())
     editBox:SetHeight(scrollFrame:GetHeight())
+    editBox:SetScript("OnHide", function(self)
+        self:SetText("")
+    end)
     scrollFrame:SetScrollChild(editBox)
 
-    mainFrame:Raise()
+    mainFrame:SetFrameLevel(9000)
 end
 
 function ToggleImportFrame()
