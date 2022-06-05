@@ -189,7 +189,7 @@ function CreateMainWindowFrame()
     -- Select All Button
     local selectAllButton = CreateFrame("Button", "ChosenLadderSelectAllButton", mainFrame, "UIPanelButtonTemplate")
     selectAllButton:SetWidth(96)
-    selectAllButton:SetPoint("TOPRIGHT", importButton, -importButton:GetWidth(), 0)
+    selectAllButton:SetPoint("TOPRIGHT", importButton, -importButton:GetWidth() + 2, 0)
     selectAllButton:SetText(toggleAll and "Uncheck All" or "Check All")
     selectAllButton:SetScript("OnClick", function(self, button, down)
         toggleAll = not toggleAll
