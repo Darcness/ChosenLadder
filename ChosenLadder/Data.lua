@@ -55,14 +55,11 @@ function RunDunk(name)
             else
                 -- This is where it gets hinky.
                 -- insert into the current spot UNLESS an object is already there. If it is, push forward and try again.
-                print(newPos .. ": " .. tostring(newPlayers[newPos]))
                 while newPlayers[newPos] ~= nil do
                     newPos = newPos + 1
                 end
-                print("Inserting At " .. newPos .. "-" .. v.name)
                 -- Finally found an empty spot! Insert, move the pointer, and continue.
                 newPlayers[newPos] = v
-                print(newPlayers[newPos])
                 newPos = newPos + 1
             end
         end

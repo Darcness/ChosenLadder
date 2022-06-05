@@ -9,7 +9,8 @@ local toggleAll = false
 local UIPrefixes = {
     PlayerRow = "ChosenLadderPlayerRow",
     CheckButton = "ChosenLadderCheckButton",
-    DunkButton = "ChosenLadderDunkButton"
+    DunkButton = "ChosenLadderDunkButton",
+    PlayerNameString = "ChosenLadderPlayerNameString"
 }
 
 function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
@@ -24,7 +25,7 @@ function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
     cb:SetPoint("TOPLEFT", row, 0, 0)
 
     -- Set the Font
-    local textFont = cb:CreateFontString("ARTWORK", nil, "GameFontNormal")
+    local textFont = cb:CreateFontString(UIPrefixes.PlayerNameString .. text, nil, "GameFontNormal")
     textFont:SetText(idx .. " - " .. text)
     textFont:SetPoint("TOPLEFT", cb, cb:GetWidth() + 4, -8)
     cb:SetFontString(textFont)
@@ -80,6 +81,10 @@ function PopulatePlayerList(parentScrollFrame)
         -- Fix the Dunk button alignment
         local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
         dunkButton:SetPoint("TOPLEFT", playerRow, (maxNameSize * 7) + 36, -4)
+
+        -- Fix the ordering
+        local text = _G[UIPrefixes.PlayerNameString .. v.name]
+        text:SetText(k .. " - " .. v.name)
     end
 end
 
