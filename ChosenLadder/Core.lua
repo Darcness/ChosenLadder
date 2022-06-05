@@ -1,8 +1,8 @@
 local CL, NS = ...
    
-local F = NS.F
+local UI = NS.UI
 
 SLASH_LADDER1 = "/ladder"
 function SlashCmdList.LADDER(msg, editBox)
-    F.ToggleFrame()
+    UI.ToggleMainWindowFrame()
 end

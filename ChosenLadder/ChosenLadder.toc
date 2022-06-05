@@ -5,6 +5,7 @@
 ## Author: Darc
 
 ChosenLadder.lua
+Data.lua
 UI.lua
 Core.lua
 ChosenLadder.xml
