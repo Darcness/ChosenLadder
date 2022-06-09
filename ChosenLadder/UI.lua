@@ -215,6 +215,14 @@ function CreateMainWindowFrame()
         self:SetText(toggleAll and "Uncheck All" or "Check All")
     end)
 
+    local syncButton = CreateFrame("Button", "ChosenLadderSyncButton", mainFrame, "UIPanelButtonTemplate")
+    syncButton:SetWidth(64)
+    syncButton:SetPoint("TOPRIGHT", selectAllButton, -selectAllButton:GetWidth() + 2, 0)
+    syncButton:SetText("Sync")
+    syncButton:SetScript("OnClick", function(self, button, down)
+        D.GenerateSyncData(false)
+    end)
+
     -- Content Window
     local contentFrame = CreateFrame("Frame", "ChosenLadderContentFrame", mainFrame, "BackdropTemplate")
     contentFrame:SetPoint("TOPLEFT", mainFrame, 6, -24)

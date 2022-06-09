@@ -4,6 +4,8 @@ local D = NS.Data
 
 D.players = {}
 
+D.lastModified = 0
+
 for i = 1, 50 do
     table.insert(D.players, {
         name = "Player " .. i,
@@ -36,6 +38,7 @@ function RunDunk(name)
         newPlayers[k] = nil
     end
 
+    local foundPos = 1
     local newPos = 1
     local found = nil
     local len = #D.players
@@ -44,6 +47,7 @@ function RunDunk(name)
         if name == v.name then
             -- Let's save this guy for later.
             found = v
+            foundPos = currentPos
         else
             -- If we're not to the found player yet, just copy them straight over.
             if found == nil then
@@ -69,11 +73,12 @@ function RunDunk(name)
     for i = 1, len do
         if newPlayers[i] == nil then
             newPlayers[i] = found
-            print(found.name .. " moved to position " .. i)
+            print(found.name .. " moved to position " .. i .. " from position " .. foundPos)
         end
     end
 
     D.players = newPlayers
+    D.lastModified = GetServerTime()
 end
 
 D.RunDunk = RunDunk
@@ -88,3 +93,47 @@ function TogglePresent(name)
 end
 
 D.TogglePresent = TogglePresent
+
+function GenerateSyncData(localDebug)
+    local prefix = CL
+    local timeMessage = D.Constants.BeginSyncFlag .. D.lastModified
+    local channel = "WHISPER"
+
+    if localDebug then
+        print(prefix .. ": " .. timeMessage)
+    else
+        C_ChatInfo.SendAddonMessage(prefix, timeMessage, channel, "Foladocus")
+    end
+
+    local firstPlayer = ""
+    for k, v in ipairs(D.players) do
+        if k == 1 then
+            firstPlayer = v.name
+        else
+            local playerMessage = D.Constants.PlayerSyncFlag .. k - 1 .. " - " .. v.name
+            if localDebug then
+                print(prefix .. ": " .. playerMessage)
+            else
+                C_ChatInfo.SendAddonMessage(prefix, playerMessage, channel, "Foladocus")
+            end
+        end
+    end
+
+    if firstPlayer ~= "" then
+        local playerMessage = D.Constants.PlayerSyncFlag .. #D.players .. " - " .. firstPlayer
+            if localDebug then
+                print(prefix .. ": " .. playerMessage)
+            else
+                C_ChatInfo.SendAddonMessage(prefix, playerMessage, channel, "Foladocus")
+            end
+    end
+
+    local endMessage = D.Constants.EndSyncFlag
+    if localDebug then
+        print(prefix .. ": " .. endMessage)
+    else
+        C_ChatInfo.SendAddonMessage(prefix, endMessage, channel, "Foladocus")
+    end
+end
+
+D.GenerateSyncData = GenerateSyncData

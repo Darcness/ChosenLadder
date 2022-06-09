@@ -3,4 +3,10 @@
     <Script File="Data.lua" />
     <Script File="UI.lua" />
     <Script File="Core.lua" />
+    <Frame name="ChosenLadderStartFrame" parent="UIParent">
+        <Scripts>
+            <OnLoad function="ChosenLadder_OnLoad" />
+            <OnEvent function="ChosenLadder_OnEvent" />
+        </Scripts>
+    </Frame>
 </Ui>
