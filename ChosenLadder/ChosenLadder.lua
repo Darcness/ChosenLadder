@@ -32,6 +32,7 @@ end
 function ChosenLadder_OnEvent(self, event, ...)
     if event == "ADDON_LOADED" and ... == A then
         self:UnregisterEvent("ADDON_LOADED")
+        self:RegisterEvent("CHAT_MSG_ADDON_LOGGED")
         C_ChatInfo.RegisterAddonMessagePrefix(A)
         print("Registered Chat Listener - " .. A)
     elseif event == "CHAT_MSG_ADDON_LOGGED" and arg[2] == "RAID" then
