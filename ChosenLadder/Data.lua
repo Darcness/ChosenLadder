@@ -4,6 +4,8 @@ local D = NS.Data
 
 D.players = {}
 
+D.lastModified = 0
+
 for i = 1, 50 do
     table.insert(D.players, {
         name = "Player " .. i,
@@ -13,10 +15,7 @@ for i = 1, 50 do
 end
 
 function BuildPlayerList(names)
-    -- Clear the list
-    for i = 0, #D.players do
-        D.players[i] = nil
-    end
+    D.players = {}
 
     for _, v in ipairs(names) do
         table.insert(D.players, {
@@ -32,18 +31,20 @@ D.BuildPlayerList = BuildPlayerList
 function RunDunk(name)
     local newPlayers = {}
     -- Initialize newPlayers with nulls, since we're inserting in weird places.
-    for k, v in ipairs(D.players) do
+    for k, v in pairs(D.players) do
         newPlayers[k] = nil
     end
 
+    local foundPos = 1
     local newPos = 1
     local found = nil
     local len = #D.players
 
-    for currentPos, v in ipairs(D.players) do
+    for currentPos, v in pairs(D.players) do
         if name == v.name then
             -- Let's save this guy for later.
             found = v
+            foundPos = currentPos
         else
             -- If we're not to the found player yet, just copy them straight over.
             if found == nil then
@@ -69,11 +70,12 @@ function RunDunk(name)
     for i = 1, len do
         if newPlayers[i] == nil then
             newPlayers[i] = found
-            print(found.name .. " moved to position " .. i)
+            print(found.name .. " moved to position " .. i .. " from position " .. foundPos)
         end
     end
 
     D.players = newPlayers
+    D.lastModified = GetServerTime()
 end
 
 D.RunDunk = RunDunk
@@ -88,3 +90,26 @@ function TogglePresent(name)
 end
 
 D.TogglePresent = TogglePresent
+
+function GenerateSyncData(localDebug)
+    local timeMessage = D.Constants.BeginSyncFlag .. D.lastModified
+    local channel = "RAID"
+
+    local fullMessage = timeMessage .. "|"
+
+    for k, v in ipairs(D.players) do
+        fullMessage = fullMessage .. v.name .. "|"
+    end
+
+    local endMessage = D.Constants.EndSyncFlag
+    fullMessage = fullMessage .. endMessage
+
+    if localDebug then
+        print(fullMessage)
+    else
+        ChosenLadder:SendMessage(fullMessage, channel)
+        ChosenLadder:Print("Submitting Sync Request")
+    end
+end
+
+D.GenerateSyncData = GenerateSyncData

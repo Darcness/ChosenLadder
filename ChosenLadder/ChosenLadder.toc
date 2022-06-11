@@ -4,8 +4,11 @@
 ## Notes: Ladder addon for The Chosen Guild
 ## Author: Darc
 
+
+lib\LibStub\LibStub.lua
+lib\AceComm-3.0\AceComm-3.0.xml
+
 ChosenLadder.lua
 Data.lua
 UI.lua
 Core.lua
-ChosenLadder.xml
