@@ -7,11 +7,19 @@ D.players = {}
 D.lastModified = 0
 
 for i = 1, 50 do
-    table.insert(D.players, {
-        name = "Player " .. i,
-        present = false,
-        log = ""
-    })
+    if i == 1 then
+        table.insert(D.players, {
+            name = "WWWWWWWWWWWW",
+            present = false,
+            log = ""
+        })
+    else
+        table.insert(D.players, {
+            name = "Player " .. i,
+            present = false,
+            log = ""
+        })
+    end
 end
 
 function BuildPlayerList(names)

@@ -39,7 +39,7 @@ function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
 
     local dunkButton = CreateFrame("Button", UIPrefixes.DunkButton .. text, row, "UIPanelButtonTemplate")
     dunkButton:SetText("Dunk")
-    dunkButton:SetPoint("TOPLEFT", textFont, (maxNameSize * 7) + 4, 6)
+    dunkButton:SetPoint("TOPRIGHT", row, -2, -2)
     dunkButton:SetScript("OnClick", function(self, button, down)
         D.RunDunk(text)
         PopulatePlayerList()
@@ -81,14 +81,7 @@ function PopulatePlayerList()
 
         -- Only the master looter is allowed to dunk.  Hide the button otherwise.
         local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
-        local lootMethod, masterLooterPartyId, _ = GetLootMethod()
-        if lootMethod == "master" and masterLooterPartyId == 0 then
-            -- Also fix the alignment, since we may have a new name, and we need to move it around.
-            dunkButton:SetPoint("TOPLEFT", playerRow, (maxNameSize * 7) + 36, -4)
-            dunkButton:Show()
-        else
-            dunkButton:Hide()
-        end
+
 
         -- Fix the ordering
         local text = _G[UIPrefixes.PlayerNameString .. v.name]
@@ -183,27 +176,16 @@ end
 
 UI.ToggleImportFrame = ToggleImportFrame
 
-function CreateMainWindowFrame()
-    local mainWidth = 400
-    local mainHeight = 400
-
-    local mainFrame = CreateFrame("Frame", "ChosenLadderFrame", UIParent, "BasicFrameTemplateWithInset")
-    mainFrame:SetPoint("CENTER", 0, 0)
-    mainFrame:SetSize(mainWidth, mainHeight)
-    mainFrame:SetMovable(false)
-    UI.mainFrame = mainFrame
-    _G["ChosenLadderFrame"] = mainFrame
-    tinsert(UISpecialFrames, mainFrame:GetName())
-
-    -- Title Text
-    local title = mainFrame:CreateFontString("ARTWORK", nil, "GameFontNormal")
-    title:SetPoint("TOPLEFT", 5, -5)
-    title:SetText("Chosen Ladder")
+function CreateMainActionsFrame(mainFrame)
+    local actionButtonWidth = 102
+    local contentFrame = CreateFrame("Frame", "ChosenLadderActionContentFrame", mainFrame, "BackdropTemplate")
+    contentFrame:SetPoint("TOPLEFT", mainFrame, 6, -24)
+    contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -122, 3)
 
     -- Import Button
-    local importButton = CreateFrame("Button", "ChosenLadderImportButton", mainFrame, "UIPanelButtonTemplate")
-    importButton:SetWidth(96)
-    importButton:SetPoint("TOPRIGHT", mainFrame, -24, 0)
+    local importButton = CreateFrame("Button", "ChosenLadderImportButton", contentFrame, "UIPanelButtonTemplate")
+    importButton:SetWidth(actionButtonWidth)
+    importButton:SetPoint("TOPLEFT", contentFrame, 6, -6)
     importButton:SetText("Import/Export")
     importButton:SetScript("OnClick", function(self, button, down)
         ToggleMainWindowFrame()
@@ -211,9 +193,9 @@ function CreateMainWindowFrame()
     end)
 
     -- Select All Button
-    local selectAllButton = CreateFrame("Button", "ChosenLadderSelectAllButton", mainFrame, "UIPanelButtonTemplate")
-    selectAllButton:SetWidth(96)
-    selectAllButton:SetPoint("TOPRIGHT", importButton, -importButton:GetWidth() + 2, 0)
+    local selectAllButton = CreateFrame("Button", "ChosenLadderSelectAllButton", contentFrame, "UIPanelButtonTemplate")
+    selectAllButton:SetWidth(actionButtonWidth)
+    selectAllButton:SetPoint("TOPLEFT", importButton, 0, -(importButton:GetHeight() + 2))
     selectAllButton:SetText(toggleAll and "Uncheck All" or "Check All")
     selectAllButton:SetScript("OnClick", function(self, button, down)
         toggleAll = not toggleAll
@@ -226,17 +208,19 @@ function CreateMainWindowFrame()
     end)
 
     -- Sync Button
-    local syncButton = CreateFrame("Button", "ChosenLadderSyncButton", mainFrame, "UIPanelButtonTemplate")
-    syncButton:SetWidth(64)
-    syncButton:SetPoint("TOPRIGHT", selectAllButton, -selectAllButton:GetWidth() + 2, 0)
+    local syncButton = CreateFrame("Button", "ChosenLadderSyncButton", contentFrame, "UIPanelButtonTemplate")
+    syncButton:SetWidth(actionButtonWidth)
+    syncButton:SetPoint("TOPLEFT", selectAllButton, 0, -(selectAllButton:GetHeight() + 2))
     syncButton:SetText("Sync")
     syncButton:SetScript("OnClick", function(self, button, down)
         D.GenerateSyncData(false)
     end)
+end
 
+function CreateMainPlayerListFrame(mainFrame)
     -- Content Window
-    local contentFrame = CreateFrame("Frame", "ChosenLadderContentFrame", mainFrame, "BackdropTemplate")
-    contentFrame:SetPoint("TOPLEFT", mainFrame, 6, -24)
+    local contentFrame = CreateFrame("Frame", "ChosenLadderScrollContentFrame", mainFrame, "BackdropTemplate")
+    contentFrame:SetPoint("TOPLEFT", mainFrame, 122, -24)
     contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -5, 3)
 
     local scrollFrame = CreateFrame("ScrollFrame", "ChosenLadderScrollFrame", contentFrame, "UIPanelScrollFrameTemplate")
@@ -257,6 +241,32 @@ function CreateMainWindowFrame()
     scrollChild:SetScript("OnShow", function(self)
         PopulatePlayerList()
     end)
+end
+
+function CreateMainWindowFrame()
+    local mainWidth = 500
+    local mainHeight = 400
+
+    local mainFrame = CreateFrame("Frame", "ChosenLadderFrame", UIParent, "BasicFrameTemplateWithInset")
+    mainFrame:SetPoint("CENTER", 0, 0)
+    mainFrame:SetSize(mainWidth, mainHeight)
+    mainFrame:SetMovable(true)
+    mainFrame:EnableMouse(true)
+    mainFrame:RegisterForDrag("LeftButton")
+    mainFrame:SetClampedToScreen(true)
+    mainFrame:SetScript("OnDragStart", mainFrame.StartMoving)
+    mainFrame:SetScript("OnDragStop", mainFrame.StopMovingOrSizing)
+    UI.mainFrame = mainFrame
+    _G["ChosenLadderFrame"] = mainFrame
+
+    -- Title Text
+    local title = mainFrame:CreateFontString("ARTWORK", nil, "GameFontNormal")
+    title:SetPoint("TOPLEFT", 5, -5)
+    title:SetText("Chosen Ladder")
+
+    CreateMainActionsFrame(mainFrame)
+
+    CreateMainPlayerListFrame(mainFrame)
 
     PopulatePlayerList()
 end
