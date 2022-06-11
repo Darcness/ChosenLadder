@@ -1,8 +1,9 @@
-local CL, NS = ...
+local A, NS = ...
 
 local D = NS.Data
 local UI = NS.UI
 local F = NS.Functions
+local CL = NS.CL;
 
 local toggleAll = false
 
@@ -78,9 +79,16 @@ function PopulatePlayerList()
         -- Show them, in case they existed before and we hid them.
         playerRow:Show()
 
-        -- Fix the Dunk button alignment
+        -- Only the master looter is allowed to dunk.  Hide the button otherwise.
         local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
-        dunkButton:SetPoint("TOPLEFT", playerRow, (maxNameSize * 7) + 36, -4)
+        local lootMethod, masterLooterPartyId, _ = GetLootMethod()
+        if lootMethod == "master" and masterLooterPartyId == 0 then
+            -- Also fix the alignment, since we may have a new name, and we need to move it around.
+            dunkButton:SetPoint("TOPLEFT", playerRow, (maxNameSize * 7) + 36, -4)
+            dunkButton:Show()
+        else
+            dunkButton:Hide()
+        end
 
         -- Fix the ordering
         local text = _G[UIPrefixes.PlayerNameString .. v.name]
@@ -217,6 +225,7 @@ function CreateMainWindowFrame()
         self:SetText(toggleAll and "Uncheck All" or "Check All")
     end)
 
+    -- Sync Button
     local syncButton = CreateFrame("Button", "ChosenLadderSyncButton", mainFrame, "UIPanelButtonTemplate")
     syncButton:SetWidth(64)
     syncButton:SetPoint("TOPRIGHT", selectAllButton, -selectAllButton:GetWidth() + 2, 0)
@@ -249,7 +258,7 @@ function CreateMainWindowFrame()
         PopulatePlayerList()
     end)
 
-    PopulatePlayerList(scrollChild)
+    PopulatePlayerList()
 end
 
 UI.CreateMainWindowFrame = CreateMainWindowFrame
