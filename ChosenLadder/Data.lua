@@ -108,6 +108,7 @@ function GenerateSyncData(localDebug)
         print(fullMessage)
     else
         ChosenLadder:SendMessage(fullMessage, channel)
+        ChosenLadder:Print("Submitting Sync Request")
     end
 end
 
