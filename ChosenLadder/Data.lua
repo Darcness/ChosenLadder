@@ -97,12 +97,12 @@ D.TogglePresent = TogglePresent
 function GenerateSyncData(localDebug)
     local prefix = CL
     local timeMessage = D.Constants.BeginSyncFlag .. D.lastModified
-    local channel = "WHISPER"
+    local channel = "RAID"
 
     if localDebug then
         print(prefix .. ": " .. timeMessage)
     else
-        C_ChatInfo.SendAddonMessage(prefix, timeMessage, channel, "Foladocus")
+        C_ChatInfo.SendAddonMessage(prefix, timeMessage, channel)
     end
 
     local firstPlayer = ""
@@ -114,7 +114,7 @@ function GenerateSyncData(localDebug)
             if localDebug then
                 print(prefix .. ": " .. playerMessage)
             else
-                C_ChatInfo.SendAddonMessage(prefix, playerMessage, channel, "Foladocus")
+                C_ChatInfo.SendAddonMessage(prefix, playerMessage, channel)
             end
         end
     end
@@ -124,7 +124,7 @@ function GenerateSyncData(localDebug)
             if localDebug then
                 print(prefix .. ": " .. playerMessage)
             else
-                C_ChatInfo.SendAddonMessage(prefix, playerMessage, channel, "Foladocus")
+                C_ChatInfo.SendAddonMessage(prefix, playerMessage, channel)
             end
     end
 
@@ -132,7 +132,7 @@ function GenerateSyncData(localDebug)
     if localDebug then
         print(prefix .. ": " .. endMessage)
     else
-        C_ChatInfo.SendAddonMessage(prefix, endMessage, channel, "Foladocus")
+        C_ChatInfo.SendAddonMessage(prefix, endMessage, channel)
     end
 end
 
