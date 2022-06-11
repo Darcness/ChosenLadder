@@ -84,6 +84,7 @@ function RunDunk(name)
 
     D.players = newPlayers
     D.lastModified = GetServerTime()
+    GenerateSyncData(false)
 end
 
 D.RunDunk = RunDunk
