@@ -5,7 +5,7 @@ local UI = NS.UI
 local StreamFlag = NS.Data.Constants.StreamFlag
 
 function ChosenLadder:OnInitialize()
-    print("ChosenLadder Loaded")
+    self:Print(A .. " Loaded")
 end
 
 function ChosenLadder:OnEnable()
@@ -14,8 +14,7 @@ function ChosenLadder:OnEnable()
 end
 
 function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
-    if not not (prefix == A and distribution == "RAID") then
-
+    if prefix == A and distribution == "RAID" and sender ~= UnitName("player") then
         local beginSyncFlag = NS.Data.Constants.BeginSyncFlag
         local endSyncFlag = NS.Data.Constants.EndSyncFlag
 
@@ -30,9 +29,12 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
 
             local timestampStr = vars[1]:gsub(beginSyncFlag, "")
             local timestamp = tonumber(timestampStr)
+            self:Print("Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. NS.Data.lastModified)
             if timestamp > NS.Data.lastModified then
                 -- Begin Sync
                 NS.Data.syncing = StreamFlag.Started
+            else
+                self:Print("Sync Request Denied")
             end
 
 
@@ -48,7 +50,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                 end
 
                 if NS.Data.syncing == StreamFlag.Complete then
-                    print("Syncing List!")
+                    self:Print("Sync Completed from " .. sender)
                     NS.Data.BuildPlayerList(players)
                     UI.PopulatePlayerList()
                     NS.Data.syncing = StreamFlag.Empty
