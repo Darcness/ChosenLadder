@@ -35,44 +35,45 @@ end
 function ChosenLadder_OnEvent(self, event, ...)
     if event == "ADDON_LOADED" and ... == A then
         self:UnregisterEvent("ADDON_LOADED")
-    elseif event == "CHAT_MSG_ADDON" then
-        print(event, ...)
     elseif event == "CHAT_MSG_ADDON_LOGGED" then
-        print(event, ...)
-        local msgText = select(1, ...)
-        local msgChannel = select(2, ...)
-        local msgSender = select(3, ...)
-        local msgTarget = select(4, ...)
 
-        if msgChannel == "RAID" then
-            print(msgText)
-            local beginSyncFlag = NS.Data.Constants.BeginSyncFlag
-            if StartsWith(msgText, beginSyncFlag) then
-                local timestampStr = msgText:gsub(beginSyncFlag, "")
-                local timestamp = tonumber(timestampStr)
-                if timestamp > NS.Data.lastModified then
-                    -- Begin Sync
-                    NS.Data.syncing = true
-                    NS.Data.syncingPlayers = {}
+        local msgPrefix = select(1, ...)
+        local msgText = select(2, ...)
+        local msgChannel = select(3, ...)
+        local msgSender = select(4, ...)
+        local msgTarget = select(5, ...)
+
+        if msgPrefix == A then
+            if msgChannel == "RAID" then
+                print(msgText)
+                local beginSyncFlag = NS.Data.Constants.BeginSyncFlag
+                if StartsWith(msgText, beginSyncFlag) then
+                    local timestampStr = msgText:gsub(beginSyncFlag, "")
+                    local timestamp = tonumber(timestampStr)
+                    if timestamp > NS.Data.lastModified then
+                        -- Begin Sync
+                        NS.Data.syncing = true
+                        NS.Data.syncingPlayers = {}
+                    end
                 end
-            end
 
-            local endSyncFlag = NS.Data.Constants.EndSyncFlag
-            if msgText == endSyncFlag then
-                NS.Data.syncing = false
-                NS.Data.BuildPlayerList(NS.Data.syncingPlayers)
-                print("Syncing List!")
-            end
+                local endSyncFlag = NS.Data.Constants.EndSyncFlag
+                if msgText == endSyncFlag then
+                    NS.Data.syncing = false
+                    NS.Data.BuildPlayerList(NS.Data.syncingPlayers)
+                    print("Syncing List!")
+                end
 
-            if StartsWith(msgText, NS.Data.Constants.PlayerSyncFlag) then
-                local playerPlace = msgText:gsub(NS.Data.Constants.PlayerSyncFlag, "")
-                local i, j = string.find(playerPlace, " - ")
-                local playerPosStr = string.sub(playerPlace, i, j)
-                local playerPos = tonumber(playerPosStr)
+                if StartsWith(msgText, NS.Data.Constants.PlayerSyncFlag) then
+                    local playerPlace = msgText:gsub(NS.Data.Constants.PlayerSyncFlag, "")
+                    local i, j = string.find(playerPlace, " - ")
+                    local playerPosStr = string.sub(playerPlace, i, j)
+                    local playerPos = tonumber(playerPosStr)
 
-                local playerName = string.sub(playerPlace, j + 1)
+                    local playerName = string.sub(playerPlace, j + 1)
 
-                NS.Data.syncingPlayers[playerPos] = playerName
+                    NS.Data.syncingPlayers[playerPos] = playerName
+                end
             end
         end
     end
