@@ -15,10 +15,7 @@ for i = 1, 50 do
 end
 
 function BuildPlayerList(names)
-    -- Clear the list
-    for i = 0, #D.players do
-        D.players[i] = nil
-    end
+    D.players = {}
 
     for _, v in ipairs(names) do
         table.insert(D.players, {
@@ -34,7 +31,7 @@ D.BuildPlayerList = BuildPlayerList
 function RunDunk(name)
     local newPlayers = {}
     -- Initialize newPlayers with nulls, since we're inserting in weird places.
-    for k, v in ipairs(D.players) do
+    for k, v in pairs(D.players) do
         newPlayers[k] = nil
     end
 
@@ -43,7 +40,7 @@ function RunDunk(name)
     local found = nil
     local len = #D.players
 
-    for currentPos, v in ipairs(D.players) do
+    for currentPos, v in pairs(D.players) do
         if name == v.name then
             -- Let's save this guy for later.
             found = v
@@ -105,7 +102,6 @@ function GenerateSyncData(localDebug)
         C_ChatInfo.SendAddonMessageLogged(prefix, timeMessage, channel)
     end
 
-    local firstPlayer = ""
     for k, v in ipairs(D.players) do
         local playerMessage = D.Constants.PlayerSyncFlag .. k - 1 .. " - " .. v.name
         if localDebug then
