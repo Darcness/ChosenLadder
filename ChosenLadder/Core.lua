@@ -2,6 +2,8 @@ local A, NS = ...
 
 local UI = NS.UI
 
+local StreamFlag = NS.Data.Constants.StreamFlag
+
 function ChosenLadder:OnInitialize()
     print("ChosenLadder Loaded")
 end
@@ -20,29 +22,37 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
         if StartsWith(message, beginSyncFlag) then
             local vars = {}
             local players = {}
+
+            -- carve it up
             for str in string.gmatch(message, "([^\\|]+)") do
                 table.insert(vars, str)
             end
 
-            for k, v in ipairs(vars) do
-                if StartsWith(v, beginSyncFlag) then
-                    local timestampStr = v:gsub(beginSyncFlag, "")
-                    local timestamp = tonumber(timestampStr)
-                    if timestamp > NS.Data.lastModified then
-                        -- Begin Sync
-                        NS.Data.syncing = true
-                    end
-                elseif v == endSyncFlag then
-                    NS.Data.syncing = false
-                else
-                    table.insert(players, v)
-                end
+            local timestampStr = vars[1]:gsub(beginSyncFlag, "")
+            local timestamp = tonumber(timestampStr)
+            if timestamp > NS.Data.lastModified then
+                -- Begin Sync
+                NS.Data.syncing = StreamFlag.Started
             end
 
-            if not NS.Data.syncing then
-                print("Syncing List!")
-                NS.Data.BuildPlayerList(players)
-                UI.PopulatePlayerList()
+
+            if NS.Data.syncing == StreamFlag.Started then
+                for k, v in ipairs(vars) do
+                    if StartsWith(v, beginSyncFlag) then
+
+                    elseif v == endSyncFlag then
+                        NS.Data.syncing = StreamFlag.Complete
+                    else
+                        table.insert(players, v)
+                    end
+                end
+
+                if NS.Data.syncing == StreamFlag.Complete then
+                    print("Syncing List!")
+                    NS.Data.BuildPlayerList(players)
+                    UI.PopulatePlayerList()
+                    NS.Data.syncing = StreamFlag.Empty
+                end
             end
         end
     end

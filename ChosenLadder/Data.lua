@@ -98,7 +98,6 @@ function GenerateSyncData(localDebug)
     local fullMessage = timeMessage .. "|"
 
     for k, v in ipairs(D.players) do
-        -- local playerMessage = D.Constants.PlayerSyncFlag .. k - 1 .. " - " .. v.name
         fullMessage = fullMessage .. v.name .. "|"
     end
 
