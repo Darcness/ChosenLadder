@@ -92,30 +92,23 @@ end
 D.TogglePresent = TogglePresent
 
 function GenerateSyncData(localDebug)
-    local prefix = CL
     local timeMessage = D.Constants.BeginSyncFlag .. D.lastModified
     local channel = "RAID"
 
-    if localDebug then
-        print(prefix .. ": " .. timeMessage)
-    else
-        C_ChatInfo.SendAddonMessageLogged(prefix, timeMessage, channel)
-    end
+    local fullMessage = timeMessage .. "|"
 
     for k, v in ipairs(D.players) do
-        local playerMessage = D.Constants.PlayerSyncFlag .. k - 1 .. " - " .. v.name
-        if localDebug then
-            print(prefix .. ": " .. playerMessage)
-        else
-            C_ChatInfo.SendAddonMessageLogged(prefix, playerMessage, channel)
-        end
+        -- local playerMessage = D.Constants.PlayerSyncFlag .. k - 1 .. " - " .. v.name
+        fullMessage = fullMessage .. v.name .. "|"
     end
 
     local endMessage = D.Constants.EndSyncFlag
+    fullMessage = fullMessage .. endMessage
+
     if localDebug then
-        print(prefix .. ": " .. endMessage)
+        print(fullMessage)
     else
-        C_ChatInfo.SendAddonMessageLogged(prefix, endMessage, channel)
+        ChosenLadder:SendMessage(fullMessage, channel)
     end
 end
 
