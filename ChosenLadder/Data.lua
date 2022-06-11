@@ -102,7 +102,7 @@ function GenerateSyncData(localDebug)
     if localDebug then
         print(prefix .. ": " .. timeMessage)
     else
-        C_ChatInfo.SendAddonMessage(prefix, timeMessage, channel)
+        C_ChatInfo.SendAddonMessageLogged(prefix, timeMessage, channel)
     end
 
     local firstPlayer = ""
@@ -114,7 +114,7 @@ function GenerateSyncData(localDebug)
             if localDebug then
                 print(prefix .. ": " .. playerMessage)
             else
-                C_ChatInfo.SendAddonMessage(prefix, playerMessage, channel)
+                C_ChatInfo.SendAddonMessageLogged(prefix, playerMessage, channel)
             end
         end
     end
@@ -124,7 +124,7 @@ function GenerateSyncData(localDebug)
             if localDebug then
                 print(prefix .. ": " .. playerMessage)
             else
-                C_ChatInfo.SendAddonMessage(prefix, playerMessage, channel)
+                C_ChatInfo.SendAddonMessageLogged(prefix, playerMessage, channel)
             end
     end
 
@@ -132,7 +132,7 @@ function GenerateSyncData(localDebug)
     if localDebug then
         print(prefix .. ": " .. endMessage)
     else
-        C_ChatInfo.SendAddonMessage(prefix, endMessage, channel)
+        C_ChatInfo.SendAddonMessageLogged(prefix, endMessage, channel)
     end
 end
 

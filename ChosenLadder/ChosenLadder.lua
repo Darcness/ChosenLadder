@@ -26,6 +26,7 @@ NS.Functions.StartsWith = StartsWith
 
 function ChosenLadder_OnLoad(self)
     self:RegisterEvent("ADDON_LOADED")
+    print("ChosenLadder Loaded")
 end
 
 function ChosenLadder_OnEvent(self, event, ...)
@@ -34,7 +35,7 @@ function ChosenLadder_OnEvent(self, event, ...)
         C_ChatInfo.RegisterAddonMessagePrefix(A)
         print("Registered Chat Listener - " .. A)
     elseif event == "CHAT_MSG_ADDON_LOGGED" and arg[2] == "RAID" then
-        print("CHAT MSG - " .. ...)
+        print("CHAT MSG ADDON LOGGED - " .. ...)
         local msgText = arg[1]
         local msgChannel = arg[2]
         local msgSender = arg[3]
