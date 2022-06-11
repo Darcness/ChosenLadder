@@ -103,30 +103,16 @@ function GenerateSyncData(localDebug)
         print(prefix .. ": " .. timeMessage)
     else
         C_ChatInfo.SendAddonMessageLogged(prefix, timeMessage, channel)
-        print("Sent: " .. prefix .. " | " .. timeMessage .. " | " .. channel)
     end
 
     local firstPlayer = ""
     for k, v in ipairs(D.players) do
-        if k == 1 then
-            firstPlayer = v.name
+        local playerMessage = D.Constants.PlayerSyncFlag .. k - 1 .. " - " .. v.name
+        if localDebug then
+            print(prefix .. ": " .. playerMessage)
         else
-            local playerMessage = D.Constants.PlayerSyncFlag .. k - 1 .. " - " .. v.name
-            if localDebug then
-                print(prefix .. ": " .. playerMessage)
-            else
-                C_ChatInfo.SendAddonMessageLogged(prefix, playerMessage, channel)
-            end
+            C_ChatInfo.SendAddonMessageLogged(prefix, playerMessage, channel)
         end
-    end
-
-    if firstPlayer ~= "" then
-        local playerMessage = D.Constants.PlayerSyncFlag .. #D.players .. " - " .. firstPlayer
-            if localDebug then
-                print(prefix .. ": " .. playerMessage)
-            else
-                C_ChatInfo.SendAddonMessageLogged(prefix, playerMessage, channel)
-            end
     end
 
     local endMessage = D.Constants.EndSyncFlag

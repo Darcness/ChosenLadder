@@ -67,10 +67,10 @@ function ChosenLadder_OnEvent(self, event, ...)
                 if StartsWith(msgText, NS.Data.Constants.PlayerSyncFlag) then
                     local playerPlace = msgText:gsub(NS.Data.Constants.PlayerSyncFlag, "")
                     local i, j = string.find(playerPlace, " - ")
-                    local playerPosStr = string.sub(playerPlace, i, j)
+                    local playerPosStr = string.sub(playerPlace, 1, i)
                     local playerPos = tonumber(playerPosStr)
 
-                    local playerName = string.sub(playerPlace, j + 1)
+                    local playerName = string.sub(playerPlace, i + j + 1)
 
                     NS.Data.syncingPlayers[playerPos] = playerName
                 end
