@@ -3,7 +3,7 @@
 ## Version: 0.0.1
 ## Notes: Ladder addon for The Chosen Guild
 ## Author: Darc
-## Dependencies: Ace3
+
 
 lib\LibStub\LibStub.lua
 lib\AceComm-3.0\AceComm-3.0.xml
