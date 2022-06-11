@@ -37,6 +37,7 @@ function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
         D.TogglePresent(text)
     end)
 
+    -- Dunk Button
     local dunkButton = CreateFrame("Button", UIPrefixes.DunkButton .. text, row, "UIPanelButtonTemplate")
     dunkButton:SetText("Dunk")
     dunkButton:SetPoint("TOPRIGHT", row, -2, -2)
@@ -78,10 +79,6 @@ function PopulatePlayerList()
         playerRow:SetPoint("TOPLEFT", UI.scrollChild, 0, (k - 1) * -28)
         -- Show them, in case they existed before and we hid them.
         playerRow:Show()
-
-        -- Only the master looter is allowed to dunk.  Hide the button otherwise.
-        local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
-
 
         -- Fix the ordering
         local text = _G[UIPrefixes.PlayerNameString .. v.name]
