@@ -103,6 +103,7 @@ function GenerateSyncData(localDebug)
         print(prefix .. ": " .. timeMessage)
     else
         C_ChatInfo.SendAddonMessageLogged(prefix, timeMessage, channel)
+        print("Sent: " .. prefix .. " | " .. timeMessage .. " | " .. channel)
     end
 
     local firstPlayer = ""
