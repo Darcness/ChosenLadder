@@ -53,7 +53,6 @@ function ChosenLadder_OnEvent(self, event, ...)
                     if timestamp > NS.Data.lastModified then
                         -- Begin Sync
                         NS.Data.syncing = true
-                        NS.Data.syncingPlayers = {}
                     end
                 end
 
@@ -72,6 +71,10 @@ function ChosenLadder_OnEvent(self, event, ...)
 
                     local playerName = string.sub(playerPlace, i + j + 1)
 
+                    if NS.Data.syncingPlayers == nil then
+                        NS.Data.syncingPlayers = {}
+                    end
+                    
                     NS.Data.syncingPlayers[playerPos] = playerName
                 end
             end
