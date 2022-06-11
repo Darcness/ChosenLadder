@@ -41,7 +41,7 @@ function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
     dunkButton:SetPoint("TOPLEFT", textFont, (maxNameSize * 7) + 4, 6)
     dunkButton:SetScript("OnClick", function(self, button, down)
         D.RunDunk(text)
-        PopulatePlayerList(parentScrollFrame)
+        PopulatePlayerList()
     end)
 
     return row
@@ -56,11 +56,11 @@ function GetMaxNameSize()
     return maxNameSize
 end
 
-function PopulatePlayerList(parentScrollFrame)
+function PopulatePlayerList()
     -- We get this here so we're not re-calculating it for every row.
     local maxNameSize = GetMaxNameSize()
 
-    local children = { parentScrollFrame:GetChildren() }
+    local children = { UI.scrollChild:GetChildren() }
     for i, child in ipairs(children) do
         -- We want to hide the old ones, so they're not on mangling the new ones.
         child:Hide()
@@ -69,12 +69,12 @@ function PopulatePlayerList(parentScrollFrame)
     for k, v in ipairs(D.players) do
         -- Store the player row, since we can't count on the WoW client to garbage collect
         if _G[UIPrefixes.PlayerRow .. v.name] == nil then
-            _G[UIPrefixes.PlayerRow .. v.name] = CreatePlayerRowItem(parentScrollFrame, v.name, v.present, k, maxNameSize)
+            _G[UIPrefixes.PlayerRow .. v.name] = CreatePlayerRowItem(UI.scrollChild, v.name, v.present, k, maxNameSize)
         end
 
         -- Grab the stored player row and visually reorder it.
         local playerRow = _G[UIPrefixes.PlayerRow .. v.name]
-        playerRow:SetPoint("TOPLEFT", parentScrollFrame, 0, (k - 1) * -28)
+        playerRow:SetPoint("TOPLEFT", UI.scrollChild, 0, (k - 1) * -28)
         -- Show them, in case they existed before and we hid them.
         playerRow:Show()
 
@@ -87,6 +87,8 @@ function PopulatePlayerList(parentScrollFrame)
         text:SetText(k .. " - " .. v.name)
     end
 end
+
+UI.PopulatePlayerList = PopulatePlayerList
 
 function PopulateNames(editBox)
     local names = ""
@@ -240,10 +242,11 @@ function CreateMainWindowFrame()
     local scrollChild = CreateFrame("Frame")
     scrollFrame:SetScrollChild(scrollChild)
 
+    UI.scrollChild = scrollChild
     scrollChild:SetWidth(scrollFrame:GetWidth())
     scrollChild:SetHeight(scrollFrame:GetHeight())
     scrollChild:SetScript("OnShow", function(self)
-        PopulatePlayerList(self)
+        PopulatePlayerList()
     end)
 
     PopulatePlayerList(scrollChild)

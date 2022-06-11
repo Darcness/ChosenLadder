@@ -42,6 +42,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
             if not NS.Data.syncing then
                 print("Syncing List!")
                 NS.Data.BuildPlayerList(players)
+                UI.PopulatePlayerList()
             end
         end
     end
