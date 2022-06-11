@@ -35,12 +35,12 @@ function ChosenLadder_OnEvent(self, event, ...)
         self:RegisterEvent("CHAT_MSG_ADDON_LOGGED")
         C_ChatInfo.RegisterAddonMessagePrefix(A)
         print("Registered Chat Listener - " .. A)
-    elseif event == "CHAT_MSG_ADDON_LOGGED" and arg[2] == "RAID" then
+    elseif event == "CHAT_MSG_ADDON_LOGGED" and select(2, ...) == "RAID" then
         print("CHAT MSG ADDON LOGGED - " .. ...)
-        local msgText = arg[1]
-        local msgChannel = arg[2]
-        local msgSender = arg[3]
-        local msgTarget = arg[4]
+        local msgText = select(1, ...)
+        local msgChannel = select(2, ...)
+        local msgSender = select(3, ...)
+        local msgTarget = select(4, ...)
 
         if msgChannel == "RAID" then
             print(msgText)
