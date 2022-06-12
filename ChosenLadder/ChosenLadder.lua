@@ -18,7 +18,7 @@ StreamFlag = {
 
 NS.Data.Constants.StreamFlag = StreamFlag
 
-ChosenLadder = LibStub("AceAddon-3.0"):NewAddon(A, "AceConsole-3.0", "AceComm-3.0")
+ChosenLadder = LibStub("AceAddon-3.0"):NewAddon(A, "AceConsole-3.0", "AceComm-3.0", "AceEvent-3.0")
 NS.CL = ChosenLadder
 
 function Trim(s)
