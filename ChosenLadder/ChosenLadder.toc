@@ -13,4 +13,5 @@ lib\AceComm-3.0\AceComm-3.0.xml
 ChosenLadder.lua
 Data.lua
 UI.lua
+Events.lua
 Core.lua

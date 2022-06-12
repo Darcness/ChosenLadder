@@ -19,6 +19,7 @@ StreamFlag = {
 NS.Data.Constants.StreamFlag = StreamFlag
 
 ChosenLadder = LibStub("AceAddon-3.0"):NewAddon(A, "AceConsole-3.0", "AceComm-3.0", "AceEvent-3.0")
+
 NS.CL = ChosenLadder
 
 function Trim(s)
@@ -32,3 +33,16 @@ function StartsWith(str, start)
 end
 
 NS.Functions.StartsWith = StartsWith
+
+function Split(inputstr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    local t = {}
+    for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
+        table.insert(t, str)
+    end
+    return t
+end
+
+NS.Functions.Split = Split
