@@ -11,6 +11,11 @@ end
 function ChosenLadder:OnEnable()
     self:RegisterComm(A, ChosenLadder:OnCommReceived())
     self:RegisterChatCommand("ladder", "SlashCommand")
+    self:RegisterEvent("GROUP_ROSTER_UPDATE", ChosenLadder:GROUP_ROSTER_UPDATE())
+end
+
+function ChosenLadder:GROUP_ROSTER_UPDATE(...)
+    UI.PopulatePlayerList()
 end
 
 function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)

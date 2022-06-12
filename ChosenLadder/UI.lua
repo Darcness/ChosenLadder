@@ -59,30 +59,41 @@ function GetMaxNameSize()
 end
 
 function PopulatePlayerList()
-    -- We get this here so we're not re-calculating it for every row.
-    local maxNameSize = GetMaxNameSize()
+    -- If there's no mainFrame yet, we have nothing to populate.
+    if UI.mainFrame ~= nil then
+        -- We get this here so we're not re-calculating it for every row.
+        local maxNameSize = GetMaxNameSize()
 
-    local children = { UI.scrollChild:GetChildren() }
-    for i, child in ipairs(children) do
-        -- We want to hide the old ones, so they're not on mangling the new ones.
-        child:Hide()
-    end
-
-    for k, v in ipairs(D.players) do
-        -- Store the player row, since we can't count on the WoW client to garbage collect
-        if _G[UIPrefixes.PlayerRow .. v.name] == nil then
-            _G[UIPrefixes.PlayerRow .. v.name] = CreatePlayerRowItem(UI.scrollChild, v.name, v.present, k, maxNameSize)
+        local children = { UI.scrollChild:GetChildren() }
+        for i, child in ipairs(children) do
+            -- We want to hide the old ones, so they're not on mangling the new ones.
+            child:Hide()
         end
 
-        -- Grab the stored player row and visually reorder it.
-        local playerRow = _G[UIPrefixes.PlayerRow .. v.name]
-        playerRow:SetPoint("TOPLEFT", UI.scrollChild, 0, (k - 1) * -28)
-        -- Show them, in case they existed before and we hid them.
-        playerRow:Show()
+        for k, v in ipairs(D.players) do
+            -- Store the player row, since we can't count on the WoW client to garbage collect
+            if _G[UIPrefixes.PlayerRow .. v.name] == nil then
+                _G[UIPrefixes.PlayerRow .. v.name] = CreatePlayerRowItem(UI.scrollChild, v.name, v.present, k, maxNameSize)
+            end
 
-        -- Fix the ordering
-        local text = _G[UIPrefixes.PlayerNameString .. v.name]
-        text:SetText(k .. " - " .. v.name)
+            -- Grab the stored player row and visually reorder it.
+            local playerRow = _G[UIPrefixes.PlayerRow .. v.name]
+            playerRow:SetPoint("TOPLEFT", UI.scrollChild, 0, (k - 1) * -28)
+            -- Show them, in case they existed before and we hid them.
+            playerRow:Show()
+
+            local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
+            local lootMethod, masterLooterPartyId, _ = GetLootMethod()
+            if lootMethod == "master" and masterLooterPartyId == 0 then
+                dunkButton:Show()
+            else
+                dunkButton:Hide()
+            end
+
+            -- Fix the ordering
+            local text = _G[UIPrefixes.PlayerNameString .. v.name]
+            text:SetText(k .. " - " .. v.name)
+        end
     end
 end
 

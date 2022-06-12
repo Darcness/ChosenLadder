@@ -6,7 +6,9 @@
 
 
 lib\LibStub\LibStub.lua
+lib\AceEvent-3.0\AceEvent-3.0.xml
 lib\AceComm-3.0\AceComm-3.0.xml
+
 
 ChosenLadder.lua
 Data.lua
