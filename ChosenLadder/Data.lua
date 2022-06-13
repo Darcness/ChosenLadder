@@ -3,8 +3,11 @@ local CL, NS = ...
 local D = NS.Data
 
 D.players = {}
-
 D.lastModified = 0
+
+D.auctionHistory = {}
+D.currentBid = 0
+D.currentWinner = nil
 
 for i = 1, 50 do
     if i == 1 then
@@ -122,3 +125,29 @@ function GenerateSyncData(localDebug)
 end
 
 D.GenerateSyncData = GenerateSyncData
+
+function IsPlayerInRaid(playername)
+    for k, v in ipairs(D.raidRoster) do
+        if v[1] == Ambiguate(playername, "all") then
+            return true
+        end
+    end
+
+    return false
+end
+
+D.IsPlayerInRaid = IsPlayerInRaid
+
+function CompleteAuction()
+    table.insert(D.auctionHistory, {
+        name = D.currentWinner,
+        bid = D.currentBid,
+        item = D.auctionItem
+    })
+
+    SendChatMessage("Auction Complete! " .. Ambiguate(D.currentWinner, "all") .. " wins " .. D.auctionItem .. " for " .. D.currentBid .. " gold!", "RAID_WARNING")
+    D.auctionItem = nil
+    D.currentBid = 0
+end
+
+D.CompleteAuction = CompleteAuction

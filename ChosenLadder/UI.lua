@@ -3,7 +3,6 @@ local A, NS = ...
 local D = NS.Data
 local UI = NS.UI
 local F = NS.Functions
-local CL = NS.CL;
 
 local toggleAll = false
 
