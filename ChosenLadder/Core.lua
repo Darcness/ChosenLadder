@@ -5,13 +5,16 @@ local F = NS.Functions
 local D = NS.Data
 
 function ChosenLadder:OnInitialize()
-    self:Print(A .. " Loaded")
+    -- self:Print(A .. " Loaded")
 end
 
 function ChosenLadder:OnEnable()
     self:RegisterComm(A, ChosenLadder:OnCommReceived())
-    self:RegisterChatCommand("ladder", "ToggleLadder")
-    self:RegisterChatCommand("clauction", "StartAuction")
+    self:RegisterChatCommand("clladder", "ToggleLadder")
+    self:RegisterChatCommand("clauction", "Auction")
+    self:RegisterChatCommand("clhistory", "AuctionHistory")
+    self:RegisterChatCommand("cl", "Help")
+    self:RegisterChatCommand("clhelp", "Help")
     self:RegisterEvent("GROUP_ROSTER_UPDATE", ChosenLadder:GROUP_ROSTER_UPDATE())
     self:RegisterEvent("CHAT_MSG_WHISPER", ChosenLadder:CHAT_MSG_WHISPER())
 end
@@ -29,7 +32,7 @@ function ChosenLadder:SendMessage(message, destination)
     self:SendCommMessage(A, message, destination, nil, "BULK")
 end
 
-function ChosenLadder:StartAuction(input)
+function ChosenLadder:Auction(input)
     local arg1, arg2 = self:GetArgs(input, 2)
 
     if string.lower(arg1) == "start" then
@@ -43,10 +46,24 @@ function ChosenLadder:StartAuction(input)
             self:Print("Usage: /clauction <start/stop> [itemLink]")
         end
     elseif string.lower(arg1) == "stop" then
-        SendChatMessage("Auction Complete! " .. Ambiguate(D.currentWinner, "all") .. " wins " .. D.auctionItem .. " for " .. D.currentBid .. " gold!", "RAID_WARNING")
-        D.auctionItem = nil
-        D.currentBid = 0
+        D.CompleteAuction()
     else
         self:Print("Usage: /clauction <start/stop> [itemLink]")
     end
+end
+
+function ChosenLadder:AuctionHistory()
+    self:Print("Auction History")
+    for k, v in pairs(D.auctionHistory) do
+        self:Print(v.item .. " to " .. Ambiguate(v.name) .. " for " .. v.bid)
+    end
+end
+
+function ChosenLadder:Help()
+    self:Print("ChosenLadder Help")
+    self:Print("/cl, /clhelp - Displays this list")
+    self:Print("/clladder - Toggles the main ladder window")
+    self:Print("/clauction <start/stop> [<itemLink>] - Starts an auction (for the linked item) or stops the current auction")
+    self:Print("/clhistory - Displays the list of completed auctions")
+
 end

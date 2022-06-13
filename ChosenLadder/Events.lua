@@ -5,22 +5,46 @@ local D = NS.Data
 
 local StreamFlag = NS.Data.Constants.StreamFlag
 
+function GetMinimumBid()
+    local currentBid = D.currentBid or 0
+    if currentBid < 50 then
+        return 50
+    elseif currentBid < 300 then
+        return currentBid + 10
+    elseif currentBid < 1000 then
+        return currentBid + 50
+    else
+        return currentBid + 100
+    end
+end
+
 function ChosenLadder:GROUP_ROSTER_UPDATE(...)
     UI.PopulatePlayerList()
+
+    D.raidRoster = {}
+    for i = 1, MAX_RAID_MEMBERS do
+        local rosterInfo = { GetRaidRosterInfo(i) }
+        -- Break early if we hit a nil (this means we've reached the full number of players)
+        if rosterInfo[1] == nil then
+            return
+        end
+
+        table.insert(D.raidRoster, { GetRaidRosterInfo(i) })
+    end
 end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
     if D.auctionItem ~= nil then
         local bid = tonumber(text)
-        local currentBid = D.currentBid or 0
-        if bid ~= nil then
+        if bid ~= nil and D.IsPlayerInRaid(playerName) then
             bid = math.floor(bid)
-            if bid > currentBid then
+            local minBid = GetMinimumBid()
+            if bid >= minBid then
                 D.currentBid = bid
                 D.currentWinner = playerName
-                SendChatMessage("Current Bid: " .. bid, "RAID" )
+                SendChatMessage("Current Bid: " .. bid, "RAID")
             else
-                SendChatMessage(A .. ": The current bid is " .. currentBid .. ", please bid higher.", "WHISPER", nil, playerName)
+                SendChatMessage(A .. ": The current minimum bid is " .. minBid, "WHISPER", nil, playerName)
             end
         end
     end
