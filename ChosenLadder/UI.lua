@@ -86,17 +86,14 @@ function PopulatePlayerList()
             -- Show them, in case they existed before and we hid them.
             playerRow:Show()
 
-            local lootMethod, masterLooterPartyId, _ = GetLootMethod()
-            local isLootMaster = lootMethod == "master" and masterLooterPartyId == 0
-
             -- Set up CheckButton values
             local cb = _G[UIPrefixes.CheckButton .. v.name]
             cb:SetChecked(v.present)
-            cb:SetEnabled(isLootMaster)
+            cb:SetEnabled(D.isLootMaster)
 
             -- Set up DunkButton values
             local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
-            dunkButton:SetEnabled(isLootMaster and cb:GetChecked())
+            dunkButton:SetEnabled(D.isLootMaster and cb:GetChecked())
 
             -- Fix the ordering
             local text = _G[UIPrefixes.PlayerNameString .. v.name]
@@ -133,11 +130,12 @@ function CreateImportFrame()
     title:SetText("Import Names (one per line)")
 
     -- Import Button
-    local importButton = CreateFrame("Button", "ChosenLadderImportButton", mainFrame, "UIPanelButtonTemplate")
-    importButton:SetWidth(64)
-    importButton:SetPoint("TOPRIGHT", mainFrame, -24, 0)
-    importButton:SetText("Import")
-    importButton:SetScript("OnClick", function(self, button, down)
+    local saveButton = CreateFrame("Button", "ChosenLadderSaveButton", mainFrame, "UIPanelButtonTemplate")
+    saveButton:SetWidth(64)
+    saveButton:SetPoint("TOPRIGHT", mainFrame, -24, 0)
+    saveButton:SetText("Save")
+    saveButton:SetEnabled(D.isLootMaster or false)
+    saveButton:SetScript("OnClick", function(self, button, down)
         local text = ChosenLadderImportEditBox:GetText()
         local lines = {}
         for line in text:gmatch("([^\n]*)\n?") do
@@ -149,6 +147,7 @@ function CreateImportFrame()
 
         ToggleImportFrame()
     end)
+    UI.importSaveButton = saveButton;
 
     -- Content Window
     local contentFrame = CreateFrame("Frame", "ChosenLadderImportContentFrame", mainFrame, "BackdropTemplate")
@@ -215,6 +214,7 @@ function CreateMainActionsFrame(mainFrame)
     selectAllButton:SetWidth(actionButtonWidth)
     selectAllButton:SetPoint("TOPLEFT", importButton, 0, -(importButton:GetHeight() + 2))
     selectAllButton:SetText(toggleAll and "Uncheck All" or "Check All")
+    selectAllButton:SetEnabled(D.isLootMaster or false)
     selectAllButton:SetScript("OnClick", function(self, button, down)
         toggleAll = not toggleAll
         for k, v in pairs(LootLadder.players) do
@@ -224,15 +224,20 @@ function CreateMainActionsFrame(mainFrame)
         end
         self:SetText(toggleAll and "Uncheck All" or "Check All")
     end)
+    UI.selectAllButton = selectAllButton
 
     -- Sync Button
     local syncButton = CreateFrame("Button", "ChosenLadderSyncButton", contentFrame, "UIPanelButtonTemplate")
     syncButton:SetWidth(actionButtonWidth)
     syncButton:SetPoint("TOPLEFT", selectAllButton, 0, -(selectAllButton:GetHeight() + 2))
     syncButton:SetText("Sync")
+    syncButton:SetEnabled(D.isLootMaster or false)
     syncButton:SetScript("OnClick", function(self, button, down)
         D.GenerateSyncData(false)
+        ChosenLadder:Print("Submitting Sync Request")
     end)
+    UI.syncButton = syncButton
+
 end
 
 function CreateMainPlayerListFrame(mainFrame)
@@ -307,3 +312,21 @@ function ToggleMainWindowFrame()
 end
 
 UI.ToggleMainWindowFrame = ToggleMainWindowFrame
+
+function UpdateElementsByPermission()
+    if UI.syncButton ~= nil then
+        UI.syncButton:SetEnabled(D.isLootMaster or false)
+    end
+
+    if UI.selectAllButton ~= nil then
+        UI.selectAllButton:SetEnabled(D.isLootMaster or false)
+    end
+
+    if UI.importSaveButton ~= nil then
+        UI.importSaveButton:SetEnabled(D.isLootMaster or false)
+    end
+
+    PopulatePlayerList()
+end
+
+UI.UpdateElementsByPermission = UpdateElementsByPermission

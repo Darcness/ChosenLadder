@@ -12,11 +12,18 @@ function BuildPlayerList(names)
             log = ""
         })
     end
+
+    LootLadder.lastModified = GetServerTime()
 end
 
 D.BuildPlayerList = BuildPlayerList
 
 function RunDunk(name)
+    if D.isLootMaster == nil or D.isLootMaster == false then
+        SendChatMessage(string.format("%s: %s has attempted to DUNK via illegal calls to addon code", CL,
+            UnitName("player")),
+            "RAID_WARNING")
+    end
     local newPlayers = {}
     -- Initialize newPlayers with nulls, since we're inserting in weird places.
     for k, v in pairs(LootLadder.players) do
@@ -54,16 +61,24 @@ function RunDunk(name)
         end
     end
 
+    local targetPos = 0
+
     -- There should be one empty spot (probably near the bottom).  Let's find it and put the dunker there.
     for i = 1, len do
         if newPlayers[i] == nil then
             newPlayers[i] = found
-            print(found.name .. " moved to position " .. i .. " from position " .. foundPos)
+            targetPos = i
+            print(found.name .. " moved to position " .. targetPos .. " from position " .. foundPos)
         end
     end
 
     LootLadder.players = newPlayers
-    D.lastModified = GetServerTime()
+    LootLadder.lastModified = GetServerTime()
+    table.insert(D.ladderHistory, {
+        name = found.name,
+        from = foundPos,
+        to = targetPos
+    })
     GenerateSyncData(false)
 end
 
@@ -81,7 +96,7 @@ end
 D.TogglePresent = TogglePresent
 
 function GenerateSyncData(localDebug)
-    local timeMessage = D.Constants.BeginSyncFlag .. D.lastModified
+    local timeMessage = D.Constants.BeginSyncFlag .. LootLadder.lastModified
     local channel = "RAID"
 
     local fullMessage = timeMessage .. "|"
@@ -97,7 +112,6 @@ function GenerateSyncData(localDebug)
         print(fullMessage)
     else
         ChosenLadder:SendMessage(fullMessage, channel)
-        ChosenLadder:Print("Submitting Sync Request")
     end
 end
 
@@ -116,13 +130,33 @@ end
 D.IsPlayerInRaid = IsPlayerInRaid
 
 function CompleteAuction()
+    if D.auctionItem == nil then
+        self:Print("No auction has begun!")
+        return
+    end
+
+    if D.currentWinner == nil then
+        SendChatMessage("Auction Canceled by " .. UnitName("player") .. "!", "RAID_WARNING")
+        D.auctionItem = nil
+        return
+    end
+
+    local bid = 0
+    if D.currentBid ~= nil and D.currentBid > 0 then
+        bid = D.currentBid
+    end
+
+    SendChatMessage(string.format("Auction Complete! %s wins %s for %d gold!",
+        Ambiguate(D.currentWinner, "all"), D.auctionItem, bid),
+        "RAID_WARNING")
+
     table.insert(D.auctionHistory, {
         name = D.currentWinner,
         bid = D.currentBid,
         item = D.auctionItem
     })
 
-    SendChatMessage("Auction Complete! " .. Ambiguate(D.currentWinner, "all") .. " wins " .. D.auctionItem .. " for " .. D.currentBid .. " gold!", "RAID_WARNING")
+    D.currentWinner = nil
     D.auctionItem = nil
     D.currentBid = 0
 end

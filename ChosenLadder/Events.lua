@@ -19,7 +19,10 @@ function GetMinimumBid()
 end
 
 function ChosenLadder:GROUP_ROSTER_UPDATE(...)
-    UI.PopulatePlayerList()
+    local lootMethod, masterLooterPartyId, _ = GetLootMethod()
+    D.isLootMaster = lootMethod == "master" and masterLooterPartyId == 0
+
+    UI.UpdateElementsByPermission()
 
     D.raidRoster = {}
     for i = 1, MAX_RAID_MEMBERS do
@@ -35,19 +38,30 @@ end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
     if D.auctionItem ~= nil then
-        local bid = tonumber(text)
-        if bid ~= nil and D.IsPlayerInRaid(playerName) then
-            bid = math.floor(bid)
+        if D.IsPlayerInRaid(playerName) then
+            local bid = tonumber(text)
             local minBid = GetMinimumBid()
-            if bid >= minBid then
-                D.currentBid = bid
-                D.currentWinner = playerName
-                SendChatMessage("Current Bid: " .. bid, "RAID")
-            else
-                SendChatMessage(A .. ": The current minimum bid is " .. minBid, "WHISPER", nil, playerName)
+
+            if bid == nil then
+                SendChatMessage(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A,
+                    UnitName("player"), minBid), "WHISPER", nil, playerName)
+                return
+            elseif bid ~= nil then
+                bid = math.floor(bid)
+                if bid >= minBid then
+                    D.currentBid = bid
+                    D.currentWinner = playerName
+                    SendChatMessage("Current Bid: " .. bid, "RAID")
+                else
+                    SendChatMessage(string.format("[%s]: Invalid Bid! The minimum bid is %d", A, minBid), "WHISPER", nil
+                        , playerName)
+                    return
+                end
             end
         end
     end
+
+
 end
 
 function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
@@ -66,8 +80,9 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
 
             local timestampStr = vars[1]:gsub(beginSyncFlag, "")
             local timestamp = tonumber(timestampStr)
-            self:Print("Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. D.lastModified)
-            if timestamp > D.lastModified then
+            self:Print("Incoming Sync request from " ..
+                sender .. ": " .. timestamp .. " - Local: " .. LootLadder.lastModified)
+            if timestamp > LootLadder.lastModified then
                 -- Begin Sync
                 D.syncing = StreamFlag.Started
             else
