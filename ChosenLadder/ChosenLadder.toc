@@ -1,6 +1,6 @@
 ## Interface: 20504
 ## Title: ChosenLadder
-## Version: 0.0.1
+## Version: 0.2.0
 ## Notes: Ladder addon for The Chosen Guild
 ## Author: Darc
 ## SavedVariables: LootLadder
