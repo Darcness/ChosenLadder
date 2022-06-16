@@ -33,7 +33,6 @@ function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
     -- Any other properties
     cb:SetChecked(checked)
 
-
     -- Dunk Button
     local dunkButton = CreateFrame("Button", UIPrefixes.DunkButton .. text, row, "UIPanelButtonTemplate")
     dunkButton:SetText("Dunk")
@@ -87,20 +86,22 @@ function PopulatePlayerList()
             -- Show them, in case they existed before and we hid them.
             playerRow:Show()
 
-            local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
             local lootMethod, masterLooterPartyId, _ = GetLootMethod()
-            if lootMethod == "master" and masterLooterPartyId == 0 then
-                dunkButton:Show()
-            else
-                dunkButton:Hide()
-            end
+            local isLootMaster = lootMethod == "master" and masterLooterPartyId == 0
+
+            -- Set up CheckButton values
+            local cb = _G[UIPrefixes.CheckButton .. v.name]
+            cb:SetChecked(v.present)
+            cb:SetEnabled(isLootMaster)
+
+            -- Set up DunkButton values
+            local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
+            dunkButton:SetEnabled(isLootMaster and cb:GetChecked())
 
             -- Fix the ordering
             local text = _G[UIPrefixes.PlayerNameString .. v.name]
             text:SetText(k .. " - " .. v.name)
 
-            local cb = _G[UIPrefixes.CheckButton .. v.name]
-            cb:SetChecked(v.present)
         end
     end
 end
@@ -258,6 +259,8 @@ function CreateMainPlayerListFrame(mainFrame)
     scrollChild:SetScript("OnShow", function(self)
         PopulatePlayerList()
     end)
+
+    PopulatePlayerList()
 end
 
 function CreateMainWindowFrame()
