@@ -19,6 +19,11 @@ end
 D.BuildPlayerList = BuildPlayerList
 
 function RunDunk(name)
+    if D.isLootMaster == nil or D.isLootMaster == false then
+        SendChatMessage(string.format("%s: %s has attempted to DUNK via illegal calls to addon code", CL,
+            UnitName("player")),
+            "RAID_WARNING")
+    end
     local newPlayers = {}
     -- Initialize newPlayers with nulls, since we're inserting in weird places.
     for k, v in pairs(LootLadder.players) do
@@ -118,13 +123,33 @@ end
 D.IsPlayerInRaid = IsPlayerInRaid
 
 function CompleteAuction()
+    if D.auctionItem == nil then
+        self:Print("No auction has begun!")
+        return
+    end
+
+    if D.currentWinner == nil then
+        SendChatMessage("Auction Canceled by " .. UnitName("player") .. "!", "RAID_WARNING")
+        D.auctionItem = nil
+        return
+    end
+
+    local bid = 0
+    if D.currentBid ~= nil and D.currentBid > 0 then
+        bid = D.currentBid
+    end
+
+    SendChatMessage(string.format("Auction Complete! %s wins %s for %d gold!",
+        Ambiguate(D.currentWinner, "all"), D.auctionItem, bid),
+        "RAID_WARNING")
+
     table.insert(D.auctionHistory, {
         name = D.currentWinner,
         bid = D.currentBid,
         item = D.auctionItem
     })
 
-    SendChatMessage("Auction Complete! " .. Ambiguate(D.currentWinner, "all") .. " wins " .. D.auctionItem .. " for " .. D.currentBid .. " gold!", "RAID_WARNING")
+    D.currentWinner = nil
     D.auctionItem = nil
     D.currentBid = 0
 end

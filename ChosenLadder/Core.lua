@@ -39,6 +39,12 @@ function ChosenLadder:OnInitialize()
     D.currentWinner = nil
 end
 
+function YouSoBad(action)
+    SendChatMessage(string.format("%s: %s has attempted to %s via illegal calls to addon code"
+        , A, UnitName("player"), action),
+        "RAID")
+end
+
 function ChosenLadder:OnEnable()
     self:RegisterComm(A, ChosenLadder:OnCommReceived())
     self:RegisterChatCommand("clladder", "ToggleLadder")
@@ -60,10 +66,22 @@ function ChosenLadder:ToggleLadder()
 end
 
 function ChosenLadder:SendMessage(message, destination)
+    print("SendMessage Start")
+    print(D.isLootMaster)
+    if D.isLootMaster == nil or D.isLootMaster == false then
+        YouSoBad("Send Addon Communications")
+        return
+    end
     self:SendCommMessage(A, message, destination, nil, "BULK")
 end
 
 function ChosenLadder:Auction(input)
+    print(D.isLootMaster)
+    if D.isLootMaster == nil or D.isLootMaster == false then
+        YouSoBad("Start or Stop an Auction")
+        return
+    end
+
     local arg1, arg2 = self:GetArgs(input, 2)
 
     if string.lower(arg1) == "start" then
@@ -88,7 +106,7 @@ end
 function ChosenLadder:AuctionHistory()
     self:Print("Auction History")
     for k, v in pairs(D.auctionHistory) do
-        self:Print(v.item .. " to " .. Ambiguate(v.name) .. " for " .. v.bid)
+        self:Print(v.item .. " to " .. Ambiguate(v.name, "all") .. " for " .. v.bid)
     end
 end
 
@@ -98,5 +116,4 @@ function ChosenLadder:Help()
     self:Print("/clladder - Toggles the main ladder window")
     self:Print("/clauction <start/stop> [<itemLink>] - Starts an auction (for the linked item) or stops the current auction")
     self:Print("/clhistory - Displays the list of completed auctions")
-
 end
