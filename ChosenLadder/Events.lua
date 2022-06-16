@@ -22,7 +22,7 @@ function ChosenLadder:GROUP_ROSTER_UPDATE(...)
     local lootMethod, masterLooterPartyId, _ = GetLootMethod()
     D.isLootMaster = lootMethod == "master" and masterLooterPartyId == 0
 
-    UI.PopulatePlayerList()
+    UI.UpdateElementsByPermission()
 
     D.raidRoster = {}
     for i = 1, MAX_RAID_MEMBERS do

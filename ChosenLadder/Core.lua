@@ -30,7 +30,9 @@ function ChosenLadder:OnInitialize()
         LootLadder.players = players
     end
 
-    LootLadder.lastModified = LootLadder.lastModified or 0
+    if LootLadder.lastModified == nil then
+        LootLadder.lastModified = 0
+    end
 
     D.auctionHistory = {}
     D.currentBid = 0

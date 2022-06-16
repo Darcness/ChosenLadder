@@ -121,12 +121,8 @@ function CreateImportFrame()
     mainFrame:SetScript("OnHide", function(self)
         ToggleMainWindowFrame()
     end)
-    mainFrame:SetScript("OnShow", function(self)
-        ChosenLadderSaveButton:SetEnabled(D.isLootMaster or false)
-    end)
     UI.importFrame = mainFrame
     _G["ChosenLadderImportFrame"] = mainFrame
-    
 
     -- Title Text
     local title = mainFrame:CreateFontString("ARTWORK", nil, "GameFontNormal")
@@ -151,6 +147,7 @@ function CreateImportFrame()
 
         ToggleImportFrame()
     end)
+    UI.importSaveButton = saveButton;
 
     -- Content Window
     local contentFrame = CreateFrame("Frame", "ChosenLadderImportContentFrame", mainFrame, "BackdropTemplate")
@@ -227,15 +224,19 @@ function CreateMainActionsFrame(mainFrame)
         end
         self:SetText(toggleAll and "Uncheck All" or "Check All")
     end)
+    UI.selectAllButton = selectAllButton
 
     -- Sync Button
     local syncButton = CreateFrame("Button", "ChosenLadderSyncButton", contentFrame, "UIPanelButtonTemplate")
     syncButton:SetWidth(actionButtonWidth)
     syncButton:SetPoint("TOPLEFT", selectAllButton, 0, -(selectAllButton:GetHeight() + 2))
     syncButton:SetText("Sync")
+    syncButton:SetEnabled(D.isLootMaster or false)
     syncButton:SetScript("OnClick", function(self, button, down)
         D.GenerateSyncData(false)
     end)
+    UI.syncButton = syncButton
+
 end
 
 function CreateMainPlayerListFrame(mainFrame)
@@ -310,3 +311,21 @@ function ToggleMainWindowFrame()
 end
 
 UI.ToggleMainWindowFrame = ToggleMainWindowFrame
+
+function UpdateElementsByPermission()
+    if UI.syncButton ~= nil then
+        UI.syncButton:SetEnabled(D.isLootMaster or false)
+    end
+
+    if UI.selectAllButton ~= nil then
+        UI.selectAllButton:SetEnabled(D.isLootMaster or false)
+    end
+
+    if UI.importSaveButton ~= nil then
+        UI.importSaveButton:SetEnabled(D.isLootMaster or false)
+    end
+
+    PopulatePlayerList()
+end
+
+UI.UpdateElementsByPermission = UpdateElementsByPermission
