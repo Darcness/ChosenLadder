@@ -81,12 +81,17 @@ function ChosenLadder:Auction(input)
     end
 
     local arg1, arg2 = self:GetArgs(input, 2)
-    if arg1 == nil or arg2 == nil then
+    if arg1 == nil then
         self:Print("Usage: /clauction <start/stop> [itemLink]")
         return
     end
 
     if string.lower(arg1) == "start" then
+        if D.auctionItem ~= nil then
+            self:Print("You're still running an auction for " .. D.auctionItem)
+            return
+        end
+
         local itemParts = F.Split(arg2, "|")
         if F.StartsWith(itemParts[2], "Hitem:") then
             -- We have an item link!
