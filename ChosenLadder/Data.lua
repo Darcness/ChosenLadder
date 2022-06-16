@@ -12,6 +12,8 @@ function BuildPlayerList(names)
             log = ""
         })
     end
+
+    LootLadder.lastModified = GetServerTime()
 end
 
 D.BuildPlayerList = BuildPlayerList

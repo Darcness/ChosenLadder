@@ -86,17 +86,14 @@ function PopulatePlayerList()
             -- Show them, in case they existed before and we hid them.
             playerRow:Show()
 
-            local lootMethod, masterLooterPartyId, _ = GetLootMethod()
-            local isLootMaster = lootMethod == "master" and masterLooterPartyId == 0
-
             -- Set up CheckButton values
             local cb = _G[UIPrefixes.CheckButton .. v.name]
             cb:SetChecked(v.present)
-            cb:SetEnabled(isLootMaster)
+            cb:SetEnabled(D.isLootMaster)
 
             -- Set up DunkButton values
             local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
-            dunkButton:SetEnabled(isLootMaster and cb:GetChecked())
+            dunkButton:SetEnabled(D.isLootMaster and cb:GetChecked())
 
             -- Fix the ordering
             local text = _G[UIPrefixes.PlayerNameString .. v.name]
@@ -124,8 +121,12 @@ function CreateImportFrame()
     mainFrame:SetScript("OnHide", function(self)
         ToggleMainWindowFrame()
     end)
+    mainFrame:SetScript("OnShow", function(self)
+        ChosenLadderSaveButton:SetEnabled(D.isLootMaster or false)
+    end)
     UI.importFrame = mainFrame
     _G["ChosenLadderImportFrame"] = mainFrame
+    
 
     -- Title Text
     local title = mainFrame:CreateFontString("ARTWORK", nil, "GameFontNormal")
@@ -133,11 +134,11 @@ function CreateImportFrame()
     title:SetText("Import Names (one per line)")
 
     -- Import Button
-    local importButton = CreateFrame("Button", "ChosenLadderImportButton", mainFrame, "UIPanelButtonTemplate")
-    importButton:SetWidth(64)
-    importButton:SetPoint("TOPRIGHT", mainFrame, -24, 0)
-    importButton:SetText("Import")
-    importButton:SetScript("OnClick", function(self, button, down)
+    local saveButton = CreateFrame("Button", "ChosenLadderSaveButton", mainFrame, "UIPanelButtonTemplate")
+    saveButton:SetWidth(64)
+    saveButton:SetPoint("TOPRIGHT", mainFrame, -24, 0)
+    saveButton:SetText("Save")
+    saveButton:SetScript("OnClick", function(self, button, down)
         local text = ChosenLadderImportEditBox:GetText()
         local lines = {}
         for line in text:gmatch("([^\n]*)\n?") do
