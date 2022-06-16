@@ -5,7 +5,11 @@ local F = NS.Functions
 local D = NS.Data
 
 function ChosenLadder:OnInitialize()
-    if LootLadder == nil or LootLadder.players == nil or LootLadder.lastModified then
+    if LootLadder == nil then
+        LootLadder = {}
+    end
+
+    if LootLadder.players == nil then
         local players = {}
         for i = 1, 50 do
             if i == 1 then
@@ -23,11 +27,10 @@ function ChosenLadder:OnInitialize()
             end
         end
 
-        LootLadder = {
-            players = players,
-            lastModified = 0
-        }
+        LootLadder.players = players
     end
+
+    LootLadder.lastModified = LootLadder.lastModified or 0
 
     D.auctionHistory = {}
     D.currentBid = 0
