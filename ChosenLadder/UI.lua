@@ -234,6 +234,7 @@ function CreateMainActionsFrame(mainFrame)
     syncButton:SetEnabled(D.isLootMaster or false)
     syncButton:SetScript("OnClick", function(self, button, down)
         D.GenerateSyncData(false)
+        ChosenLadder:Print("Submitting Sync Request")
     end)
     UI.syncButton = syncButton
 

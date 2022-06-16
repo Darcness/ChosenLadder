@@ -43,7 +43,9 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
             local minBid = GetMinimumBid()
 
             if bid == nil then
-                goto bad
+                SendChatMessage(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A,
+                    UnitName("player"), minBid), "WHISPER", nil, playerName)
+                return
             elseif bid ~= nil then
                 bid = math.floor(bid)
                 if bid >= minBid then
@@ -51,15 +53,11 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
                     D.currentWinner = playerName
                     SendChatMessage("Current Bid: " .. bid, "RAID")
                 else
-                    goto bad
+                    SendChatMessage(string.format("[%s]: Invalid Bid! The minimum bid is %d", A, minBid), "WHISPER", nil
+                        , playerName)
+                    return
                 end
-                goto finish
             end
-
-            ::bad::
-            SendChatMessage(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A,
-                UnitName("player"), minBid), "WHISPER", nil, playerName)
-            ::finish::
         end
     end
 

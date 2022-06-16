@@ -37,6 +37,7 @@ function ChosenLadder:OnInitialize()
     D.auctionHistory = {}
     D.currentBid = 0
     D.currentWinner = nil
+    D.ladderHistory = {}
 end
 
 function YouSoBad(action)
@@ -49,7 +50,7 @@ function ChosenLadder:OnEnable()
     self:RegisterComm(A, ChosenLadder:OnCommReceived())
     self:RegisterChatCommand("clladder", "ToggleLadder")
     self:RegisterChatCommand("clauction", "Auction")
-    self:RegisterChatCommand("clhistory", "AuctionHistory")
+    self:RegisterChatCommand("cllog", "PrintHistory")
     self:RegisterChatCommand("cl", "Help")
     self:RegisterChatCommand("clhelp", "Help")
     self:RegisterEvent("GROUP_ROSTER_UPDATE", ChosenLadder:GROUP_ROSTER_UPDATE())
@@ -66,8 +67,6 @@ function ChosenLadder:ToggleLadder()
 end
 
 function ChosenLadder:SendMessage(message, destination)
-    print("SendMessage Start")
-    print(D.isLootMaster)
     if D.isLootMaster == nil or D.isLootMaster == false then
         YouSoBad("Send Addon Communications")
         return
@@ -76,13 +75,16 @@ function ChosenLadder:SendMessage(message, destination)
 end
 
 function ChosenLadder:Auction(input)
-    print(D.isLootMaster)
     if D.isLootMaster == nil or D.isLootMaster == false then
         YouSoBad("Start or Stop an Auction")
         return
     end
 
     local arg1, arg2 = self:GetArgs(input, 2)
+    if arg1 == nil or arg2 == nil then
+        self:Print("Usage: /clauction <start/stop> [itemLink]")
+        return
+    end
 
     if string.lower(arg1) == "start" then
         local itemParts = F.Split(arg2, "|")
@@ -103,10 +105,26 @@ function ChosenLadder:Auction(input)
     end
 end
 
-function ChosenLadder:AuctionHistory()
-    self:Print("Auction History")
-    for k, v in pairs(D.auctionHistory) do
-        self:Print(v.item .. " to " .. Ambiguate(v.name, "all") .. " for " .. v.bid)
+function ChosenLadder:PrintHistory(input)
+    local type = self:GetArgs(input, 1)
+    if type == nil then
+        self:Print("Usage: /cllog <auction/ladder>")
+        return
+    end
+
+    type = string.lower(type)
+    if type == "auction" then
+        self:Print("Auction History")
+        for k, v in pairs(D.auctionHistory) do
+            self:Print(string.format("%s to %s for %d", v.item, Ambiguate(v.name, "all"), v.bid))
+        end
+    elseif type == "ladder" then
+        self:Print("Ladder History")
+        for k, v in pairs(D.ladderHistory) do
+            self:Print(string.format("%s moved to position %d from position %d", Ambiguate(v.name, "all"), v.to, v.from))
+        end
+    else
+        self:Print("Usage: /cllog <auction/ladder>")
     end
 end
 
@@ -115,5 +133,5 @@ function ChosenLadder:Help()
     self:Print("/cl, /clhelp - Displays this list")
     self:Print("/clladder - Toggles the main ladder window")
     self:Print("/clauction <start/stop> [<itemLink>] - Starts an auction (for the linked item) or stops the current auction")
-    self:Print("/clhistory - Displays the list of completed auctions")
+    self:Print("/cllog <auction/ladder> - Displays the list of completed auctions or ladder dunks")
 end

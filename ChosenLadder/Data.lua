@@ -61,16 +61,24 @@ function RunDunk(name)
         end
     end
 
+    local targetPos = 0
+
     -- There should be one empty spot (probably near the bottom).  Let's find it and put the dunker there.
     for i = 1, len do
         if newPlayers[i] == nil then
             newPlayers[i] = found
-            print(found.name .. " moved to position " .. i .. " from position " .. foundPos)
+            targetPos = i
+            print(found.name .. " moved to position " .. targetPos .. " from position " .. foundPos)
         end
     end
 
     LootLadder.players = newPlayers
     LootLadder.lastModified = GetServerTime()
+    table.insert(D.ladderHistory, {
+        name = found.name,
+        from = foundPos,
+        to = targetPos
+    })
     GenerateSyncData(false)
 end
 
@@ -104,7 +112,6 @@ function GenerateSyncData(localDebug)
         print(fullMessage)
     else
         ChosenLadder:SendMessage(fullMessage, channel)
-        ChosenLadder:Print("Submitting Sync Request")
     end
 end
 
