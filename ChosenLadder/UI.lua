@@ -138,6 +138,7 @@ function CreateImportFrame()
     saveButton:SetWidth(64)
     saveButton:SetPoint("TOPRIGHT", mainFrame, -24, 0)
     saveButton:SetText("Save")
+    saveButton:SetEnabled(D.isLootMaster or false)
     saveButton:SetScript("OnClick", function(self, button, down)
         local text = ChosenLadderImportEditBox:GetText()
         local lines = {}
