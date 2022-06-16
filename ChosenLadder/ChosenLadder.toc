@@ -3,6 +3,7 @@
 ## Version: 0.0.1
 ## Notes: Ladder addon for The Chosen Guild
 ## Author: Darc
+## SavedVariables: LootLadder
 
 
 lib\LibStub\LibStub.lua

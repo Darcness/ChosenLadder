@@ -32,9 +32,6 @@ function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
 
     -- Any other properties
     cb:SetChecked(checked)
-    cb:SetScript("OnClick", function(self, button, down)
-        D.TogglePresent(text)
-    end)
 
     -- Dunk Button
     local dunkButton = CreateFrame("Button", UIPrefixes.DunkButton .. text, row, "UIPanelButtonTemplate")
@@ -45,12 +42,19 @@ function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
         PopulatePlayerList()
     end)
 
+    dunkButton:SetEnabled(cb:GetChecked())
+    cb:SetScript("OnClick", function(self, button, down)
+        D.TogglePresent(text)
+        dunkButton:SetEnabled(self:GetChecked())
+    end)
+
+
     return row
 end
 
 function GetMaxNameSize()
     local maxNameSize = 0
-    for _, v in ipairs(D.players) do
+    for _, v in ipairs(LootLadder.players) do
         maxNameSize = math.max(maxNameSize, string.len(v.name) + 4) -- Add in "## -" where ## is their list spot.
     end
 
@@ -69,10 +73,11 @@ function PopulatePlayerList()
             child:Hide()
         end
 
-        for k, v in ipairs(D.players) do
+        for k, v in ipairs(LootLadder.players) do
             -- Store the player row, since we can't count on the WoW client to garbage collect
             if _G[UIPrefixes.PlayerRow .. v.name] == nil then
-                _G[UIPrefixes.PlayerRow .. v.name] = CreatePlayerRowItem(UI.scrollChild, v.name, v.present, k, maxNameSize)
+                _G[UIPrefixes.PlayerRow .. v.name] = CreatePlayerRowItem(UI.scrollChild, v.name, v.present, k,
+                    maxNameSize)
             end
 
             -- Grab the stored player row and visually reorder it.
@@ -81,17 +86,22 @@ function PopulatePlayerList()
             -- Show them, in case they existed before and we hid them.
             playerRow:Show()
 
-            local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
             local lootMethod, masterLooterPartyId, _ = GetLootMethod()
-            if lootMethod == "master" and masterLooterPartyId == 0 then
-                dunkButton:Show()
-            else
-                dunkButton:Hide()
-            end
+            local isLootMaster = lootMethod == "master" and masterLooterPartyId == 0
+
+            -- Set up CheckButton values
+            local cb = _G[UIPrefixes.CheckButton .. v.name]
+            cb:SetChecked(v.present)
+            cb:SetEnabled(isLootMaster)
+
+            -- Set up DunkButton values
+            local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
+            dunkButton:SetEnabled(isLootMaster and cb:GetChecked())
 
             -- Fix the ordering
             local text = _G[UIPrefixes.PlayerNameString .. v.name]
             text:SetText(k .. " - " .. v.name)
+
         end
     end
 end
@@ -100,7 +110,7 @@ UI.PopulatePlayerList = PopulatePlayerList
 
 function PopulateNames(editBox)
     local names = ""
-    for k, v in pairs(D.players) do
+    for k, v in pairs(LootLadder.players) do
         names = names .. v.name .. "\n"
     end
     editBox:SetText(names)
@@ -145,7 +155,8 @@ function CreateImportFrame()
     contentFrame:SetPoint("TOPLEFT", mainFrame, 6, -24)
     contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -5, 3)
 
-    local scrollFrame = CreateFrame("ScrollFrame", "ChosenLadderImportScrollFrame", contentFrame, "UIPanelScrollFrameTemplate")
+    local scrollFrame = CreateFrame("ScrollFrame", "ChosenLadderImportScrollFrame", contentFrame,
+        "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", contentFrame, 3, -4)
     scrollFrame:SetPoint("BOTTOMRIGHT", contentFrame, -27, 4)
     scrollFrame:EnableMouse(true)
@@ -206,7 +217,7 @@ function CreateMainActionsFrame(mainFrame)
     selectAllButton:SetText(toggleAll and "Uncheck All" or "Check All")
     selectAllButton:SetScript("OnClick", function(self, button, down)
         toggleAll = not toggleAll
-        for k, v in pairs(D.players) do
+        for k, v in pairs(LootLadder.players) do
             if _G[UIPrefixes.CheckButton .. v.name] ~= nil then
                 _G[UIPrefixes.CheckButton .. v.name]:Click()
             end
@@ -248,6 +259,8 @@ function CreateMainPlayerListFrame(mainFrame)
     scrollChild:SetScript("OnShow", function(self)
         PopulatePlayerList()
     end)
+
+    PopulatePlayerList()
 end
 
 function CreateMainWindowFrame()

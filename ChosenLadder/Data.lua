@@ -2,34 +2,11 @@ local CL, NS = ...
 
 local D = NS.Data
 
-D.players = {}
-D.lastModified = 0
-
-D.auctionHistory = {}
-D.currentBid = 0
-D.currentWinner = nil
-
-for i = 1, 50 do
-    if i == 1 then
-        table.insert(D.players, {
-            name = "WWWWWWWWWWWW",
-            present = false,
-            log = ""
-        })
-    else
-        table.insert(D.players, {
-            name = "Player " .. i,
-            present = false,
-            log = ""
-        })
-    end
-end
-
 function BuildPlayerList(names)
-    D.players = {}
+    LootLadder.players = {}
 
     for _, v in ipairs(names) do
-        table.insert(D.players, {
+        table.insert(LootLadder.players, {
             name = v,
             present = false,
             log = ""
@@ -42,16 +19,16 @@ D.BuildPlayerList = BuildPlayerList
 function RunDunk(name)
     local newPlayers = {}
     -- Initialize newPlayers with nulls, since we're inserting in weird places.
-    for k, v in pairs(D.players) do
+    for k, v in pairs(LootLadder.players) do
         newPlayers[k] = nil
     end
 
     local foundPos = 1
     local newPos = 1
     local found = nil
-    local len = #D.players
+    local len = #LootLadder.players
 
-    for currentPos, v in pairs(D.players) do
+    for currentPos, v in pairs(LootLadder.players) do
         if name == v.name then
             -- Let's save this guy for later.
             found = v
@@ -85,7 +62,7 @@ function RunDunk(name)
         end
     end
 
-    D.players = newPlayers
+    LootLadder.players = newPlayers
     D.lastModified = GetServerTime()
     GenerateSyncData(false)
 end
@@ -93,7 +70,7 @@ end
 D.RunDunk = RunDunk
 
 function TogglePresent(name)
-    for _, v in ipairs(D.players) do
+    for _, v in ipairs(LootLadder.players) do
         if name == v.name then
             v.present = not v.present
             return
@@ -109,7 +86,7 @@ function GenerateSyncData(localDebug)
 
     local fullMessage = timeMessage .. "|"
 
-    for k, v in ipairs(D.players) do
+    for k, v in ipairs(LootLadder.players) do
         fullMessage = fullMessage .. v.name .. "|"
     end
 
