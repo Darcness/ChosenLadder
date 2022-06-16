@@ -5,7 +5,7 @@ local F = NS.Functions
 local D = NS.Data
 
 function ChosenLadder:OnInitialize()
-    if LootLadder == nil then
+    if LootLadder == nil or LootLadder.players == nil or LootLadder.lastModified then
         local players = {}
         for i = 1, 50 do
             if i == 1 then

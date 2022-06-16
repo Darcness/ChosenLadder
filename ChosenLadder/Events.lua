@@ -66,8 +66,8 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
 
             local timestampStr = vars[1]:gsub(beginSyncFlag, "")
             local timestamp = tonumber(timestampStr)
-            self:Print("Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. D.lastModified)
-            if timestamp > D.lastModified then
+            self:Print("Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. LootLadder.lastModified)
+            if timestamp > LootLadder.lastModified then
                 -- Begin Sync
                 D.syncing = StreamFlag.Started
             else

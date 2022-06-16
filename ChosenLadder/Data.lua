@@ -63,7 +63,7 @@ function RunDunk(name)
     end
 
     LootLadder.players = newPlayers
-    D.lastModified = GetServerTime()
+    LootLadder.lastModified = GetServerTime()
     GenerateSyncData(false)
 end
 
@@ -81,7 +81,7 @@ end
 D.TogglePresent = TogglePresent
 
 function GenerateSyncData(localDebug)
-    local timeMessage = D.Constants.BeginSyncFlag .. D.lastModified
+    local timeMessage = D.Constants.BeginSyncFlag .. LootLadder.lastModified
     local channel = "RAID"
 
     local fullMessage = timeMessage .. "|"
