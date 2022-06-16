@@ -38,19 +38,32 @@ end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
     if D.auctionItem ~= nil then
-        local bid = tonumber(text)
-        if bid ~= nil and D.IsPlayerInRaid(playerName) then
-            bid = math.floor(bid)
+        if D.IsPlayerInRaid(playerName) then
+            local bid = tonumber(text)
             local minBid = GetMinimumBid()
-            if bid >= minBid then
-                D.currentBid = bid
-                D.currentWinner = playerName
-                SendChatMessage("Current Bid: " .. bid, "RAID")
-            else
-                SendChatMessage(A .. ": The current minimum bid is " .. minBid, "WHISPER", nil, playerName)
+
+            if bid == nil then
+                goto bad
+            elseif bid ~= nil then
+                bid = math.floor(bid)
+                if bid >= minBid then
+                    D.currentBid = bid
+                    D.currentWinner = playerName
+                    SendChatMessage("Current Bid: " .. bid, "RAID")
+                else
+                    goto bad
+                end
+                goto finish
             end
+
+            ::bad::
+            SendChatMessage(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A,
+                UnitName("player"), minBid), "WHISPER", nil, playerName)
+            ::finish::
         end
     end
+
+
 end
 
 function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
