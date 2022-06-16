@@ -5,7 +5,33 @@ local F = NS.Functions
 local D = NS.Data
 
 function ChosenLadder:OnInitialize()
-    -- self:Print(A .. " Loaded")
+    if LootLadder == nil then
+        local players = {}
+        for i = 1, 50 do
+            if i == 1 then
+                table.insert(players, {
+                    name = "WWWWWWWWWWWW",
+                    present = false,
+                    log = ""
+                })
+            else
+                table.insert(players, {
+                    name = "Player " .. i,
+                    present = false,
+                    log = ""
+                })
+            end
+        end
+
+        LootLadder = {
+            players = players,
+            lastModified = 0
+        }
+    end
+
+    D.auctionHistory = {}
+    D.currentBid = 0
+    D.currentWinner = nil
 end
 
 function ChosenLadder:OnEnable()
@@ -41,7 +67,9 @@ function ChosenLadder:Auction(input)
             -- We have an item link!
             D.auctionItem = arg2
             D.currentBid = 0
-            SendChatMessage("Beginning auction for " .. D.auctionItem .. ", please whisper me your bids", "RAID_WARNING")
+            SendChatMessage("Beginning auction for " .. D.auctionItem ..
+                ", please whisper " .. UnitName("player") .. " your bids",
+                "RAID_WARNING")
         else
             self:Print("Usage: /clauction <start/stop> [itemLink]")
         end
