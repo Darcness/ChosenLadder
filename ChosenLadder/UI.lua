@@ -217,6 +217,7 @@ function CreateMainActionsFrame(mainFrame)
     selectAllButton:SetWidth(actionButtonWidth)
     selectAllButton:SetPoint("TOPLEFT", importButton, 0, -(importButton:GetHeight() + 2))
     selectAllButton:SetText(toggleAll and "Uncheck All" or "Check All")
+    selectAllButton:SetEnabled(D.isLootMaster or false)
     selectAllButton:SetScript("OnClick", function(self, button, down)
         toggleAll = not toggleAll
         for k, v in pairs(LootLadder.players) do
