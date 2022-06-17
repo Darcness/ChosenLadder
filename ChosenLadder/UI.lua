@@ -14,38 +14,36 @@ local UIPrefixes = {
     RaidMemberDropDown = "ChosenLadderRaidMemberDropDown"
 }
 
-function RaidDrop_Initialize(frame, level, menuList)
-    local currentValue = UIDropDownMenu_GetSelectedValue(frame)
-    local found = false
-    for k, v in ipairs(D.raidRoster) do
-        local name = v[1]
-        local guid = UnitGUID(name)
-        -- Is this our selected user?
-        if guid == currentValue then
-            found = true
-        end
-
-        local info = UIDropDownMenu_CreateInfo()
-        info.value = guid
-        info.text = name
-
-        info.func = function(b)
-            UIDropDownMenu_SetSelectedValue(frame, guid, guid)
-            UIDropDownMenu_SetText(frame, name)
-            b.checked = true
-            local parentName = b:GetParent():GetName()
-            if parentName ~= nil then
-                parentName = parentName:gsub("DropDownList", "")
-                D.SetPlayerGUIDByPosition(parentName, guid)
+function RaidDrop_Initialize_Builder(rowName)
+    return function(frame, level, menuList)
+        local currentValue = UIDropDownMenu_GetSelectedValue(frame)
+        local found = false
+        for k, v in ipairs(D.raidRoster) do
+            local name = v[1]
+            local guid = UnitGUID(name)
+            -- Is this our selected user?
+            if guid == currentValue then
+                found = true
             end
-        end
-        UIDropDownMenu_AddButton(info, level)
-    end
 
-    -- If our selected user isn't found, we blank the dropdown
-    if not found then
-        UIDropDownMenu_SetSelectedValue(frame, nil, nil)
-        UIDropDownMenu_SetText(frame, "")
+            local info = UIDropDownMenu_CreateInfo()
+            info.value = guid
+            info.text = name
+
+            info.func = function(b)
+                UIDropDownMenu_SetSelectedValue(frame, guid, guid)
+                UIDropDownMenu_SetText(frame, name)
+                b.checked = true
+                D.SetPlayerGUIDByPosition(rowName, guid)
+            end
+            UIDropDownMenu_AddButton(info, level)
+        end
+
+        -- If our selected user isn't found, we blank the dropdown
+        if not found then
+            UIDropDownMenu_SetSelectedValue(frame, nil, nil)
+            UIDropDownMenu_SetText(frame, "")
+        end
     end
 end
 
@@ -85,7 +83,7 @@ function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
     local raidDrop = CreateFrame("Frame", UIPrefixes.RaidMemberDropDown .. text, row, "UIDropDownMenuTemplate")
     raidDrop:SetPoint("TOPRIGHT", dunkButton, -(dunkButton:GetWidth() - 12), 2)
     UIDropDownMenu_SetWidth(raidDrop, 100)
-    UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize)
+    UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(text))
 
     dunkButton:SetEnabled(cb:GetChecked())
     cb:SetScript(
@@ -114,7 +112,7 @@ function PopulatePlayerList()
         -- We get this here so we're not re-calculating it for every row.
         local maxNameSize = GetMaxNameSize()
 
-        local children = {UI.scrollChild:GetChildren()}
+        local children = { UI.scrollChild:GetChildren() }
         for i, child in ipairs(children) do
             -- We want to hide the old ones, so they're not on mangling the new ones.
             child:Hide()
@@ -123,8 +121,8 @@ function PopulatePlayerList()
         for k, v in ipairs(LootLadder.players) do
             -- Store the player row, since we can't count on the WoW client to garbage collect
             if _G[UIPrefixes.PlayerRow .. v.name] == nil then
-                _G[UIPrefixes.PlayerRow .. v.name] =
-                    CreatePlayerRowItem(UI.scrollChild, v.name, v.present, k, maxNameSize)
+                _G[UIPrefixes.PlayerRow .. v.name] = CreatePlayerRowItem(UI.scrollChild, v.name, v.present, k,
+                    maxNameSize)
             end
 
             -- Grab the stored player row and visually reorder it.
@@ -147,7 +145,7 @@ function PopulatePlayerList()
             text:SetText(k .. " - " .. v.name)
 
             local raidDrop = _G[UIPrefixes.RaidMemberDropDown .. v.name]
-            UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize)
+            UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(v.name))
         end
     end
 end
@@ -210,7 +208,7 @@ function CreateImportFrame()
     contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -5, 3)
 
     local scrollFrame =
-        CreateFrame("ScrollFrame", "ChosenLadderImportScrollFrame", contentFrame, "UIPanelScrollFrameTemplate")
+    CreateFrame("ScrollFrame", "ChosenLadderImportScrollFrame", contentFrame, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", contentFrame, 3, -4)
     scrollFrame:SetPoint("BOTTOMRIGHT", contentFrame, -27, 4)
     scrollFrame:EnableMouse(true)
@@ -313,7 +311,7 @@ function CreateMainPlayerListFrame(mainFrame)
     contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -5, 3)
 
     local scrollFrame =
-        CreateFrame("ScrollFrame", "ChosenLadderScrollFrame", contentFrame, "UIPanelScrollFrameTemplate")
+    CreateFrame("ScrollFrame", "ChosenLadderScrollFrame", contentFrame, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", contentFrame, 3, -4)
     scrollFrame:SetPoint("BOTTOMRIGHT", contentFrame, -27, 4)
     scrollFrame:EnableMouse(true)
