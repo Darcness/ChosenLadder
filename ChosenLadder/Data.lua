@@ -1,16 +1,22 @@
 local CL, NS = ...
 
 local D = NS.Data
+local F = NS.Functions
+
+D.raidRoster = {}
 
 function BuildPlayerList(names)
     LootLadder.players = {}
 
     for _, v in ipairs(names) do
-        table.insert(LootLadder.players, {
-            name = v,
-            present = false,
-            log = ""
-        })
+        table.insert(
+            LootLadder.players,
+            {
+                name = v,
+                present = false,
+                log = ""
+            }
+        )
     end
 
     LootLadder.lastModified = GetServerTime()
@@ -18,11 +24,29 @@ end
 
 D.BuildPlayerList = BuildPlayerList
 
+function RegisterDunkByGUID(guid)
+    for k, v in ipairs(LootLadder.players) do
+        if v.guid == guid then
+            table.insert(
+                D.dunkNames,
+                {
+                    guid = v.guid,
+                    name = v.name,
+                    pos = k
+                }
+            )
+        end
+    end
+end
+
+D.RegisterDunkByGUID = RegisterDunkByGUID
+
 function RunDunk(name)
     if D.isLootMaster == nil or D.isLootMaster == false then
-        SendChatMessage(string.format("%s: %s has attempted to DUNK via illegal calls to addon code", CL,
-            UnitName("player")),
-            "RAID_WARNING")
+        SendChatMessage(
+            string.format("%s: %s has attempted to DUNK via illegal calls to addon code", CL, UnitName("player")),
+            "RAID_WARNING"
+        )
     end
     local newPlayers = {}
     -- Initialize newPlayers with nulls, since we're inserting in weird places.
@@ -74,15 +98,38 @@ function RunDunk(name)
 
     LootLadder.players = newPlayers
     LootLadder.lastModified = GetServerTime()
-    table.insert(D.ladderHistory, {
-        name = found.name,
-        from = foundPos,
-        to = targetPos
-    })
+    table.insert(
+        D.ladderHistory,
+        {
+            name = found.name,
+            from = foundPos,
+            to = targetPos
+        }
+    )
     GenerateSyncData(false)
 end
 
 D.RunDunk = RunDunk
+
+function CompleteDunk()
+    local winnerPos = 9999
+    local winnerName = ""
+    self:Print("Registered Dunks:")
+    for k, v in ipairs(D.dunkNames) do
+        self:Print(string.format("%s - %d", v.name, v.pos))
+        if v.pos < winnerPos then
+            winnerName = v.name
+            winnerPos = v.pos
+        end
+    end
+
+    D.dunkItem = nil
+    D.dunkNames = {}
+
+    RunDunk(winnerName)
+end
+
+D.CompleteDunk = CompleteDunk
 
 function TogglePresent(name)
     for _, v in ipairs(LootLadder.players) do
@@ -129,6 +176,26 @@ end
 
 D.IsPlayerInRaid = IsPlayerInRaid
 
+function SetPlayerGUIDByPosition(pos, guid)
+    -- Might be a string, let's force a cleanup
+    local correctPos = nil
+    if type(pos) == "string" then
+        correctPos = tonumber(pos)
+    else
+        correctPos = pos
+    end
+
+    local player = LootLadder.players[correctPos]
+    if player ~= nil then
+        player.guid = guid
+        print(string.format("SetPlayerGUIDByPosition - %d - %s", correctPos, guid))
+    else
+        print("It went all fucky")
+    end
+end
+
+D.SetPlayerGUIDByPosition = SetPlayerGUIDByPosition
+
 function CompleteAuction()
     if D.auctionItem == nil then
         self:Print("No auction has begun!")
@@ -146,15 +213,24 @@ function CompleteAuction()
         bid = D.currentBid
     end
 
-    SendChatMessage(string.format("Auction Complete! %s wins %s for %d gold!",
-        Ambiguate(D.currentWinner, "all"), D.auctionItem, bid),
-        "RAID_WARNING")
+    SendChatMessage(
+        string.format(
+            "Auction Complete! %s wins %s for %d gold!",
+            Ambiguate(D.currentWinner, "all"),
+            D.auctionItem,
+            bid
+        ),
+        "RAID_WARNING"
+    )
 
-    table.insert(D.auctionHistory, {
-        name = D.currentWinner,
-        bid = D.currentBid,
-        item = D.auctionItem
-    })
+    table.insert(
+        D.auctionHistory,
+        {
+            name = D.currentWinner,
+            bid = D.currentBid,
+            item = D.auctionItem
+        }
+    )
 
     D.currentWinner = nil
     D.auctionItem = nil

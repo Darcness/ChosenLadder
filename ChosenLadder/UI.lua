@@ -30,10 +30,14 @@ function RaidDrop_Initialize(frame, level, menuList)
         info.text = name
 
         info.func = function(b)
-            print(name .. " - " .. guid)
             UIDropDownMenu_SetSelectedValue(frame, guid, guid)
             UIDropDownMenu_SetText(frame, name)
             b.checked = true
+            local parentName = b:GetParent():GetName()
+            if parentName ~= nil then
+                parentName = parentName:gsub("DropDownList", "")
+                D.SetPlayerGUIDByPosition(parentName, guid)
+            end
         end
         UIDropDownMenu_AddButton(info, level)
     end

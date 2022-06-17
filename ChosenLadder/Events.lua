@@ -26,13 +26,13 @@ function ChosenLadder:GROUP_ROSTER_UPDATE(...)
 
     D.raidRoster = {}
     for i = 1, MAX_RAID_MEMBERS do
-        local rosterInfo = { GetRaidRosterInfo(i) }
+        local rosterInfo = {GetRaidRosterInfo(i)}
         -- Break early if we hit a nil (this means we've reached the full number of players)
         if rosterInfo[1] == nil then
             return
         end
 
-        table.insert(D.raidRoster, { GetRaidRosterInfo(i) })
+        table.insert(D.raidRoster, {GetRaidRosterInfo(i)})
     end
 end
 
@@ -43,8 +43,17 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
             local minBid = GetMinimumBid()
 
             if bid == nil then
-                SendChatMessage(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A,
-                    UnitName("player"), minBid), "WHISPER", nil, playerName)
+                SendChatMessage(
+                    string.format(
+                        "[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d",
+                        A,
+                        UnitName("player"),
+                        minBid
+                    ),
+                    "WHISPER",
+                    nil,
+                    playerName
+                )
                 return
             elseif bid ~= nil then
                 bid = math.floor(bid)
@@ -53,15 +62,74 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
                     D.currentWinner = playerName
                     SendChatMessage("Current Bid: " .. bid, "RAID")
                 else
-                    SendChatMessage(string.format("[%s]: Invalid Bid! The minimum bid is %d", A, minBid), "WHISPER", nil
-                        , playerName)
+                    SendChatMessage(
+                        string.format("[%s]: Invalid Bid! The minimum bid is %d", A, minBid),
+                        "WHISPER",
+                        nil,
+                        playerName
+                    )
                     return
                 end
             end
         end
+    elseif D.dunkItem ~= nil then
+        if D.IsPlayerInRaid(playerName) then
+            text = string.lower(text)
+            print(text)
+            for k, v in ipairs(D.Constants.AsheosWords) do
+                -- This is a valid dunk attempt
+                if text == v then
+                    local guid = UnitGUID(Ambiguate(playerName, "all"))
+                    print("Player Attempting - " .. guid )
+                    if guid ~= nil then
+                        for lk, lv in ipairs(LootLadder.players) do
+                            print("Comparing " .. guid .. " to " .. lv.guid)
+                            -- Found the right player!
+                            if guid == lv.guid then
+                                -- Register their Dunk attempt
+                                table.insert(
+                                    D.dunkNames,
+                                    {
+                                        guid = lv.guid,
+                                        name = lv.name,
+                                        pos = lk
+                                    }
+                                )
+                                SendChatMessage(
+                                    string.format("[%s]: Dunk registered! Current position: %s", A, lk),
+                                    "WHISPER",
+                                    nil,
+                                    playerName
+                                )
+                                return
+                            end
+                        end
+                        SendChatMessage(
+                            string.format("[%s]: We couldn't find you in the raid list! Contact the loot master.", A),
+                            "WHISPER",
+                            nil,
+                            playerName
+                        )
+                        return
+                    end
+                    -- Couldn't get a guid?  Something is off here.  Bail.
+                    return
+                end
+            end
+
+            SendChatMessage(
+                string.format(
+                    "[%s]: %s is currently running a Dunk session for loot.  If you'd like to dunk for it, type: /whisper %s DUNK",
+                    A,
+                    UnitName("player"),
+                    UnitName("player")
+                ),
+                "WHISPER",
+                nil,
+                playerName
+            )
+        end
     end
-
-
 end
 
 function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
@@ -80,8 +148,9 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
 
             local timestampStr = vars[1]:gsub(beginSyncFlag, "")
             local timestamp = tonumber(timestampStr)
-            self:Print("Incoming Sync request from " ..
-                sender .. ": " .. timestamp .. " - Local: " .. LootLadder.lastModified)
+            self:Print(
+                "Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. LootLadder.lastModified
+            )
             if timestamp > LootLadder.lastModified then
                 -- Begin Sync
                 D.syncing = StreamFlag.Started
@@ -89,11 +158,9 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                 self:Print("Sync Request Denied")
             end
 
-
             if D.syncing == StreamFlag.Started then
                 for k, v in ipairs(vars) do
                     if StartsWith(v, beginSyncFlag) then
-
                     elseif v == endSyncFlag then
                         D.syncing = StreamFlag.Complete
                     else
