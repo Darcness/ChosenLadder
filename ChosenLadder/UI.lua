@@ -10,8 +10,40 @@ local UIPrefixes = {
     PlayerRow = "ChosenLadderPlayerRow",
     CheckButton = "ChosenLadderCheckButton",
     DunkButton = "ChosenLadderDunkButton",
-    PlayerNameString = "ChosenLadderPlayerNameString"
+    PlayerNameString = "ChosenLadderPlayerNameString",
+    RaidMemberDropDown = "ChosenLadderRaidMemberDropDown"
 }
+
+function RaidDrop_Initialize(frame, level, menuList)
+    local currentValue = UIDropDownMenu_GetSelectedValue(frame)
+    local found = false
+    for k, v in ipairs(D.raidRoster) do
+        local name = v[1]
+        local guid = UnitGUID(name)
+        -- Is this our selected user?
+        if guid == currentValue then
+            found = true
+        end
+
+        local info = UIDropDownMenu_CreateInfo()
+        info.value = guid
+        info.text = name
+
+        info.func = function(b)
+            print(name .. " - " .. guid)
+            UIDropDownMenu_SetSelectedValue(frame, guid, guid)
+            UIDropDownMenu_SetText(frame, name)
+            b.checked = true
+        end
+        UIDropDownMenu_AddButton(info, level)
+    end
+
+    -- If our selected user isn't found, we blank the dropdown
+    if not found then
+        UIDropDownMenu_SetSelectedValue(frame, nil, nil)
+        UIDropDownMenu_SetText(frame, "")
+    end
+end
 
 function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
     -- Create a container frame
@@ -36,18 +68,29 @@ function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
     -- Dunk Button
     local dunkButton = CreateFrame("Button", UIPrefixes.DunkButton .. text, row, "UIPanelButtonTemplate")
     dunkButton:SetText("Dunk")
+    dunkButton:SetWidth(64)
     dunkButton:SetPoint("TOPRIGHT", row, -2, -2)
-    dunkButton:SetScript("OnClick", function(self, button, down)
-        D.RunDunk(text)
-        PopulatePlayerList()
-    end)
+    dunkButton:SetScript(
+        "OnClick",
+        function(self, button, down)
+            D.RunDunk(text)
+            PopulatePlayerList()
+        end
+    )
+
+    local raidDrop = CreateFrame("Frame", UIPrefixes.RaidMemberDropDown .. text, row, "UIDropDownMenuTemplate")
+    raidDrop:SetPoint("TOPRIGHT", dunkButton, -(dunkButton:GetWidth() - 12), 2)
+    UIDropDownMenu_SetWidth(raidDrop, 100)
+    UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize)
 
     dunkButton:SetEnabled(cb:GetChecked())
-    cb:SetScript("OnClick", function(self, button, down)
-        D.TogglePresent(text)
-        dunkButton:SetEnabled(self:GetChecked())
-    end)
-
+    cb:SetScript(
+        "OnClick",
+        function(self, button, down)
+            D.TogglePresent(text)
+            dunkButton:SetEnabled(self:GetChecked())
+        end
+    )
 
     return row
 end
@@ -67,7 +110,7 @@ function PopulatePlayerList()
         -- We get this here so we're not re-calculating it for every row.
         local maxNameSize = GetMaxNameSize()
 
-        local children = { UI.scrollChild:GetChildren() }
+        local children = {UI.scrollChild:GetChildren()}
         for i, child in ipairs(children) do
             -- We want to hide the old ones, so they're not on mangling the new ones.
             child:Hide()
@@ -76,8 +119,8 @@ function PopulatePlayerList()
         for k, v in ipairs(LootLadder.players) do
             -- Store the player row, since we can't count on the WoW client to garbage collect
             if _G[UIPrefixes.PlayerRow .. v.name] == nil then
-                _G[UIPrefixes.PlayerRow .. v.name] = CreatePlayerRowItem(UI.scrollChild, v.name, v.present, k,
-                    maxNameSize)
+                _G[UIPrefixes.PlayerRow .. v.name] =
+                    CreatePlayerRowItem(UI.scrollChild, v.name, v.present, k, maxNameSize)
             end
 
             -- Grab the stored player row and visually reorder it.
@@ -99,6 +142,8 @@ function PopulatePlayerList()
             local text = _G[UIPrefixes.PlayerNameString .. v.name]
             text:SetText(k .. " - " .. v.name)
 
+            local raidDrop = _G[UIPrefixes.RaidMemberDropDown .. v.name]
+            UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize)
         end
     end
 end
@@ -118,9 +163,12 @@ function CreateImportFrame()
     mainFrame:SetPoint("CENTER", 0, 0)
     mainFrame:SetSize(400, 400)
     mainFrame:SetMovable(false)
-    mainFrame:SetScript("OnHide", function(self)
-        ToggleMainWindowFrame()
-    end)
+    mainFrame:SetScript(
+        "OnHide",
+        function(self)
+            ToggleMainWindowFrame()
+        end
+    )
     UI.importFrame = mainFrame
     _G["ChosenLadderImportFrame"] = mainFrame
 
@@ -135,27 +183,30 @@ function CreateImportFrame()
     saveButton:SetPoint("TOPRIGHT", mainFrame, -24, 0)
     saveButton:SetText("Save")
     saveButton:SetEnabled(D.isLootMaster or false)
-    saveButton:SetScript("OnClick", function(self, button, down)
-        local text = ChosenLadderImportEditBox:GetText()
-        local lines = {}
-        for line in text:gmatch("([^\n]*)\n?") do
-            if string.len(line) > 0 then
-                table.insert(lines, F.Trim(line))
+    saveButton:SetScript(
+        "OnClick",
+        function(self, button, down)
+            local text = ChosenLadderImportEditBox:GetText()
+            local lines = {}
+            for line in text:gmatch("([^\n]*)\n?") do
+                if string.len(line) > 0 then
+                    table.insert(lines, F.Trim(line))
+                end
             end
-        end
-        D.BuildPlayerList(lines)
+            D.BuildPlayerList(lines)
 
-        ToggleImportFrame()
-    end)
-    UI.importSaveButton = saveButton;
+            ToggleImportFrame()
+        end
+    )
+    UI.importSaveButton = saveButton
 
     -- Content Window
     local contentFrame = CreateFrame("Frame", "ChosenLadderImportContentFrame", mainFrame, "BackdropTemplate")
     contentFrame:SetPoint("TOPLEFT", mainFrame, 6, -24)
     contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -5, 3)
 
-    local scrollFrame = CreateFrame("ScrollFrame", "ChosenLadderImportScrollFrame", contentFrame,
-        "UIPanelScrollFrameTemplate")
+    local scrollFrame =
+        CreateFrame("ScrollFrame", "ChosenLadderImportScrollFrame", contentFrame, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", contentFrame, 3, -4)
     scrollFrame:SetPoint("BOTTOMRIGHT", contentFrame, -27, 4)
     scrollFrame:EnableMouse(true)
@@ -170,9 +221,12 @@ function CreateImportFrame()
     editBox:SetWidth(scrollFrame:GetWidth())
     editBox:SetHeight(scrollFrame:GetHeight())
     PopulateNames(editBox)
-    editBox:SetScript("OnShow", function(self)
-        PopulateNames(self)
-    end)
+    editBox:SetScript(
+        "OnShow",
+        function(self)
+            PopulateNames(self)
+        end
+    )
     scrollFrame:SetScrollChild(editBox)
 
     mainFrame:SetFrameLevel(9000)
@@ -204,10 +258,13 @@ function CreateMainActionsFrame(mainFrame)
     importButton:SetWidth(actionButtonWidth)
     importButton:SetPoint("TOPLEFT", contentFrame, 6, -6)
     importButton:SetText("Import/Export")
-    importButton:SetScript("OnClick", function(self, button, down)
-        ToggleMainWindowFrame()
-        ToggleImportFrame()
-    end)
+    importButton:SetScript(
+        "OnClick",
+        function(self, button, down)
+            ToggleMainWindowFrame()
+            ToggleImportFrame()
+        end
+    )
 
     -- Select All Button
     local selectAllButton = CreateFrame("Button", "ChosenLadderSelectAllButton", contentFrame, "UIPanelButtonTemplate")
@@ -215,15 +272,18 @@ function CreateMainActionsFrame(mainFrame)
     selectAllButton:SetPoint("TOPLEFT", importButton, 0, -(importButton:GetHeight() + 2))
     selectAllButton:SetText(toggleAll and "Uncheck All" or "Check All")
     selectAllButton:SetEnabled(D.isLootMaster or false)
-    selectAllButton:SetScript("OnClick", function(self, button, down)
-        toggleAll = not toggleAll
-        for k, v in pairs(LootLadder.players) do
-            if _G[UIPrefixes.CheckButton .. v.name] ~= nil then
-                _G[UIPrefixes.CheckButton .. v.name]:Click()
+    selectAllButton:SetScript(
+        "OnClick",
+        function(self, button, down)
+            toggleAll = not toggleAll
+            for k, v in pairs(LootLadder.players) do
+                if _G[UIPrefixes.CheckButton .. v.name] ~= nil then
+                    _G[UIPrefixes.CheckButton .. v.name]:Click()
+                end
             end
+            self:SetText(toggleAll and "Uncheck All" or "Check All")
         end
-        self:SetText(toggleAll and "Uncheck All" or "Check All")
-    end)
+    )
     UI.selectAllButton = selectAllButton
 
     -- Sync Button
@@ -232,12 +292,14 @@ function CreateMainActionsFrame(mainFrame)
     syncButton:SetPoint("TOPLEFT", selectAllButton, 0, -(selectAllButton:GetHeight() + 2))
     syncButton:SetText("Sync")
     syncButton:SetEnabled(D.isLootMaster or false)
-    syncButton:SetScript("OnClick", function(self, button, down)
-        D.GenerateSyncData(false)
-        ChosenLadder:Print("Submitting Sync Request")
-    end)
+    syncButton:SetScript(
+        "OnClick",
+        function(self, button, down)
+            D.GenerateSyncData(false)
+            ChosenLadder:Print("Submitting Sync Request")
+        end
+    )
     UI.syncButton = syncButton
-
 end
 
 function CreateMainPlayerListFrame(mainFrame)
@@ -246,7 +308,8 @@ function CreateMainPlayerListFrame(mainFrame)
     contentFrame:SetPoint("TOPLEFT", mainFrame, 122, -24)
     contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -5, 3)
 
-    local scrollFrame = CreateFrame("ScrollFrame", "ChosenLadderScrollFrame", contentFrame, "UIPanelScrollFrameTemplate")
+    local scrollFrame =
+        CreateFrame("ScrollFrame", "ChosenLadderScrollFrame", contentFrame, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", contentFrame, 3, -4)
     scrollFrame:SetPoint("BOTTOMRIGHT", contentFrame, -27, 4)
     scrollFrame:EnableMouse(true)
@@ -261,15 +324,18 @@ function CreateMainPlayerListFrame(mainFrame)
     UI.scrollChild = scrollChild
     scrollChild:SetWidth(scrollFrame:GetWidth())
     scrollChild:SetHeight(scrollFrame:GetHeight())
-    scrollChild:SetScript("OnShow", function(self)
-        PopulatePlayerList()
-    end)
+    scrollChild:SetScript(
+        "OnShow",
+        function(self)
+            PopulatePlayerList()
+        end
+    )
 
     PopulatePlayerList()
 end
 
 function CreateMainWindowFrame()
-    local mainWidth = 500
+    local mainWidth = 550
     local mainHeight = 400
 
     local mainFrame = CreateFrame("Frame", "ChosenLadderFrame", UIParent, "BasicFrameTemplateWithInset")
