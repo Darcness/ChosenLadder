@@ -63,15 +63,55 @@ NS.Functions.Split = Split
 
 function Dump(o)
     if type(o) == 'table' then
-       local s = '{ '
-       for k,v in pairs(o) do
-          if type(k) ~= 'number' then k = '"'..k..'"' end
-          s = s .. '['..k..'] = ' .. Dump(v) .. ','
-       end
-       return s .. '} '
+        local s = '{ '
+        for k, v in pairs(o) do
+            if type(k) ~= 'number' then k = '"' .. k .. '"' end
+            s = s .. '[' .. k .. '] = ' .. Dump(v) .. ','
+        end
+        return s .. '} '
     else
-       return tostring(o)
+        return tostring(o)
     end
- end
+end
 
- NS.Functions.Dump = Dump
+NS.Functions.Dump = Dump
+
+function ToArray(t)
+    local ret = {}
+    for _, v in pairs(t) do
+        table.insert(ret, v)
+    end
+
+    return ret
+end
+
+NS.Functions.ToArray = ToArray
+
+function Filter(t, f)
+    local ret = {}
+    for k, v in pairs(t) do
+        if f(v) then
+            ret[k] = v
+        end
+    end
+
+    return ret
+end
+
+NS.Functions.Filter = Filter
+
+function FilterArray(t, f)
+    return ToArray(Filter(t, f))
+end
+
+NS.Functions.FilterArray = FilterArray
+
+function Find(t, f)
+    for k, v in ipairs(t) do
+        if f(v) then
+            return v, k
+        end
+    end
+
+    return nil, nil
+end

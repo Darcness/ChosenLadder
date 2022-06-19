@@ -32,17 +32,13 @@ end
 D.BuildPlayerList = BuildPlayerList
 
 function RegisterDunkByGUID(guid)
-    for k, v in ipairs(LootLadder.players) do
-        if v.guid == guid then
-            table.insert(
-                D.dunks,
-                {
-                    player = v,
-                    pos = k
-                }
-            )
-        end
+    local player, pos = GetPlayerByGUID(guid)
+    if player ~= nil and pos > 0 then
+        table.insert(D.dunks, { player = player, pos = pos })
+        return pos
     end
+
+    return 0
 end
 
 D.RegisterDunkByGUID = RegisterDunkByGUID
@@ -99,7 +95,7 @@ function RunDunk(id)
         if newPlayers[i] == nil then
             newPlayers[i] = found
             targetPos = i
-            print(found.name .. " moved to position " .. targetPos .. " from position " .. foundPos)
+            ChosenLadder:Print(found.name .. " moved to position " .. targetPos .. " from position " .. foundPos)
         end
     end
 
@@ -143,8 +139,8 @@ function GenerateSyncData(localDebug)
 
     local fullMessage = timeMessage .. "|"
 
-    for k, v in ipairs(LootLadder.players) do
-        fullMessage = fullMessage .. v.name .. "|"
+    for _, player in ipairs(LootLadder.players) do
+        fullMessage = fullMessage .. player.name .. "|"
     end
 
     local endMessage = D.Constants.EndSyncFlag
@@ -180,17 +176,9 @@ function SetPlayerGUIDByID(id, guid)
         correctID = id
     end
 
-    local player = nil
-    for k, v in ipairs(LootLadder.players) do
-        if v.id == id then
-            player = v
-            break
-        end
-    end
-
+    local player = GetPlayerByID(id)
     if player ~= nil then
         player.guid = guid
-        print(string.format("SetPlayerGUIDByID - %d - %s", correctID, guid))
     else
         print("It went all fucky")
     end
@@ -242,7 +230,32 @@ end
 D.CompleteAuction = CompleteAuction
 
 function ShortenGuid(guid)
-    return guid:gsub("Player-4648-", "")
+    return string.gsub(guid, "Player%-4648%-", "")
 end
 
 D.ShortenGuid = ShortenGuid
+
+function GetPlayerByID(id)
+    for k, v in ipairs(LootLadder.players) do
+        if v.id == id then
+            return v, k
+        end
+    end
+
+    return nil, 0
+end
+
+D.GetPlayerByID = GetPlayerByID
+
+function GetPlayerByGUID(guid)
+    guid = ShortenGuid(guid)
+    for k, v in ipairs(LootLadder.players) do
+        if v.guid == guid then
+            return v, k
+        end
+    end
+
+    return nil, 0
+end
+
+D.GetPlayerByGUID = GetPlayerByGUID

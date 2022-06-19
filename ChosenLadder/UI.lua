@@ -13,43 +13,38 @@ local UIPrefixes = {
 
 function RaidDrop_Initialize_Builder(id)
     return function(frame, level, menuList)
-        local currentValue = UIDropDownMenu_GetSelectedValue(frame)
-        local found = false
+        -- Clear any selections
+        UIDropDownMenu_SetSelectedValue(frame, nil, nil)
+        UIDropDownMenu_SetText(frame, "")
+
         for _, raider in ipairs(D.raidRoster) do
             local name = raider[1]
-            local guid = D.ShortenGuid(UnitGUID(name))
-            -- Is this our selected user?
-            if guid == currentValue then
-                found = true
-            end
+            local guid = UnitGUID(name)
+            if guid == nil then
+                -- Something went wrong?
+                ChosenLadder:Print("Invalid Guid for raid member - " .. name)
+            else
+                local guid = D.ShortenGuid(guid)
 
-            local info = UIDropDownMenu_CreateInfo()
-            info.value = guid
-            info.text = name
-
-            for _, player in ipairs(LootLadder.players) do
-                if player.guid == guid then
+                local info = UIDropDownMenu_CreateInfo()
+                info.value = guid
+                info.text = name
+                info.func = function(b)
                     UIDropDownMenu_SetSelectedValue(frame, guid, guid)
                     UIDropDownMenu_SetText(frame, name)
-                    -- set 'found' to true because we don't want it blanking this out
-                    found = true
-                    break
+                    b.checked = true
+                    D.SetPlayerGUIDByID(id, guid)
+                end
+
+                UIDropDownMenu_AddButton(info, level)
+
+                local player = D.GetPlayerByGUID(guid)
+                if player ~= nil and player.id == id then
+                    -- This id (player row) has the guid for this raid member.  Select them.
+                    UIDropDownMenu_SetSelectedValue(frame, guid, guid)
+                    UIDropDownMenu_SetText(frame, name)
                 end
             end
-
-            info.func = function(b)
-                UIDropDownMenu_SetSelectedValue(frame, guid, guid)
-                UIDropDownMenu_SetText(frame, name)
-                b.checked = true
-                D.SetPlayerGUIDByID(id, guid)
-            end
-            UIDropDownMenu_AddButton(info, level)
-        end
-
-        -- If our selected user isn't found, we blank the dropdown
-        if not found then
-            UIDropDownMenu_SetSelectedValue(frame, nil, nil)
-            UIDropDownMenu_SetText(frame, "")
         end
     end
 end
