@@ -4,23 +4,20 @@ local D = NS.Data
 local UI = NS.UI
 local F = NS.Functions
 
-local toggleAll = false
-
 local UIPrefixes = {
     PlayerRow = "ChosenLadderPlayerRow",
-    CheckButton = "ChosenLadderCheckButton",
     DunkButton = "ChosenLadderDunkButton",
-    PlayerNameString = "ChosenLadderPlayerNameString",
+    PlayerNameString = "ChosenLadderTextString",
     RaidMemberDropDown = "ChosenLadderRaidMemberDropDown"
 }
 
-function RaidDrop_Initialize_Builder(rowName)
+function RaidDrop_Initialize_Builder(id)
     return function(frame, level, menuList)
         local currentValue = UIDropDownMenu_GetSelectedValue(frame)
         local found = false
-        for k, v in ipairs(D.raidRoster) do
-            local name = v[1]
-            local guid = UnitGUID(name)
+        for _, raider in ipairs(D.raidRoster) do
+            local name = raider[1]
+            local guid = D.ShortenGuid(UnitGUID(name))
             -- Is this our selected user?
             if guid == currentValue then
                 found = true
@@ -30,11 +27,21 @@ function RaidDrop_Initialize_Builder(rowName)
             info.value = guid
             info.text = name
 
+            for _, player in ipairs(LootLadder.players) do
+                if player.guid == guid then
+                    UIDropDownMenu_SetSelectedValue(frame, guid, guid)
+                    UIDropDownMenu_SetText(frame, name)
+                    -- set 'found' to true because we don't want it blanking this out
+                    found = true
+                    break
+                end
+            end
+
             info.func = function(b)
                 UIDropDownMenu_SetSelectedValue(frame, guid, guid)
                 UIDropDownMenu_SetText(frame, name)
                 b.checked = true
-                D.SetPlayerGUIDByPosition(rowName, guid)
+                D.SetPlayerGUIDByID(id, guid)
             end
             UIDropDownMenu_AddButton(info, level)
         end
@@ -47,117 +54,88 @@ function RaidDrop_Initialize_Builder(rowName)
     end
 end
 
-function CreatePlayerRowItem(parentScrollFrame, text, checked, idx, maxNameSize)
+function CreatePlayerRowItem(parentScrollFrame, player, idx)
     -- Create a container frame
-    local row = CreateFrame("Frame", UIPrefixes.PlayerRow .. text, parentScrollFrame, "BackdropTemplate")
+    local row = CreateFrame("Frame", UIPrefixes.PlayerRow .. player.id, parentScrollFrame, "BackdropTemplate")
     row:SetSize(parentScrollFrame:GetWidth(), 28)
     row:SetPoint("TOPLEFT", parentScrollFrame, 0, (idx - 1) * -28)
 
-    -- Create the CheckButton
-    local cb = CreateFrame("CheckButton", UIPrefixes.CheckButton .. text, row, "UICheckButtonTemplate")
-    cb:SetSize(28, 28)
-    cb:SetPoint("TOPLEFT", row, 0, 0)
+    local raidDrop = CreateFrame("Frame", UIPrefixes.RaidMemberDropDown .. player.id, row, "UIDropDownMenuTemplate")
+    raidDrop:SetPoint("TOPLEFT", row, 0, 0)
+    UIDropDownMenu_SetWidth(raidDrop, 100)
+    UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(player.id))
 
     -- Set the Font
-    local textFont = cb:CreateFontString(UIPrefixes.PlayerNameString .. text, nil, "GameFontNormal")
-    textFont:SetText(idx .. " - " .. text)
-    textFont:SetPoint("TOPLEFT", cb, cb:GetWidth() + 4, -8)
-    cb:SetFontString(textFont)
-
-    -- Any other properties
-    cb:SetChecked(checked)
+    local textFont = row:CreateFontString(UIPrefixes.PlayerNameString .. player.id, nil, "GameFontNormal")
+    textFont:SetText(idx .. " - " .. player.name)
+    textFont:SetPoint("TOPLEFT", raidDrop, raidDrop:GetWidth() + 4, -8)
 
     -- Dunk Button
-    local dunkButton = CreateFrame("Button", UIPrefixes.DunkButton .. text, row, "UIPanelButtonTemplate")
+    local dunkButton = CreateFrame("Button", UIPrefixes.DunkButton .. player.id, row, "UIPanelButtonTemplate")
     dunkButton:SetText("Dunk")
     dunkButton:SetWidth(64)
     dunkButton:SetPoint("TOPRIGHT", row, -2, -2)
     dunkButton:SetScript(
         "OnClick",
         function(self, button, down)
-            D.RunDunk(text)
+            D.CompleteDunk(player.id)
             PopulatePlayerList()
-        end
-    )
-
-    local raidDrop = CreateFrame("Frame", UIPrefixes.RaidMemberDropDown .. text, row, "UIDropDownMenuTemplate")
-    raidDrop:SetPoint("TOPRIGHT", dunkButton, -(dunkButton:GetWidth() - 12), 2)
-    UIDropDownMenu_SetWidth(raidDrop, 100)
-    UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(text))
-
-    dunkButton:SetEnabled(cb:GetChecked())
-    cb:SetScript(
-        "OnClick",
-        function(self, button, down)
-            D.TogglePresent(text)
-            dunkButton:SetEnabled(self:GetChecked())
         end
     )
 
     return row
 end
 
-function GetMaxNameSize()
-    local maxNameSize = 0
-    for _, v in ipairs(LootLadder.players) do
-        maxNameSize = math.max(maxNameSize, string.len(v.name) + 4) -- Add in "## -" where ## is their list spot.
-    end
-
-    return maxNameSize
-end
-
 function PopulatePlayerList()
     -- If there's no mainFrame yet, we have nothing to populate.
-    if UI.mainFrame ~= nil then
-        -- We get this here so we're not re-calculating it for every row.
-        local maxNameSize = GetMaxNameSize()
-
+    if UI.mainFrame ~= nil and UI.scrollChild ~= nil then
         local children = { UI.scrollChild:GetChildren() }
-        for i, child in ipairs(children) do
+        for _, child in ipairs(children) do
             -- We want to hide the old ones, so they're not on mangling the new ones.
             child:Hide()
         end
 
-        for k, v in ipairs(LootLadder.players) do
+        for playerIdx, player in ipairs(LootLadder.players) do
             -- Store the player row, since we can't count on the WoW client to garbage collect
-            if _G[UIPrefixes.PlayerRow .. v.name] == nil then
-                _G[UIPrefixes.PlayerRow .. v.name] = CreatePlayerRowItem(UI.scrollChild, v.name, v.present, k,
-                    maxNameSize)
+            if _G[UIPrefixes.PlayerRow .. player.id] == nil then
+                _G[UIPrefixes.PlayerRow .. player.id] = CreatePlayerRowItem(UI.scrollChild, player, playerIdx)
             end
 
             -- Grab the stored player row and visually reorder it.
-            local playerRow = _G[UIPrefixes.PlayerRow .. v.name]
-            playerRow:SetPoint("TOPLEFT", UI.scrollChild, 0, (k - 1) * -28)
+            local playerRow = _G[UIPrefixes.PlayerRow .. player.id]
+            playerRow:SetPoint("TOPLEFT", UI.scrollChild, 0, (playerIdx - 1) * -28)
             -- Show them, in case they existed before and we hid them.
             playerRow:Show()
 
-            -- Set up CheckButton values
-            local cb = _G[UIPrefixes.CheckButton .. v.name]
-            cb:SetChecked(v.present)
-            cb:SetEnabled(D.isLootMaster)
-
             -- Set up DunkButton values
-            local dunkButton = _G[UIPrefixes.DunkButton .. v.name]
-            dunkButton:SetEnabled(D.isLootMaster and cb:GetChecked())
+            local dunkButton = _G[UIPrefixes.DunkButton .. player.id]
+            local isDunking = false
+            for _, dunker in ipairs(D.dunks) do
+                if dunker.id == player.id then
+                    isDunking = true
+                    break
+                end
+            end
+            dunkButton:SetEnabled(D.isLootMaster and isDunking)
 
             -- Fix the ordering
-            local text = _G[UIPrefixes.PlayerNameString .. v.name]
-            text:SetText(k .. " - " .. v.name)
+            local text = _G[UIPrefixes.PlayerNameString .. player.id]
+            text:SetText(playerIdx .. " - " .. player.name)
 
-            local raidDrop = _G[UIPrefixes.RaidMemberDropDown .. v.name]
-            UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(v.name))
+            local raidDrop = _G[UIPrefixes.RaidMemberDropDown .. player.id]
+            UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(player.id))
         end
     end
 end
 
 UI.PopulatePlayerList = PopulatePlayerList
 
-function PopulateNames(editBox)
+function FormatNames()
     local names = ""
     for k, v in pairs(LootLadder.players) do
-        names = names .. v.name .. "\n"
+        names = names .. string.format("%s:%s:%s", v.id, v.name, (v.guid or "")) .. "\n"
     end
-    editBox:SetText(names)
+    return names
 end
 
 function CreateImportFrame()
@@ -177,7 +155,7 @@ function CreateImportFrame()
     -- Title Text
     local title = mainFrame:CreateFontString("ARTWORK", nil, "GameFontNormal")
     title:SetPoint("TOPLEFT", 5, -5)
-    title:SetText("Import Names (one per line)")
+    title:SetText("Import Player Data (one per line)")
 
     -- Import Button
     local saveButton = CreateFrame("Button", "ChosenLadderSaveButton", mainFrame, "UIPanelButtonTemplate")
@@ -222,11 +200,11 @@ function CreateImportFrame()
     editBox:SetMultiLine(true)
     editBox:SetWidth(scrollFrame:GetWidth())
     editBox:SetHeight(scrollFrame:GetHeight())
-    PopulateNames(editBox)
+    editBox:SetText(FormatNames())
     editBox:SetScript(
         "OnShow",
         function(self)
-            PopulateNames(self)
+            self:SetText(FormatNames())
         end
     )
     scrollFrame:SetScrollChild(editBox)
@@ -268,30 +246,10 @@ function CreateMainActionsFrame(mainFrame)
         end
     )
 
-    -- Select All Button
-    local selectAllButton = CreateFrame("Button", "ChosenLadderSelectAllButton", contentFrame, "UIPanelButtonTemplate")
-    selectAllButton:SetWidth(actionButtonWidth)
-    selectAllButton:SetPoint("TOPLEFT", importButton, 0, -(importButton:GetHeight() + 2))
-    selectAllButton:SetText(toggleAll and "Uncheck All" or "Check All")
-    selectAllButton:SetEnabled(D.isLootMaster or false)
-    selectAllButton:SetScript(
-        "OnClick",
-        function(self, button, down)
-            toggleAll = not toggleAll
-            for k, v in pairs(LootLadder.players) do
-                if _G[UIPrefixes.CheckButton .. v.name] ~= nil then
-                    _G[UIPrefixes.CheckButton .. v.name]:Click()
-                end
-            end
-            self:SetText(toggleAll and "Uncheck All" or "Check All")
-        end
-    )
-    UI.selectAllButton = selectAllButton
-
     -- Sync Button
     local syncButton = CreateFrame("Button", "ChosenLadderSyncButton", contentFrame, "UIPanelButtonTemplate")
     syncButton:SetWidth(actionButtonWidth)
-    syncButton:SetPoint("TOPLEFT", selectAllButton, 0, -(selectAllButton:GetHeight() + 2))
+    syncButton:SetPoint("TOPLEFT", importButton, 0, -(importButton:GetHeight() + 2))
     syncButton:SetText("Sync")
     syncButton:SetEnabled(D.isLootMaster or false)
     syncButton:SetScript(
@@ -319,7 +277,7 @@ function CreateMainPlayerListFrame(mainFrame)
     contentFrame.scroll = scrollFrame
     contentFrame.scrollbar = ChosenLadderScrollFrameScrollBar
 
-    -- Create the scrolling child frame, set its width to fit, and give it an arbitrary minimum height (such as 1)
+    -- Create the scrolling child frame, set its width to fit
     local scrollChild = CreateFrame("Frame")
     scrollFrame:SetScrollChild(scrollChild)
 
@@ -384,10 +342,6 @@ UI.ToggleMainWindowFrame = ToggleMainWindowFrame
 function UpdateElementsByPermission()
     if UI.syncButton ~= nil then
         UI.syncButton:SetEnabled(D.isLootMaster or false)
-    end
-
-    if UI.selectAllButton ~= nil then
-        UI.selectAllButton:SetEnabled(D.isLootMaster or false)
     end
 
     if UI.importSaveButton ~= nil then

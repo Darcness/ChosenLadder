@@ -9,36 +9,22 @@ function ChosenLadder:OnInitialize()
         LootLadder = {}
     end
 
-    if LootLadder.players == nil then
-        local players = {}
-        for i = 1, 50 do
-            if i == 1 then
-                table.insert(
-                    players,
-                    {
-                        name = "WWWWWWWWWWWW",
-                        present = false,
-                        log = ""
-                    }
-                )
-            else
-                table.insert(
-                    players,
-                    {
-                        name = "Player " .. i,
-                        present = false,
-                        log = ""
-                    }
-                )
-            end
-        end
-
-        LootLadder.players = players
-    end
-
     if LootLadder.lastModified == nil then
         LootLadder.lastModified = 0
     end
+
+    local newPlayers = {}
+    -- Do a little data validation, just in case.
+    for _, player in ipairs(LootLadder.players) do
+        if player.id ~= nil then
+            table.insert(newPlayers, player)
+        else
+            -- no id? They're bad data.
+            self:Print("User missing ID. Ignoring...")
+        end
+    end
+
+    LootLadder.players = newPlayers
 
     D.auctionHistory = {}
     D.currentBid = 0
@@ -84,38 +70,32 @@ end
 
 function ChosenLadder:Dunk(input)
     if D.isLootMaster == nil or D.isLootMaster == false then
-        YouSoBad("Start or Stop a Dunk")
+        YouSoBad("Start a Dunk")
         return
     end
 
-    local arg1, arg2 = self:GetArgs(input, 2)
+    local arg1 = self:GetArgs(input, 1)
     if arg1 == nil then
-        self:Print("Usage: /cldunk <start/stop> [itemLink]")
+        self:Print("Usage: /cldunk [itemLink]")
         return
     end
 
-    if string.lower(arg1) == "start" then
-        if D.dunkItem ~= nil then
-            self:Print("You're still running an dunk session  for " .. D.dunkItem)
-            return
-        end
+    if D.dunkItem ~= nil then
+        self:Print("You're still running an dunk session  for " .. D.dunkItem)
+        return
+    end
 
-        local itemParts = F.Split(arg2, "|")
-        if F.StartsWith(itemParts[2], "Hitem:") then
-            -- We have an item link!
-            D.dunkItem = arg2
-            D.dunkNames = {}
-            SendChatMessage(
-                string.format("Beginning Dunks for %s, please whisper DUNK to %s", D.dunkItem, UnitName("player")),
-                "RAID_WARNING"
-            )
-        else
-            self:Print("Usage: /cldunk <start/stop> [itemLink]")
-        end
-    elseif string.lower(arg1) == "stop" then
-        D.CompleteDunk()
+    local itemParts = F.Split(arg1, "|")
+    if F.StartsWith(itemParts[2], "Hitem:") then
+        -- We have an item link!
+        D.dunkItem = arg1
+        D.dunks = {}
+        SendChatMessage(
+            string.format("Beginning Dunks for %s, please whisper DUNK to %s", D.dunkItem, UnitName("player")),
+            "RAID_WARNING"
+        )
     else
-        self:Print("Usage: /cldunk <start/stop> [itemLink]")
+        self:Print("Usage: /cldunk [itemLink]")
     end
 end
 
@@ -173,7 +153,8 @@ function ChosenLadder:PrintHistory(input)
         self:Print("Ladder History")
         for k, v in pairs(D.ladderHistory) do
             self:Print(
-                string.format("%s moved to position %d from position %d", Ambiguate(v.name, "all"), v.to, v.from)
+                string.format("%s moved to position %d from position %d",
+                    Ambiguate(select(6, GetPlayerInfoByGUID(v.player.guid)), "all"), v.to, v.from)
             )
         end
     else
@@ -189,7 +170,7 @@ function ChosenLadder:Help()
         "/clauction <start/stop> [<itemLink>] - Starts an auction (for the linked item) or stops the current auction"
     )
     self:Print(
-        "/cldunk <start/stop> [<itemLink>] - Starts an dunk session (for the linked item) or stops the current auction"
+        "/cldunk [<itemLink>] - Starts an dunk session (for the linked item) or stops the current auction"
     )
     self:Print("/cllog <auction/ladder> - Displays the list of completed auctions or ladder dunks")
 end

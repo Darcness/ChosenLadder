@@ -20,23 +20,26 @@ end
 
 function ChosenLadder:GROUP_ROSTER_UPDATE(...)
     local lootMethod, masterLooterPartyId, _ = GetLootMethod()
-    D.isLootMaster = lootMethod == "master" and masterLooterPartyId == 0
+    D.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0) or true
 
     UI.UpdateElementsByPermission()
 
     D.raidRoster = {}
     for i = 1, MAX_RAID_MEMBERS do
-        local rosterInfo = {GetRaidRosterInfo(i)}
+        local rosterInfo = { GetRaidRosterInfo(i) }
         -- Break early if we hit a nil (this means we've reached the full number of players)
         if rosterInfo[1] == nil then
             return
         end
 
-        table.insert(D.raidRoster, {GetRaidRosterInfo(i)})
+        table.insert(D.raidRoster, { GetRaidRosterInfo(i) })
     end
+
+    UI.PopulatePlayerList()
 end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
+    local myName = UnitName("player")
     if D.auctionItem ~= nil then
         if D.IsPlayerInRaid(playerName) then
             local bid = tonumber(text)
@@ -47,7 +50,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
                     string.format(
                         "[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d",
                         A,
-                        UnitName("player"),
+                        myName,
                         minBid
                     ),
                     "WHISPER",
@@ -80,7 +83,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
                 -- This is a valid dunk attempt
                 if text == v then
                     local guid = UnitGUID(Ambiguate(playerName, "all"))
-                    print("Player Attempting - " .. guid )
+                    print("Player Attempting - " .. guid)
                     if guid ~= nil then
                         for lk, lv in ipairs(LootLadder.players) do
                             print("Comparing " .. guid .. " to " .. lv.guid)
@@ -88,10 +91,9 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
                             if guid == lv.guid then
                                 -- Register their Dunk attempt
                                 table.insert(
-                                    D.dunkNames,
+                                    D.dunks,
                                     {
-                                        guid = lv.guid,
-                                        name = lv.name,
+                                        player = lv,
                                         pos = lk
                                     }
                                 )
@@ -104,30 +106,19 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
                                 return
                             end
                         end
-                        SendChatMessage(
-                            string.format("[%s]: We couldn't find you in the raid list! Contact the loot master.", A),
-                            "WHISPER",
-                            nil,
-                            playerName
-                        )
+                        SendChatMessage(string.format("[%s]: We couldn't find you in the raid list! Contact the loot master."
+                            , A), "WHISPER", nil, playerName)
                         return
                     end
-                    -- Couldn't get a guid?  Something is off here.  Bail.
+                    -- Couldn't get a guid?  Something is off here.
+                    self:Print(string.format("Unable to find a GUID for player %s! Please select them from a dropdown.",
+                        Ambiguate(playerName, "all")))
                     return
                 end
             end
 
-            SendChatMessage(
-                string.format(
-                    "[%s]: %s is currently running a Dunk session for loot.  If you'd like to dunk for it, type: /whisper %s DUNK",
-                    A,
-                    UnitName("player"),
-                    UnitName("player")
-                ),
-                "WHISPER",
-                nil,
-                playerName
-            )
+            SendChatMessage(string.format("[%s]: %s is currently running a Dunk session for loot.  If you'd like to dunk for it, type: /whisper %s DUNK"
+                , A, playerName, playerName), "WHISPER", nil, playerName)
         end
     end
 end
@@ -155,7 +146,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                 -- Begin Sync
                 D.syncing = StreamFlag.Started
             else
-                self:Print("Sync Request Denied")
+                self:Print("Sync Request Denied from " .. sender)
             end
 
             if D.syncing == StreamFlag.Started then
@@ -169,7 +160,6 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                 end
 
                 if D.syncing == StreamFlag.Complete then
-                    self:Print("Sync Completed from " .. sender)
                     D.BuildPlayerList(players)
                     UI.PopulatePlayerList()
                     D.syncing = StreamFlag.Empty
