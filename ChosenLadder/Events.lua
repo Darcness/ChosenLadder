@@ -21,7 +21,7 @@ end
 
 function ChosenLadder:GROUP_ROSTER_UPDATE(...)
     local lootMethod, masterLooterPartyId, _ = GetLootMethod()
-    D.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0) or true
+    D.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0)
 
     UI.UpdateElementsByPermission()
 
@@ -29,11 +29,11 @@ function ChosenLadder:GROUP_ROSTER_UPDATE(...)
     for i = 1, MAX_RAID_MEMBERS do
         local rosterInfo = { GetRaidRosterInfo(i) }
         -- Break early if we hit a nil (this means we've reached the full number of players)
-        if select(1, rosterInfo) == nil then
+        if rosterInfo[1] == nil then
             return
         end
 
-        table.insert(D.raidRoster, { rosterInfo })
+        table.insert(D.raidRoster, rosterInfo)
     end
 
     UI.PopulatePlayerList()
@@ -49,16 +49,16 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
 
         local bid = tonumber(text)
         if bid == nil then
-            SendChatMessage(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A, myName,
-                minBid), "WHISPER", nil, playerName)
+            ChosenLadder:Whisper(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A, myName,
+                minBid), playerName)
+
             return
         end
 
         bid = math.floor(bid)
         local minBid = GetMinimumBid()
         if bid < minBid then
-            SendChatMessage(string.format("[%s]: Invalid Bid! The minimum bid is %d", A, minBid), "WHISPER", nil,
-                playerName)
+            ChosenLadder:Whisper(string.format("[%s]: Invalid Bid! The minimum bid is %d", A, minBid), playerName)
             return
         end
 
@@ -79,8 +79,8 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
             function(word) return text == word end)
 
         if dunkWord == nil then
-            SendChatMessage(string.format("[%s]: %s is currently running a Dunk session for loot.  If you'd like to dunk for it, type: /whisper %s DUNK"
-                , A, playerName, playerName), "WHISPER", nil, playerName)
+            ChosenLadder:Whisper(string.format("[%s]: %s is currently running a Dunk session for loot.  If you'd like to dunk for it, type: /whisper %s DUNK"
+                , A, playerName, playerName), playerName)
             return
         end
 
@@ -95,13 +95,14 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
         local pos = D.RegisterDunkByGUID(guid)
         if pos <= 0 then
             -- In the raid, but not in the LootLadder?
-            SendChatMessage(string.format("[%s]: We couldn't find you in the raid list! Contact the loot master."
-                , A), "WHISPER", nil, playerName)
+            ChosenLadder:Whisper(string.format("[%s]: We couldn't find you in the raid list! Contact the loot master."
+                , A), playerName)
             return
         end
 
-        SendChatMessage(string.format("[%s]: Dunk registered! Current position: %d", A, pos),
-            "WHISPER", nil, playerName)
+        ChosenLadder:Whisper(string.format("[%s]: Dunk registered! Current position: %d", A, pos), playerName)
+
+        UI.PopulatePlayerList()
 
         return
     end

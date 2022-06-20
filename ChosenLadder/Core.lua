@@ -17,6 +17,8 @@ function ChosenLadder:OnInitialize()
     -- Do a little data validation, just in case.
     for _, player in ipairs(LootLadder.players) do
         if player.id ~= nil then
+            -- Initialize them as not present.
+            player.present = false
             table.insert(newPlayers, player)
         else
             -- no id? They're bad data.
@@ -69,14 +71,25 @@ function ChosenLadder:SendMessage(message, destination)
 end
 
 function ChosenLadder:Dunk(input)
-    if D.isLootMaster == nil or D.isLootMaster == false then
-        YouSoBad("Start a Dunk")
+    if not D.isLootMaster then
+        self:Print("You're not the loot master!")
         return
     end
 
     local arg1 = self:GetArgs(input, 1)
     if arg1 == nil then
-        self:Print("Usage: /cldunk [itemLink]")
+        self:Print("Usage: /cldunk <itemLink/stop>")
+        return
+    end
+
+    if string.lower(arg1) == "stop" then
+        if D.dunkItem ~= nil then
+            SendChatMessage("Cancelling dunk session for " .. D.dunkItem, "RAID")
+            D.dunkItem = nil
+            D.dunks = {}
+        else
+            self:Print("You're not currently running a dunk session!")
+        end
         return
     end
 
@@ -95,13 +108,13 @@ function ChosenLadder:Dunk(input)
             "RAID_WARNING"
         )
     else
-        self:Print("Usage: /cldunk [itemLink]")
+        self:Print("Usage: /cldunk <itemLink/stop>")
     end
 end
 
 function ChosenLadder:Auction(input)
-    if D.isLootMaster == nil or D.isLootMaster == false then
-        YouSoBad("Start or Stop an Auction")
+    if not D.isLootMaster then
+        self:Print("You're not the loot master!")
         return
     end
 
@@ -170,7 +183,16 @@ function ChosenLadder:Help()
         "/clauction <start/stop> [<itemLink>] - Starts an auction (for the linked item) or stops the current auction"
     )
     self:Print(
-        "/cldunk [<itemLink>] - Starts an dunk session (for the linked item) or stops the current auction"
+        "/cldunk <itemLink/stop> - Starts an dunk session (for the linked item) or stops the current auction"
     )
     self:Print("/cllog <auction/ladder> - Displays the list of completed auctions or ladder dunks")
+end
+
+function ChosenLadder:Whisper(text, target)
+    local myName = UnitName("player")
+    if myName == Ambiguate(target, "all") then
+        self:Print(text)
+    else
+        SendChatMessage(text, "WHISPER", nil, target)
+    end
 end

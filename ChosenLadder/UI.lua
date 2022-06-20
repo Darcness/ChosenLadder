@@ -43,6 +43,7 @@ function RaidDrop_Initialize_Builder(id)
                     -- This id (player row) has the guid for this raid member.  Select them.
                     UIDropDownMenu_SetSelectedValue(frame, guid, guid)
                     UIDropDownMenu_SetText(frame, name)
+                    D.SetPresentById(id, true)
                 end
             end
         end
@@ -59,6 +60,7 @@ function CreatePlayerRowItem(parentScrollFrame, player, idx)
     raidDrop:SetPoint("TOPLEFT", row, 0, 0)
     UIDropDownMenu_SetWidth(raidDrop, 100)
     UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(player.id))
+    -- raidDrop:SetEnabled(D.isLootMaster or false)
 
     -- Set the Font
     local textFont = row:CreateFontString(UIPrefixes.PlayerNameString .. player.id, nil, "GameFontNormal")
@@ -106,7 +108,7 @@ function PopulatePlayerList()
             local dunkButton = _G[UIPrefixes.DunkButton .. player.id]
             local isDunking = false
             for _, dunker in ipairs(D.dunks) do
-                if dunker.id == player.id then
+                if dunker.player.id == player.id then
                     isDunking = true
                     break
                 end

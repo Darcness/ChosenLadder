@@ -115,3 +115,5 @@ function Find(t, f)
 
     return nil, nil
 end
+
+NS.Functions.Find = Find

@@ -5,6 +5,7 @@ local F = NS.Functions
 
 D.raidRoster = {}
 D.dunks = {}
+D.isLootMaster = false
 
 function BuildPlayerList(rows)
     LootLadder.players = {}
@@ -18,6 +19,7 @@ function BuildPlayerList(rows)
                     id = nameParts[1],
                     name = nameParts[2],
                     guid = nameParts[3],
+                    present = false,
                     log = ""
                 }
             )
@@ -49,6 +51,7 @@ function RunDunk(id)
             string.format("%s: %s has attempted to DUNK via illegal calls to addon code", CL, UnitName("player")),
             "RAID_WARNING"
         )
+        return
     end
 
     local newPlayers = {}
@@ -109,24 +112,25 @@ function RunDunk(id)
             to = targetPos
         }
     )
+
+    SendChatMessage(string.format("%s won by %s! Congrats!", D.dunkItem, found.name))
+    D.dunkItem = nil
+    D.dunks = {}
     GenerateSyncData(false)
 end
 
 D.RunDunk = RunDunk
 
 function CompleteDunk(id)
-    self:Print("Registered Dunks:")
+    ChosenLadder:Print("Registered Dunks:")
 
     table.sort(D.dunks, function(i1, i2)
         return i1.pos > i2.pos
     end)
 
     for _, v in ipairs(D.dunks) do
-        self:Print(string.format("%s - %d", v.player.name, v.pos))
+        ChosenLadder:Print(string.format("%s - %d", v.player.name, v.pos))
     end
-
-    D.dunkItem = nil
-    D.dunks = {}
 
     RunDunk(id)
 end
@@ -176,7 +180,7 @@ function SetPlayerGUIDByID(id, guid)
         correctID = id
     end
 
-    local player = GetPlayerByID(id)
+    local player = GetPlayerByID(correctID)
     if player ~= nil then
         player.guid = guid
     else
@@ -259,3 +263,12 @@ function GetPlayerByGUID(guid)
 end
 
 D.GetPlayerByGUID = GetPlayerByGUID
+
+function SetPresentById(id, present)
+    local player = GetPlayerByID(id)
+    if player ~= nil then
+        player.present = present
+    end
+end
+
+D.SetPresentById = SetPresentById
