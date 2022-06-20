@@ -1,16 +1,31 @@
 local CL, NS = ...
 
 local D = NS.Data
+local F = NS.Functions
 
-function BuildPlayerList(names)
+D.raidRoster = {}
+D.dunks = {}
+D.isLootMaster = false
+
+function BuildPlayerList(rows)
     LootLadder.players = {}
 
-    for _, v in ipairs(names) do
-        table.insert(LootLadder.players, {
-            name = v,
-            present = false,
-            log = ""
-        })
+    for _, v in ipairs(rows) do
+        local nameParts = F.Split(v, ":")
+        if #nameParts >= 2 then
+            table.insert(
+                LootLadder.players,
+                {
+                    id = nameParts[1],
+                    name = nameParts[2],
+                    guid = nameParts[3],
+                    present = false,
+                    log = ""
+                }
+            )
+        else
+            ChosenLadder:Print("Invalid Import Data: " .. v)
+        end
     end
 
     LootLadder.lastModified = GetServerTime()
@@ -18,15 +33,30 @@ end
 
 D.BuildPlayerList = BuildPlayerList
 
-function RunDunk(name)
-    if D.isLootMaster == nil or D.isLootMaster == false then
-        SendChatMessage(string.format("%s: %s has attempted to DUNK via illegal calls to addon code", CL,
-            UnitName("player")),
-            "RAID_WARNING")
+function RegisterDunkByGUID(guid)
+    local player, pos = GetPlayerByGUID(guid)
+    if player ~= nil and pos > 0 then
+        table.insert(D.dunks, { player = player, pos = pos })
+        return pos
     end
+
+    return 0
+end
+
+D.RegisterDunkByGUID = RegisterDunkByGUID
+
+function RunDunk(id)
+    if D.isLootMaster == nil or D.isLootMaster == false then
+        SendChatMessage(
+            string.format("%s: %s has attempted to DUNK via illegal calls to addon code", CL, UnitName("player")),
+            "RAID_WARNING"
+        )
+        return
+    end
+
     local newPlayers = {}
     -- Initialize newPlayers with nulls, since we're inserting in weird places.
-    for k, v in pairs(LootLadder.players) do
+    for k, _ in pairs(LootLadder.players) do
         newPlayers[k] = nil
     end
 
@@ -36,7 +66,7 @@ function RunDunk(name)
     local len = #LootLadder.players
 
     for currentPos, v in pairs(LootLadder.players) do
-        if name == v.name then
+        if id == v.id then
             -- Let's save this guy for later.
             found = v
             foundPos = currentPos
@@ -68,32 +98,44 @@ function RunDunk(name)
         if newPlayers[i] == nil then
             newPlayers[i] = found
             targetPos = i
-            print(found.name .. " moved to position " .. targetPos .. " from position " .. foundPos)
+            ChosenLadder:Print(found.name .. " moved to position " .. targetPos .. " from position " .. foundPos)
         end
     end
 
     LootLadder.players = newPlayers
     LootLadder.lastModified = GetServerTime()
-    table.insert(D.ladderHistory, {
-        name = found.name,
-        from = foundPos,
-        to = targetPos
-    })
+    table.insert(
+        D.ladderHistory,
+        {
+            player = found,
+            from = foundPos,
+            to = targetPos
+        }
+    )
+
+    SendChatMessage(string.format("%s won by %s! Congrats!", D.dunkItem, found.name))
+    D.dunkItem = nil
+    D.dunks = {}
     GenerateSyncData(false)
 end
 
 D.RunDunk = RunDunk
 
-function TogglePresent(name)
-    for _, v in ipairs(LootLadder.players) do
-        if name == v.name then
-            v.present = not v.present
-            return
-        end
+function CompleteDunk(id)
+    ChosenLadder:Print("Registered Dunks:")
+
+    table.sort(D.dunks, function(i1, i2)
+        return i1.pos > i2.pos
+    end)
+
+    for _, v in ipairs(D.dunks) do
+        ChosenLadder:Print(string.format("%s - %d", v.player.name, v.pos))
     end
+
+    RunDunk(id)
 end
 
-D.TogglePresent = TogglePresent
+D.CompleteDunk = CompleteDunk
 
 function GenerateSyncData(localDebug)
     local timeMessage = D.Constants.BeginSyncFlag .. LootLadder.lastModified
@@ -101,8 +143,8 @@ function GenerateSyncData(localDebug)
 
     local fullMessage = timeMessage .. "|"
 
-    for k, v in ipairs(LootLadder.players) do
-        fullMessage = fullMessage .. v.name .. "|"
+    for _, player in ipairs(LootLadder.players) do
+        fullMessage = fullMessage .. player.name .. "|"
     end
 
     local endMessage = D.Constants.EndSyncFlag
@@ -129,6 +171,25 @@ end
 
 D.IsPlayerInRaid = IsPlayerInRaid
 
+function SetPlayerGUIDByID(id, guid)
+    -- Might be a string, let's force a cleanup
+    local correctID = nil
+    if type(id) == "string" then
+        correctID = tonumber(id)
+    else
+        correctID = id
+    end
+
+    local player = GetPlayerByID(correctID)
+    if player ~= nil then
+        player.guid = guid
+    else
+        print("It went all fucky")
+    end
+end
+
+D.SetPlayerGUIDByID = SetPlayerGUIDByID
+
 function CompleteAuction()
     if D.auctionItem == nil then
         self:Print("No auction has begun!")
@@ -146,15 +207,24 @@ function CompleteAuction()
         bid = D.currentBid
     end
 
-    SendChatMessage(string.format("Auction Complete! %s wins %s for %d gold!",
-        Ambiguate(D.currentWinner, "all"), D.auctionItem, bid),
-        "RAID_WARNING")
+    SendChatMessage(
+        string.format(
+            "Auction Complete! %s wins %s for %d gold!",
+            Ambiguate(D.currentWinner, "all"),
+            D.auctionItem,
+            bid
+        ),
+        "RAID_WARNING"
+    )
 
-    table.insert(D.auctionHistory, {
-        name = D.currentWinner,
-        bid = D.currentBid,
-        item = D.auctionItem
-    })
+    table.insert(
+        D.auctionHistory,
+        {
+            name = D.currentWinner,
+            bid = D.currentBid,
+            item = D.auctionItem
+        }
+    )
 
     D.currentWinner = nil
     D.auctionItem = nil
@@ -162,3 +232,43 @@ function CompleteAuction()
 end
 
 D.CompleteAuction = CompleteAuction
+
+function ShortenGuid(guid)
+    return string.gsub(guid, "Player%-4648%-", "")
+end
+
+D.ShortenGuid = ShortenGuid
+
+function GetPlayerByID(id)
+    for k, v in ipairs(LootLadder.players) do
+        if v.id == id then
+            return v, k
+        end
+    end
+
+    return nil, 0
+end
+
+D.GetPlayerByID = GetPlayerByID
+
+function GetPlayerByGUID(guid)
+    guid = ShortenGuid(guid)
+    for k, v in ipairs(LootLadder.players) do
+        if v.guid == guid then
+            return v, k
+        end
+    end
+
+    return nil, 0
+end
+
+D.GetPlayerByGUID = GetPlayerByGUID
+
+function SetPresentById(id, present)
+    local player = GetPlayerByID(id)
+    if player ~= nil then
+        player.present = present
+    end
+end
+
+D.SetPresentById = SetPresentById

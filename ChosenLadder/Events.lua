@@ -2,6 +2,7 @@ local A, NS = ...
 
 local UI = NS.UI
 local D = NS.Data
+local F = NS.Functions
 
 local StreamFlag = NS.Data.Constants.StreamFlag
 
@@ -20,7 +21,7 @@ end
 
 function ChosenLadder:GROUP_ROSTER_UPDATE(...)
     local lootMethod, masterLooterPartyId, _ = GetLootMethod()
-    D.isLootMaster = lootMethod == "master" and masterLooterPartyId == 0
+    D.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0)
 
     UI.UpdateElementsByPermission()
 
@@ -32,36 +33,79 @@ function ChosenLadder:GROUP_ROSTER_UPDATE(...)
             return
         end
 
-        table.insert(D.raidRoster, { GetRaidRosterInfo(i) })
+        table.insert(D.raidRoster, rosterInfo)
     end
+
+    UI.PopulatePlayerList()
 end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
+    local myName = UnitName("player")
     if D.auctionItem ~= nil then
-        if D.IsPlayerInRaid(playerName) then
-            local bid = tonumber(text)
-            local minBid = GetMinimumBid()
-
-            if bid == nil then
-                SendChatMessage(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A,
-                    UnitName("player"), minBid), "WHISPER", nil, playerName)
-                return
-            elseif bid ~= nil then
-                bid = math.floor(bid)
-                if bid >= minBid then
-                    D.currentBid = bid
-                    D.currentWinner = playerName
-                    SendChatMessage("Current Bid: " .. bid, "RAID")
-                else
-                    SendChatMessage(string.format("[%s]: Invalid Bid! The minimum bid is %d", A, minBid), "WHISPER", nil
-                        , playerName)
-                    return
-                end
-            end
+        if not D.IsPlayerInRaid(playerName) then
+            -- Nothing to process, this is just whisper chatter.
+            return
         end
+
+        local bid = tonumber(text)
+        if bid == nil then
+            ChosenLadder:Whisper(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A, myName,
+                minBid), playerName)
+
+            return
+        end
+
+        bid = math.floor(bid)
+        local minBid = GetMinimumBid()
+        if bid < minBid then
+            ChosenLadder:Whisper(string.format("[%s]: Invalid Bid! The minimum bid is %d", A, minBid), playerName)
+            return
+        end
+
+        D.currentBid = bid
+        D.currentWinner = playerName
+        SendChatMessage("Current Bid: " .. bid, "RAID")
+        return
     end
 
+    if D.dunkItem ~= nil then
+        if not D.IsPlayerInRaid(playerName) then
+            -- Nothing to process, this is just whisper chatter.
+            return
+        end
 
+        text = string.lower(text)
+        local dunkWord = F.Find(D.Constants.AsheosWords,
+            function(word) return text == word end)
+
+        if dunkWord == nil then
+            ChosenLadder:Whisper(string.format("[%s]: %s is currently running a Dunk session for loot.  If you'd like to dunk for it, type: /whisper %s DUNK"
+                , A, playerName, playerName), playerName)
+            return
+        end
+
+        local guid = D.ShortenGuid(UnitGUID(Ambiguate(playerName, "all")))
+        if guid == nil then
+            -- Couldn't get a guid?  Something is off here.
+            self:Print(string.format("Unable to find a GUID for player %s! Please select them from a dropdown.",
+                Ambiguate(playerName, "all")))
+            return
+        end
+
+        local pos = D.RegisterDunkByGUID(guid)
+        if pos <= 0 then
+            -- In the raid, but not in the LootLadder?
+            ChosenLadder:Whisper(string.format("[%s]: We couldn't find you in the raid list! Contact the loot master."
+                , A), playerName)
+            return
+        end
+
+        ChosenLadder:Whisper(string.format("[%s]: Dunk registered! Current position: %d", A, pos), playerName)
+
+        UI.PopulatePlayerList()
+
+        return
+    end
 end
 
 function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
@@ -80,20 +124,19 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
 
             local timestampStr = vars[1]:gsub(beginSyncFlag, "")
             local timestamp = tonumber(timestampStr)
-            self:Print("Incoming Sync request from " ..
-                sender .. ": " .. timestamp .. " - Local: " .. LootLadder.lastModified)
+            self:Print(
+                "Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. LootLadder.lastModified
+            )
             if timestamp > LootLadder.lastModified then
                 -- Begin Sync
                 D.syncing = StreamFlag.Started
             else
-                self:Print("Sync Request Denied")
+                self:Print("Sync Request Denied from " .. sender)
             end
-
 
             if D.syncing == StreamFlag.Started then
                 for k, v in ipairs(vars) do
                     if StartsWith(v, beginSyncFlag) then
-
                     elseif v == endSyncFlag then
                         D.syncing = StreamFlag.Complete
                     else
@@ -102,7 +145,6 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                 end
 
                 if D.syncing == StreamFlag.Complete then
-                    self:Print("Sync Completed from " .. sender)
                     D.BuildPlayerList(players)
                     UI.PopulatePlayerList()
                     D.syncing = StreamFlag.Empty

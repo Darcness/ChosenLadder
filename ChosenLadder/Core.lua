@@ -9,30 +9,24 @@ function ChosenLadder:OnInitialize()
         LootLadder = {}
     end
 
-    if LootLadder.players == nil then
-        local players = {}
-        for i = 1, 50 do
-            if i == 1 then
-                table.insert(players, {
-                    name = "WWWWWWWWWWWW",
-                    present = false,
-                    log = ""
-                })
-            else
-                table.insert(players, {
-                    name = "Player " .. i,
-                    present = false,
-                    log = ""
-                })
-            end
-        end
-
-        LootLadder.players = players
-    end
-
     if LootLadder.lastModified == nil then
         LootLadder.lastModified = 0
     end
+
+    local newPlayers = {}
+    -- Do a little data validation, just in case.
+    for _, player in ipairs(LootLadder.players) do
+        if player.id ~= nil then
+            -- Initialize them as not present.
+            player.present = false
+            table.insert(newPlayers, player)
+        else
+            -- no id? They're bad data.
+            self:Print("User missing ID. Ignoring...")
+        end
+    end
+
+    LootLadder.players = newPlayers
 
     D.auctionHistory = {}
     D.currentBid = 0
@@ -41,15 +35,17 @@ function ChosenLadder:OnInitialize()
 end
 
 function YouSoBad(action)
-    SendChatMessage(string.format("%s: %s has attempted to %s via illegal calls to addon code"
-        , A, UnitName("player"), action),
-        "RAID")
+    SendChatMessage(
+        string.format("%s: %s has attempted to %s via illegal calls to addon code", A, UnitName("player"), action),
+        "RAID"
+    )
 end
 
 function ChosenLadder:OnEnable()
     self:RegisterComm(A, ChosenLadder:OnCommReceived())
     self:RegisterChatCommand("clladder", "ToggleLadder")
     self:RegisterChatCommand("clauction", "Auction")
+    self:RegisterChatCommand("cldunk", "Dunk")
     self:RegisterChatCommand("cllog", "PrintHistory")
     self:RegisterChatCommand("cl", "Help")
     self:RegisterChatCommand("clhelp", "Help")
@@ -74,9 +70,51 @@ function ChosenLadder:SendMessage(message, destination)
     self:SendCommMessage(A, message, destination, nil, "BULK")
 end
 
+function ChosenLadder:Dunk(input)
+    if not D.isLootMaster then
+        self:Print("You're not the loot master!")
+        return
+    end
+
+    local arg1 = self:GetArgs(input, 1)
+    if arg1 == nil then
+        self:Print("Usage: /cldunk <itemLink/stop>")
+        return
+    end
+
+    if string.lower(arg1) == "stop" then
+        if D.dunkItem ~= nil then
+            SendChatMessage("Cancelling dunk session for " .. D.dunkItem, "RAID")
+            D.dunkItem = nil
+            D.dunks = {}
+        else
+            self:Print("You're not currently running a dunk session!")
+        end
+        return
+    end
+
+    if D.dunkItem ~= nil then
+        self:Print("You're still running an dunk session  for " .. D.dunkItem)
+        return
+    end
+
+    local itemParts = F.Split(arg1, "|")
+    if F.StartsWith(itemParts[2], "Hitem:") then
+        -- We have an item link!
+        D.dunkItem = arg1
+        D.dunks = {}
+        SendChatMessage(
+            string.format("Beginning Dunks for %s, please whisper DUNK to %s", D.dunkItem, UnitName("player")),
+            "RAID_WARNING"
+        )
+    else
+        self:Print("Usage: /cldunk <itemLink/stop>")
+    end
+end
+
 function ChosenLadder:Auction(input)
-    if D.isLootMaster == nil or D.isLootMaster == false then
-        YouSoBad("Start or Stop an Auction")
+    if not D.isLootMaster then
+        self:Print("You're not the loot master!")
         return
     end
 
@@ -97,9 +135,10 @@ function ChosenLadder:Auction(input)
             -- We have an item link!
             D.auctionItem = arg2
             D.currentBid = 0
-            SendChatMessage("Beginning auction for " .. D.auctionItem ..
-                ", please whisper " .. UnitName("player") .. " your bids",
-                "RAID_WARNING")
+            SendChatMessage(
+                "Beginning auction for " .. D.auctionItem .. ", please whisper " .. UnitName("player") .. " your bids",
+                "RAID_WARNING"
+            )
         else
             self:Print("Usage: /clauction <start/stop> [itemLink]")
         end
@@ -126,7 +165,10 @@ function ChosenLadder:PrintHistory(input)
     elseif type == "ladder" then
         self:Print("Ladder History")
         for k, v in pairs(D.ladderHistory) do
-            self:Print(string.format("%s moved to position %d from position %d", Ambiguate(v.name, "all"), v.to, v.from))
+            self:Print(
+                string.format("%s moved to position %d from position %d",
+                    Ambiguate(select(6, GetPlayerInfoByGUID(v.player.guid)), "all"), v.to, v.from)
+            )
         end
     else
         self:Print("Usage: /cllog <auction/ladder>")
@@ -137,6 +179,20 @@ function ChosenLadder:Help()
     self:Print("ChosenLadder Help")
     self:Print("/cl, /clhelp - Displays this list")
     self:Print("/clladder - Toggles the main ladder window")
-    self:Print("/clauction <start/stop> [<itemLink>] - Starts an auction (for the linked item) or stops the current auction")
+    self:Print(
+        "/clauction <start/stop> [<itemLink>] - Starts an auction (for the linked item) or stops the current auction"
+    )
+    self:Print(
+        "/cldunk <itemLink/stop> - Starts an dunk session (for the linked item) or stops the current auction"
+    )
     self:Print("/cllog <auction/ladder> - Displays the list of completed auctions or ladder dunks")
+end
+
+function ChosenLadder:Whisper(text, target)
+    local myName = UnitName("player")
+    if myName == Ambiguate(target, "all") then
+        self:Print(text)
+    else
+        SendChatMessage(text, "WHISPER", nil, target)
+    end
 end
