@@ -7,9 +7,9 @@ local F = NS.Functions
 UI.Loot = {}
 local Loot = UI.Loot
 
-for i = 1, 16 do
-    table.insert(D.lootMasterItems, GetInventoryItemLink("player", i))
-end
+-- for i = 1, 16 do
+--     table.insert(D.lootMasterItems, GetInventoryItemLink("player", i))
+-- end
 
 local function CreateLootRowItem(parentScrollFrame, item, idx)
     local row = CreateFrame("Frame", UI.UIPrefixes.LootRow .. idx, parentScrollFrame, "BackdropTemplate")
