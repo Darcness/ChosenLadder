@@ -4,8 +4,8 @@ local D = NS.Data
 local F = NS.Functions
 
 D.raidRoster = {}
-D.dunks = {}
 D.isLootMaster = false
+D.lootMasterItems = {}
 
 function BuildPlayerList(rows)
     LootLadder.players = {}
@@ -32,110 +32,6 @@ function BuildPlayerList(rows)
 end
 
 D.BuildPlayerList = BuildPlayerList
-
-function RegisterDunkByGUID(guid)
-    local player, pos = GetPlayerByGUID(guid)
-    if player ~= nil and pos > 0 then
-        table.insert(D.dunks, { player = player, pos = pos })
-        return pos
-    end
-
-    return 0
-end
-
-D.RegisterDunkByGUID = RegisterDunkByGUID
-
-function RunDunk(id)
-    if D.isLootMaster == nil or D.isLootMaster == false then
-        SendChatMessage(
-            string.format("%s: %s has attempted to DUNK via illegal calls to addon code", CL, UnitName("player")),
-            "RAID_WARNING"
-        )
-        return
-    end
-
-    local newPlayers = {}
-    -- Initialize newPlayers with nulls, since we're inserting in weird places.
-    for k, _ in pairs(LootLadder.players) do
-        newPlayers[k] = nil
-    end
-
-    local foundPos = 1
-    local newPos = 1
-    local found = nil
-    local len = #LootLadder.players
-
-    for currentPos, v in pairs(LootLadder.players) do
-        if id == v.id then
-            -- Let's save this guy for later.
-            found = v
-            foundPos = currentPos
-        else
-            -- If we're not to the found player yet, just copy them straight over.
-            if found == nil then
-                newPlayers[newPos] = v
-                newPos = newPos + 1
-            elseif not v.present then -- We've found a player, so we need to contend with players not present.
-                -- Not present player, shove them into their current slot
-                newPlayers[currentPos] = v
-            else
-                -- This is where it gets hinky.
-                -- insert into the current spot UNLESS an object is already there. If it is, push forward and try again.
-                while newPlayers[newPos] ~= nil do
-                    newPos = newPos + 1
-                end
-                -- Finally found an empty spot! Insert, move the pointer, and continue.
-                newPlayers[newPos] = v
-                newPos = newPos + 1
-            end
-        end
-    end
-
-    local targetPos = 0
-
-    -- There should be one empty spot (probably near the bottom).  Let's find it and put the dunker there.
-    for i = 1, len do
-        if newPlayers[i] == nil then
-            newPlayers[i] = found
-            targetPos = i
-            ChosenLadder:Print(found.name .. " moved to position " .. targetPos .. " from position " .. foundPos)
-        end
-    end
-
-    LootLadder.players = newPlayers
-    LootLadder.lastModified = GetServerTime()
-    table.insert(
-        D.ladderHistory,
-        {
-            player = found,
-            from = foundPos,
-            to = targetPos
-        }
-    )
-
-    SendChatMessage(string.format("%s won by %s! Congrats!", D.dunkItem, found.name))
-    D.dunkItem = nil
-    D.dunks = {}
-    GenerateSyncData(false)
-end
-
-D.RunDunk = RunDunk
-
-function CompleteDunk(id)
-    ChosenLadder:Print("Registered Dunks:")
-
-    table.sort(D.dunks, function(i1, i2)
-        return i1.pos > i2.pos
-    end)
-
-    for _, v in ipairs(D.dunks) do
-        ChosenLadder:Print(string.format("%s - %d", v.player.name, v.pos))
-    end
-
-    RunDunk(id)
-end
-
-D.CompleteDunk = CompleteDunk
 
 function GenerateSyncData(localDebug)
     local timeMessage = D.Constants.BeginSyncFlag .. LootLadder.lastModified
@@ -190,49 +86,6 @@ end
 
 D.SetPlayerGUIDByID = SetPlayerGUIDByID
 
-function CompleteAuction()
-    if D.auctionItem == nil then
-        self:Print("No auction has begun!")
-        return
-    end
-
-    if D.currentWinner == nil then
-        SendChatMessage("Auction Canceled by " .. UnitName("player") .. "!", "RAID_WARNING")
-        D.auctionItem = nil
-        return
-    end
-
-    local bid = 0
-    if D.currentBid ~= nil and D.currentBid > 0 then
-        bid = D.currentBid
-    end
-
-    SendChatMessage(
-        string.format(
-            "Auction Complete! %s wins %s for %d gold!",
-            Ambiguate(D.currentWinner, "all"),
-            D.auctionItem,
-            bid
-        ),
-        "RAID_WARNING"
-    )
-
-    table.insert(
-        D.auctionHistory,
-        {
-            name = D.currentWinner,
-            bid = D.currentBid,
-            item = D.auctionItem
-        }
-    )
-
-    D.currentWinner = nil
-    D.auctionItem = nil
-    D.currentBid = 0
-end
-
-D.CompleteAuction = CompleteAuction
-
 function ShortenGuid(guid)
     return string.gsub(guid, "Player%-4648%-", "")
 end
@@ -272,3 +125,14 @@ function SetPresentById(id, present)
 end
 
 D.SetPresentById = SetPresentById
+
+function RemoveMasterLootItemByIndex(idx)
+    D.lootMasterItems[idx] = nil
+    local newItems = {}
+    for _, item in pairs(D.lootMasterItems) do
+        table.insert(newItems, item)
+    end
+    D.lootMasterItems = newItems
+end
+
+D.RemoveMasterLootItemByIndex = RemoveMasterLootItemByIndex

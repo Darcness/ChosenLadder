@@ -42,6 +42,7 @@ function YouSoBad(action)
 end
 
 function ChosenLadder:OnEnable()
+    hooksecurefunc(MasterLooterFrame, 'Hide', function(self) self:ClearAllPoints() end)
     self:RegisterComm(A, ChosenLadder:OnCommReceived())
     self:RegisterChatCommand("clladder", "ToggleLadder")
     self:RegisterChatCommand("clauction", "Auction")
@@ -51,6 +52,7 @@ function ChosenLadder:OnEnable()
     self:RegisterChatCommand("clhelp", "Help")
     self:RegisterEvent("GROUP_ROSTER_UPDATE", ChosenLadder:GROUP_ROSTER_UPDATE())
     self:RegisterEvent("CHAT_MSG_WHISPER", ChosenLadder:CHAT_MSG_WHISPER())
+    self:RegisterEvent("OPEN_MASTER_LOOT_LIST", ChosenLadder:OPEN_MASTER_LOOT_LIST())
 end
 
 function ChosenLadder:ToggleLadder()
@@ -83,30 +85,14 @@ function ChosenLadder:Dunk(input)
     end
 
     if string.lower(arg1) == "stop" then
-        if D.dunkItem ~= nil then
-            SendChatMessage("Cancelling dunk session for " .. D.dunkItem, "RAID")
-            D.dunkItem = nil
-            D.dunks = {}
-        else
-            self:Print("You're not currently running a dunk session!")
-        end
-        return
-    end
-
-    if D.dunkItem ~= nil then
-        self:Print("You're still running an dunk session  for " .. D.dunkItem)
+        D.Dunk:Complete()
         return
     end
 
     local itemParts = F.Split(arg1, "|")
     if F.StartsWith(itemParts[2], "Hitem:") then
         -- We have an item link!
-        D.dunkItem = arg1
-        D.dunks = {}
-        SendChatMessage(
-            string.format("Beginning Dunks for %s, please whisper DUNK to %s", D.dunkItem, UnitName("player")),
-            "RAID_WARNING"
-        )
+        D.Dunk:Start(arg1)
     else
         self:Print("Usage: /cldunk <itemLink/stop>")
     end
@@ -125,25 +111,15 @@ function ChosenLadder:Auction(input)
     end
 
     if string.lower(arg1) == "start" then
-        if D.auctionItem ~= nil then
-            self:Print("You're still running an auction for " .. D.auctionItem)
-            return
-        end
-
         local itemParts = F.Split(arg2, "|")
         if F.StartsWith(itemParts[2], "Hitem:") then
             -- We have an item link!
-            D.auctionItem = arg2
-            D.currentBid = 0
-            SendChatMessage(
-                "Beginning auction for " .. D.auctionItem .. ", please whisper " .. UnitName("player") .. " your bids",
-                "RAID_WARNING"
-            )
+            D.Auction:Start(arg2)
         else
             self:Print("Usage: /clauction <start/stop> [itemLink]")
         end
     elseif string.lower(arg1) == "stop" then
-        D.CompleteAuction()
+        D.Auction:Complete()
     else
         self:Print("Usage: /clauction <start/stop> [itemLink]")
     end
@@ -159,12 +135,12 @@ function ChosenLadder:PrintHistory(input)
     type = string.lower(type)
     if type == "auction" then
         self:Print("Auction History")
-        for k, v in pairs(D.auctionHistory) do
+        for k, v in pairs(D.Auction.history) do
             self:Print(string.format("%s to %s for %d", v.item, Ambiguate(v.name, "all"), v.bid))
         end
     elseif type == "ladder" then
         self:Print("Ladder History")
-        for k, v in pairs(D.ladderHistory) do
+        for k, v in pairs(D.Dunk.history) do
             self:Print(
                 string.format("%s moved to position %d from position %d",
                     Ambiguate(select(6, GetPlayerInfoByGUID(v.player.guid)), "all"), v.to, v.from)

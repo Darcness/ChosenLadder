@@ -6,20 +6,16 @@ local F = NS.Functions
 
 local StreamFlag = NS.Data.Constants.StreamFlag
 
-function GetMinimumBid()
-    local currentBid = D.currentBid or 0
-    if currentBid < 50 then
-        return 50
-    elseif currentBid < 300 then
-        return currentBid + 10
-    elseif currentBid < 1000 then
-        return currentBid + 50
-    else
-        return currentBid + 100
+function ChosenLadder:OPEN_MASTER_LOOT_LIST()
+    for li = 1, GetNumLootItems() do
+        local item = GetLootSlotLink(li)
+        if item ~= nil then
+            table.insert(D.lootMasterItems, item)
+        end
     end
 end
 
-function ChosenLadder:GROUP_ROSTER_UPDATE(...)
+function ChosenLadder:GROUP_ROSTER_UPDATE()
     local lootMethod, masterLooterPartyId, _ = GetLootMethod()
     D.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0)
 
@@ -40,13 +36,16 @@ function ChosenLadder:GROUP_ROSTER_UPDATE(...)
 end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
-    local myName = UnitName("player")
-    if D.auctionItem ~= nil then
-        if not D.IsPlayerInRaid(playerName) then
-            -- Nothing to process, this is just whisper chatter.
-            return
-        end
+    if not D.IsPlayerInRaid(playerName) then
+        -- Nothing to process, this is just whisper chatter.
+        return
+    end
 
+    local myName = UnitName("player")
+    local auctionItem = D.Auction:GetItemLink()
+    local dunkItem = D.Auction:GetItemLink()
+
+    if auctionItem ~= nil then
         local bid = tonumber(text)
         if bid == nil then
             ChosenLadder:Whisper(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A, myName,
@@ -56,24 +55,18 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
         end
 
         bid = math.floor(bid)
-        local minBid = GetMinimumBid()
+        local minBid = D.Auction:GetMinimumBid()
         if bid < minBid then
             ChosenLadder:Whisper(string.format("[%s]: Invalid Bid! The minimum bid is %d", A, minBid), playerName)
             return
         end
 
-        D.currentBid = bid
-        D.currentWinner = playerName
+        D.Auction:Bid(playerName, bid)
         SendChatMessage("Current Bid: " .. bid, "RAID")
         return
     end
 
-    if D.dunkItem ~= nil then
-        if not D.IsPlayerInRaid(playerName) then
-            -- Nothing to process, this is just whisper chatter.
-            return
-        end
-
+    if dunkItem ~= nil then
         text = string.lower(text)
         local dunkWord = F.Find(D.Constants.AsheosWords,
             function(word) return text == word end)
@@ -92,7 +85,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
             return
         end
 
-        local pos = D.RegisterDunkByGUID(guid)
+        local pos = D.Dunk:RegisterDunkByGUID(guid)
         if pos <= 0 then
             -- In the raid, but not in the LootLadder?
             ChosenLadder:Whisper(string.format("[%s]: We couldn't find you in the raid list! Contact the loot master."
