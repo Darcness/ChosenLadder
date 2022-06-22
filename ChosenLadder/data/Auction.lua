@@ -32,10 +32,11 @@ function Auction:Complete(forceCancel)
         return
     end
 
-    local item = self:GetAuctionItemLink()
+    local item = self:GetItemLink()
 
     if item == nil then
         ChosenLadder:Print("You're not running an auction!")
+        return
     end
 
     if self.currentBid == 0 or forceCancel then
@@ -45,7 +46,7 @@ function Auction:Complete(forceCancel)
     end
 
     SendChatMessage(string.format("Auction Complete! %s wins %s for %d gold!", Ambiguate(self.currentWinner, "all"),
-        self.auctionItem, self.currentBid), "RAID")
+        self:GetItemLink(), self.currentBid), "RAID")
 
     table.insert(
         self.history,
@@ -56,9 +57,7 @@ function Auction:Complete(forceCancel)
         }
     )
 
-    self.currentWinner = nil
-    self.auctionItem = nil
-    self.currentBid = 0
+    clearAuction(self)
 end
 
 function Auction:Start(auctionItem)
@@ -68,13 +67,13 @@ function Auction:Start(auctionItem)
     end
 
     if self.auctionItem ~= nil then
-        self:Print("You're still running an auction for " .. self:GetAuctionItemLink())
+        self:Print("You're still running an auction for " .. self:GetItemLink())
         return
     end
 
     clearAuction(self)
     self.auctionItem = auctionItem
-    SendChatMessage(string.format("Beginning auction for %s, please whisper %s your bids.", self:GetAuctionItemLink(),
+    SendChatMessage(string.format("Beginning auction for %s, please whisper %s your bids.", self:GetItemLink(),
         UnitName("player")), "RAID_WARNING")
 end
 

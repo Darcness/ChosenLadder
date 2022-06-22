@@ -56,9 +56,11 @@ end
 D.GenerateSyncData = GenerateSyncData
 
 function IsPlayerInRaid(playername)
-    for k, v in ipairs(D.raidRoster) do
-        if v[1] == Ambiguate(playername, "all") then
-            return true
+    if playername ~= nil then
+        for k, v in ipairs(D.raidRoster) do
+            if v[1] == Ambiguate(playername, "all") then
+                return true
+            end
         end
     end
 
@@ -126,13 +128,20 @@ end
 
 D.SetPresentById = SetPresentById
 
-function RemoveMasterLootItemByIndex(idx)
-    D.lootMasterItems[idx] = nil
+function GetLootItemByGUID(guid)
+    return F.Find(D.lootMasterItems, function(item) return item.guid == guid end)
+end
+
+D.GetLootItemByGUID = GetLootItemByGUID
+
+function RemoveLootItemByGUID(guid)
     local newItems = {}
     for _, item in pairs(D.lootMasterItems) do
-        table.insert(newItems, item)
+        if item.guid ~= guid then
+            table.insert(newItems, item)
+        end
     end
     D.lootMasterItems = newItems
 end
 
-D.RemoveMasterLootItemByIndex = RemoveMasterLootItemByIndex
+D.RemoveLootItemByGUID = RemoveLootItemByGUID

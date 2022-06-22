@@ -21,9 +21,8 @@ function Dunk:GetItemLink()
         return nil
     end
 
-    local itemNum = tonumber(D.dunkItem)
-    if itemNum ~= nil then
-        return D.lootMasterItems[itemNum]
+    if F.StartsWith(self.dunkItem.guid, "Item-4648-0-") then
+        return F.Find(D.lootMasterItems, function(item) return item.guid == self.dunkItem.guid end)
     end
 
     return self.dunkItem
@@ -57,7 +56,7 @@ function Dunk:CompleteAnnounce(forceId)
     end
 end
 
-function Dunk:CompleteProcess(id, item)
+function Dunk:CompleteProcess(id)
     ChosenLadder:Print("Registered Dunks:")
 
     -- We're assuming the list is already sorted by now.
@@ -121,15 +120,13 @@ function Dunk:CompleteProcess(id, item)
             player = found,
             from = foundPos,
             to = targetPos,
-            item = item
+            item = D.GetLootItemByGUID(self.dunkItem) or self.dunkItem
         }
     )
 
-    local itemId = tonumber(self.dunkItem)
-    if itemId ~= nil then
-        D.RemoveMasterLootItemByIndex(itemId)
-        UI.Loot:PopulateLootList()
-    end
+    -- This will no-op if self.dunkItem is an itemLink
+    D.RemoveLootItemByGUID(self.dunkItem)
+    UI.Loot:PopulateLootList()
 
     clearData(self)
 
@@ -140,7 +137,7 @@ function Dunk:Start(dunkItem)
     clearData(self)
     self.dunkItem = dunkItem
     SendChatMessage(
-        string.format("Beginning Dunks for %s, please whisper DUNK to %s", self:GetDunkItemLink(), UnitName("player")),
+        string.format("Beginning Dunks for %s, please whisper DUNK to %s", self:GetItemLink(), UnitName("player")),
         "RAID_WARNING"
     )
 end

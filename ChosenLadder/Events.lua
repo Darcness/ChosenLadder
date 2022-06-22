@@ -6,13 +6,48 @@ local F = NS.Functions
 
 local StreamFlag = NS.Data.Constants.StreamFlag
 
-function ChosenLadder:OPEN_MASTER_LOOT_LIST()
-    for li = 1, GetNumLootItems() do
-        local item = GetLootSlotLink(li)
-        if item ~= nil then
-            table.insert(D.lootMasterItems, item)
+local tip = CreateFrame("GameTooltip", "Tooltip", nil, "GameTooltipTemplate")
+
+local function isTradable(itemLocation)
+    local itemLink = C_Item.GetItemLink(itemLocation)
+    tip:SetOwner(UIParent, "ANCHOR_NONE")
+    tip:SetBagItem(itemLocation:GetBagAndSlot())
+    for i = 1, tip:NumLines() do
+        if (string.find(_G["TooltipTextLeft" .. i]:GetText(), string.format(BIND_TRADE_TIME_REMAINING, ".*"))) then
+            return true
         end
     end
+    -- tip:Hide()
+end
+
+function ChosenLadder:BAG_UPDATE_DELAYED()
+    if D.lootMasterItems == nil then
+        D.lootMasterItems = {}
+    end
+
+    for bag = 0, 4 do
+        for slot = 0, GetContainerNumSlots(bag) do
+            local itemID = GetContainerItemID(bag, slot)
+            if itemID then
+                local itemLocation = ItemLocation:CreateFromBagAndSlot(bag, slot)
+                local item = Item:CreateFromBagAndSlot(bag, slot)
+                local guid = item:GetItemGUID()
+                local itemLink = item:GetItemLink()
+                if isTradable(itemLocation) then
+                    local current = F.Find(D.lootMasterItems, function(i) return i.guid == guid end)
+                    if current == nil then
+                        table.insert(D.lootMasterItems, {
+                            guid = guid,
+                            itemLink = itemLink,
+                            sold = false
+                        })
+                    end
+
+                end
+            end
+        end
+    end
+    UI.Loot:PopulateLootList()
 end
 
 function ChosenLadder:GROUP_ROSTER_UPDATE()

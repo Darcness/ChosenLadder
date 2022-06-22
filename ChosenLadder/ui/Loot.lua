@@ -7,47 +7,43 @@ local F = NS.Functions
 UI.Loot = {}
 local Loot = UI.Loot
 
--- for i = 1, 16 do
---     table.insert(D.lootMasterItems, GetInventoryItemLink("player", i))
--- end
-
 local function CreateLootRowItem(parentScrollFrame, item, idx)
-    local row = CreateFrame("Frame", UI.UIPrefixes.LootRow .. idx, parentScrollFrame, "BackdropTemplate")
+    local row = CreateFrame("Frame", UI.UIPrefixes.LootRow .. item.guid, parentScrollFrame, "BackdropTemplate")
     row:SetSize(parentScrollFrame:GetWidth() - 8, 28)
     row:SetPoint("TOPLEFT", parentScrollFrame, 12, (idx - 1) * -28)
 
-    local textFont = row:CreateFontString(UI.UIPrefixes.LootItemNameString .. idx, nil, "GameFontNormal")
-    textFont:SetText(item)
+    local textFont = row:CreateFontString(UI.UIPrefixes.LootItemNameString .. item.guid, nil, "GameFontNormal")
+    textFont:SetText(item.itemLink)
     textFont:SetPoint("TOPLEFT", row, 4, -8)
 
     -- Dunk Button
-    local dunkButton = CreateFrame("Button", UI.UIPrefixes.LootDunkButton .. idx, row, "UIPanelButtonTemplate")
-    dunkButton:SetText(D.Dunk.dunkItem == idx and "Cancel Dunk" or "Start Dunk")
+    local dunkButton = CreateFrame("Button", UI.UIPrefixes.LootDunkButton .. item.guid, row, "UIPanelButtonTemplate")
+    dunkButton:SetText(D.Dunk.dunkItem == item.guid and "Cancel Dunk" or "Start Dunk")
     dunkButton:SetWidth(92)
     dunkButton:SetPoint("TOPRIGHT", row, -2, -2)
     dunkButton:SetScript(
         "OnClick",
         function(self, button, down)
-            if D.dunkItem == idx then
+            if D.dunkItem == item.guid then
                 D.Dunk:CompleteAnnounce()
             else
-                D.Dunk:Start(idx)
+                D.Dunk:Start(item.guid)
             end
         end
     )
 
     -- Auction Button
-    local auctionButton = CreateFrame("Button", UI.UIPrefixes.LootAuctionButton .. idx, row, "UIPanelButtonTemplate")
-    auctionButton:SetText(D.Auction.auctionItem == idx and "Cancel Auction" or "Start Auction")
+    local auctionButton = CreateFrame("Button", UI.UIPrefixes.LootAuctionButton .. item.guid, row, "UIPanelButtonTemplate")
+    auctionButton:SetText(D.Auction.auctionItem == item.guid and "Cancel Auction" or "Start Auction")
     auctionButton:SetWidth(102)
     auctionButton:SetPoint("TOPRIGHT", dunkButton, -(dunkButton:GetWidth() + 2), 0)
     auctionButton:SetScript(
         "OnClick",
         function(self, button, down)
-            if D.dunkItem == idx then
+            if D.dunkItem == item.guid then
                 D.Auction:Complete()
             else
-                D.Auction:Start(idx)
+                D.Auction:Start(item.guid)
             end
         end
     )
@@ -88,17 +84,23 @@ end
 
 function Loot:PopulateLootList()
     if self.scrollChild ~= nil then
-        for lootIdx, lootItem in ipairs(D.lootMasterItems) do
+        for _, lootItem in ipairs(D.lootMasterItems) do
             -- Store the loot row, since we can't count on the WoW client to garbage collect
-            local row = _G[UI.UIPrefixes.LootRow .. lootIdx] or CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
+            local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
 
             for _, child in ipairs({ row:GetChildren() }) do
                 if F.StartsWith(child:GetName(), UI.UIPrefixes.LootDunkButton) then
                     -- The Dunk button!
-                    child:SetEnabled(D.isLootMaster)
+                    child:SetEnabled(D.isLootMaster and not lootItem.sold)
                 elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootAuctionButton) then
                     -- The Auction button!
-                    child:SetEnabled(D.isLootMaster)
+                    child:SetEnabled(D.isLootMaster and not lootItem.sold)
+                elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootItemNameString) then
+                    if lootItem.sold then
+                        child:SetFontObject("GameFontDisable")
+                    else
+                        child:SetFontObject("GameFontNormal")
+                    end
                 end
             end
         end

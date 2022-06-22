@@ -52,7 +52,8 @@ function ChosenLadder:OnEnable()
     self:RegisterChatCommand("clhelp", "Help")
     self:RegisterEvent("GROUP_ROSTER_UPDATE", ChosenLadder:GROUP_ROSTER_UPDATE())
     self:RegisterEvent("CHAT_MSG_WHISPER", ChosenLadder:CHAT_MSG_WHISPER())
-    self:RegisterEvent("OPEN_MASTER_LOOT_LIST", ChosenLadder:OPEN_MASTER_LOOT_LIST())
+    -- self:RegisterEvent("OPEN_MASTER_LOOT_LIST", ChosenLadder:OPEN_MASTER_LOOT_LIST())
+    self:RegisterEvent("BAG_UPDATE_DELAYED", ChosenLadder:BAG_UPDATE_DELAYED())
 end
 
 function ChosenLadder:ToggleLadder()
