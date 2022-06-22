@@ -11,6 +11,14 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
     local row = CreateFrame("Frame", UI.UIPrefixes.LootRow .. item.guid, parentScrollFrame, "BackdropTemplate")
     row:SetSize(parentScrollFrame:GetWidth() - 8, 28)
     row:SetPoint("TOPLEFT", parentScrollFrame, 12, (idx - 1) * -28)
+    row:SetHyperlinksEnabled(true)
+    row:SetScript("OnHyperlinkClick", function(self, link, text, button)
+        GameTooltip:SetOwner(row, "ANCHOR_CURSOR")
+        GameTooltip:SetHyperlink(item.itemLink)
+        GameTooltip:Show()
+        -- SetItemRef(link, text, button, row)
+    end)
+    row:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
     local textFont = row:CreateFontString(UI.UIPrefixes.LootItemNameString .. item.guid, nil, "GameFontNormal")
     textFont:SetText(item.itemLink)
@@ -33,7 +41,8 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
     )
 
     -- Auction Button
-    local auctionButton = CreateFrame("Button", UI.UIPrefixes.LootAuctionButton .. item.guid, row, "UIPanelButtonTemplate")
+    local auctionButton = CreateFrame("Button", UI.UIPrefixes.LootAuctionButton .. item.guid, row,
+        "UIPanelButtonTemplate")
     auctionButton:SetText(D.Auction.auctionItem == item.guid and "Cancel Auction" or "Start Auction")
     auctionButton:SetWidth(102)
     auctionButton:SetPoint("TOPRIGHT", dunkButton, -(dunkButton:GetWidth() + 2), 0)
@@ -84,9 +93,10 @@ end
 
 function Loot:PopulateLootList()
     if self.scrollChild ~= nil then
-        for _, lootItem in ipairs(D.lootMasterItems) do
+        for lootIdx, lootItem in ipairs(D.lootMasterItems) do
             -- Store the loot row, since we can't count on the WoW client to garbage collect
-            local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
+            local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or
+                CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
 
             for _, child in ipairs({ row:GetChildren() }) do
                 if F.StartsWith(child:GetName(), UI.UIPrefixes.LootDunkButton) then
