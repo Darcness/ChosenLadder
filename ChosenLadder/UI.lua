@@ -4,6 +4,18 @@ local D = NS.Data
 local UI = NS.UI
 local F = NS.Functions
 
+UI.Constants = {
+    actionButtonWidth = 102,
+    FrameInset = {
+        left = 6,
+        right = 6,
+        top = 24,
+        bottom = 3
+    },
+    LeftFrame = { width = 106 }
+}
+
+
 UI.UIPrefixes = {
     PlayerRow = "ChosenLadderPlayerRow",
     PlayerDunkButton = "ChosenLadderDunkButton",
@@ -12,11 +24,12 @@ UI.UIPrefixes = {
     LootRow = "ChosenLadderLootRow",
     LootDunkButton = "ChosenLadderLootDunkButton",
     LootAuctionButton = "ChosenLadderLootAuctionButton",
-    LootItemNameString = "ChosenLadderLootTextString"
+    LootItemNameString = "ChosenLadderLootTextString",
+    LootItemClearButton = "ChosenLadderLootClearButton"
 }
 
 function CreateMainWindowFrame()
-    local mainWidth = 550
+    local mainWidth = 600
     local mainHeight = 400
 
     local mainFrame = CreateFrame("Frame", "ChosenLadderFrame", UIParent, "BasicFrameTemplateWithInset")

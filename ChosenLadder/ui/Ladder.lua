@@ -6,6 +6,7 @@ local F = NS.Functions
 
 UI.Ladder = {}
 local Ladder = UI.Ladder
+local UIC = UI.Constants
 
 local function RaidDrop_Initialize_Builder(id)
     return function(frame, level, menuList)
@@ -107,44 +108,46 @@ function FormatNames()
 end
 
 function Ladder:PopulatePlayerList()
-    -- If there's no mainFrame yet, we have nothing to populate.
-    if UI.mainFrame ~= nil and UI.scrollChild ~= nil then
-        local children = { UI.scrollChild:GetChildren() }
-        for _, child in ipairs(children) do
-            -- We want to hide the old ones, so they're not on mangling the new ones.
-            child:Hide()
+    -- If there's no scrollChild yet, we have nothing to populate.
+    if UI.scrollChild == nil then
+        return
+    end
+
+    local children = { UI.scrollChild:GetChildren() }
+    for _, child in ipairs(children) do
+        -- We want to hide the old ones, so they're not on mangling the new ones.
+        child:Hide()
+    end
+
+    for playerIdx, player in ipairs(LootLadder.players) do
+        -- Store the player row, since we can't count on the WoW client to garbage collect
+        if _G[UI.UIPrefixes.PlayerRow .. player.id] == nil then
+            _G[UI.UIPrefixes.PlayerRow .. player.id] = CreatePlayerRowItem(UI.scrollChild, player, playerIdx)
         end
 
-        for playerIdx, player in ipairs(LootLadder.players) do
-            -- Store the player row, since we can't count on the WoW client to garbage collect
-            if _G[UI.UIPrefixes.PlayerRow .. player.id] == nil then
-                _G[UI.UIPrefixes.PlayerRow .. player.id] = CreatePlayerRowItem(UI.scrollChild, player, playerIdx)
+        -- Grab the stored player row and visually reorder it.
+        local playerRow = _G[UI.UIPrefixes.PlayerRow .. player.id]
+        playerRow:SetPoint("TOPLEFT", UI.scrollChild, 0, (playerIdx - 1) * -28)
+        -- Show them, in case they existed before and we hid them.
+        playerRow:Show()
+
+        -- Set up DunkButton values
+        local dunkButton = _G[UI.UIPrefixes.PlayerDunkButton .. player.id]
+        local isDunking = false
+        for _, dunker in ipairs(D.Dunk.dunks) do
+            if dunker.player.id == player.id then
+                isDunking = true
+                break
             end
-
-            -- Grab the stored player row and visually reorder it.
-            local playerRow = _G[UI.UIPrefixes.PlayerRow .. player.id]
-            playerRow:SetPoint("TOPLEFT", UI.scrollChild, 0, (playerIdx - 1) * -28)
-            -- Show them, in case they existed before and we hid them.
-            playerRow:Show()
-
-            -- Set up DunkButton values
-            local dunkButton = _G[UI.UIPrefixes.PlayerDunkButton .. player.id]
-            local isDunking = false
-            for _, dunker in ipairs(D.Dunk.dunks) do
-                if dunker.player.id == player.id then
-                    isDunking = true
-                    break
-                end
-            end
-            dunkButton:SetEnabled(D.isLootMaster and isDunking)
-
-            -- Fix the ordering
-            local text = _G[UI.UIPrefixes.PlayerNameString .. player.id]
-            text:SetText(playerIdx .. " - " .. player.name)
-
-            local raidDrop = _G[UI.UIPrefixes.RaidMemberDropDown .. player.id]
-            UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(player.id))
         end
+        dunkButton:SetEnabled(D.isLootMaster and isDunking)
+
+        -- Fix the ordering
+        local text = _G[UI.UIPrefixes.PlayerNameString .. player.id]
+        text:SetText(playerIdx .. " - " .. player.name)
+
+        local raidDrop = _G[UI.UIPrefixes.RaidMemberDropDown .. player.id]
+        UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(player.id))
     end
 end
 
@@ -236,15 +239,14 @@ function Ladder:ToggleImportFrame()
 end
 
 function Ladder:CreateMainFrame(mainFrame)
-    local actionButtonWidth = 102
-    local contentFrame = CreateFrame("Frame", "ChosenLadderActionContentFrame", mainFrame, "BackdropTemplate")
-    contentFrame:SetPoint("TOPLEFT", mainFrame, 6, -24)
-    contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -122, 3)
+    local actionFrame = CreateFrame("Frame", "ChosenLadderActionContentFrame", mainFrame, "BackdropTemplate")
+    actionFrame:SetPoint("TOPLEFT", mainFrame, UIC.FrameInset.left, -UIC.FrameInset.top)
+    actionFrame:SetPoint("BOTTOMRIGHT", mainFrame, -UIC.LeftFrame.width, UIC.FrameInset.bottom)
 
     -- Import Button
-    local importButton = CreateFrame("Button", "ChosenLadderImportButton", contentFrame, "UIPanelButtonTemplate")
-    importButton:SetWidth(actionButtonWidth)
-    importButton:SetPoint("TOPLEFT", contentFrame, 6, -6)
+    local importButton = CreateFrame("Button", "ChosenLadderImportButton", actionFrame, "UIPanelButtonTemplate")
+    importButton:SetWidth(UIC.actionButtonWidth)
+    importButton:SetPoint("TOPLEFT", actionFrame, 6, -6)
     importButton:SetText("Import/Export")
     importButton:SetScript(
         "OnClick",
@@ -255,8 +257,8 @@ function Ladder:CreateMainFrame(mainFrame)
     )
 
     -- Sync Button
-    local syncButton = CreateFrame("Button", "ChosenLadderSyncButton", contentFrame, "UIPanelButtonTemplate")
-    syncButton:SetWidth(actionButtonWidth)
+    local syncButton = CreateFrame("Button", "ChosenLadderSyncButton", actionFrame, "UIPanelButtonTemplate")
+    syncButton:SetWidth(UIC.actionButtonWidth)
     syncButton:SetPoint("TOPLEFT", importButton, 0, -(importButton:GetHeight() + 2))
     syncButton:SetText("Sync")
     syncButton:SetEnabled(D.isLootMaster or false)
@@ -271,8 +273,8 @@ function Ladder:CreateMainFrame(mainFrame)
 
     -- Content Window
     local contentFrame = CreateFrame("Frame", "ChosenLadderScrollContentFrame", mainFrame, "BackdropTemplate")
-    contentFrame:SetPoint("TOPLEFT", mainFrame, 122, -24)
-    contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -5, 3)
+    contentFrame:SetPoint("TOPLEFT", mainFrame, UIC.LeftFrame.width, -UIC.FrameInset.top)
+    contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -UIC.FrameInset.right, UIC.FrameInset.bottom)
 
     local scrollFrame = CreateFrame("ScrollFrame", "ChosenLadderScrollFrame", contentFrame, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", contentFrame, 3, -4)

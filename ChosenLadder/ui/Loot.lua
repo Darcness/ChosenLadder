@@ -7,6 +7,21 @@ local F = NS.Functions
 UI.Loot = {}
 local Loot = UI.Loot
 
+local UIC = UI.Constants
+
+for i = 1, 16 do
+    local item = Item:CreateFromEquipmentSlot(i)
+    local guid = item:GetItemGUID()
+    local itemLink = item:GetItemLink()
+
+    table.insert(D.lootMasterItems, {
+        guid = guid,
+        itemLink = itemLink,
+        sold = false
+    })
+
+end
+
 local function CreateLootRowItem(parentScrollFrame, item, idx)
     local row = CreateFrame("Frame", UI.UIPrefixes.LootRow .. item.guid, parentScrollFrame, "BackdropTemplate")
     row:SetSize(parentScrollFrame:GetWidth() - 8, 28)
@@ -16,7 +31,6 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
         GameTooltip:SetOwner(row, "ANCHOR_CURSOR")
         GameTooltip:SetHyperlink(item.itemLink)
         GameTooltip:Show()
-        -- SetItemRef(link, text, button, row)
     end)
     row:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
@@ -57,13 +71,39 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
         end
     )
 
+    local clearButton = CreateFrame("Button", UI.UIPrefixes.LootItemClearButton .. item.guid, row,
+        "UIPanelButtonTemplate")
+    clearButton:SetText("Clear")
+    clearButton:SetWidth(48)
+    clearButton:SetPoint("TOPRIGHT", auctionButton, -(auctionButton:GetWidth() + 2), 0)
+    clearButton:SetScript("OnClick", function(self, button, down)
+        D.RemoveLootItemByGUID(item.guid)
+        Loot:PopulateLootList()
+    end)
+
     return row
 end
 
 function Loot:CreateMainFrame(mainFrame)
+    local actionFrame = CreateFrame("Frame", "ChosenLadderLootActionContentFrame", mainFrame, "BackdropTemplate")
+    actionFrame:SetPoint("TOPLEFT", mainFrame, UIC.FrameInset.left, -UIC.FrameInset.top)
+    actionFrame:SetPoint("BOTTOMRIGHT", mainFrame, -UIC.LeftFrame.width, UIC.FrameInset.bottom)
+
+    local clearButton = CreateFrame("Button", "ChosenLadderLootClearAllButton", actionFrame, "UIPanelButtonTemplate")
+    clearButton:SetWidth(UIC.actionButtonWidth)
+    clearButton:SetPoint("TOPLEFT", actionFrame, 6, -6)
+    clearButton:SetText("Clear All")
+    clearButton:SetScript(
+        "OnClick",
+        function(self, button, down)
+            D.lootMasterItems = {}
+            Loot:PopulateLootList()
+        end
+    )
+
     local contentFrame = CreateFrame("Frame", "ChosenLadderLootScrollContentFrame", mainFrame, "BackdropTemplate")
-    contentFrame:SetPoint("TOPLEFT", mainFrame, -5, -24)
-    contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -5, 3)
+    contentFrame:SetPoint("TOPLEFT", mainFrame, UIC.LeftFrame.width, -UIC.FrameInset.top)
+    contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -UIC.FrameInset.right, UIC.FrameInset.bottom)
 
     local scrollFrame = CreateFrame("ScrollFrame", "ChosenLadderLootScrollFrame", contentFrame,
         "UIPanelScrollFrameTemplate")
@@ -92,25 +132,35 @@ function Loot:CreateMainFrame(mainFrame)
 end
 
 function Loot:PopulateLootList()
-    if self.scrollChild ~= nil then
-        for lootIdx, lootItem in ipairs(D.lootMasterItems) do
-            -- Store the loot row, since we can't count on the WoW client to garbage collect
-            local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or
-                CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
+    -- If there's no scrollChild yet, we have nothing to populate.
+    if UI.scrollChild == nil then
+        return
+    end
 
-            for _, child in ipairs({ row:GetChildren() }) do
-                if F.StartsWith(child:GetName(), UI.UIPrefixes.LootDunkButton) then
-                    -- The Dunk button!
-                    child:SetEnabled(D.isLootMaster and not lootItem.sold)
-                elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootAuctionButton) then
-                    -- The Auction button!
-                    child:SetEnabled(D.isLootMaster and not lootItem.sold)
-                elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootItemNameString) then
-                    if lootItem.sold then
-                        child:SetFontObject("GameFontDisable")
-                    else
-                        child:SetFontObject("GameFontNormal")
-                    end
+    local children = { self.scrollChild:GetChildren() }
+    for _, child in ipairs(children) do
+        -- We want to hide the old ones, so they're not on mangling the new ones.
+        child:Hide()
+    end
+
+    for lootIdx, lootItem in ipairs(D.lootMasterItems) do
+        -- Store the loot row, since we can't count on the WoW client to garbage collect
+        local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or
+            CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
+        row:Show()
+
+        for _, child in ipairs({ row:GetChildren() }) do
+            if F.StartsWith(child:GetName(), UI.UIPrefixes.LootDunkButton) then
+                -- The Dunk button!
+                child:SetEnabled(D.isLootMaster and not lootItem.sold)
+            elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootAuctionButton) then
+                -- The Auction button!
+                child:SetEnabled(D.isLootMaster and not lootItem.sold)
+            elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootItemNameString) then
+                if lootItem.sold then
+                    child:SetFontObject("GameFontDisable")
+                else
+                    child:SetFontObject("GameFontNormal")
                 end
             end
         end
