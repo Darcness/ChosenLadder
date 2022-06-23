@@ -21,6 +21,11 @@ ChosenLadder is a Raid Administration assistant for The Chosen guild on Bloodsai
   a. 50 minimum, +10 to 300, +50 to 1000, +100 beyond
 4. Local history of Auctions can be printed
 
+### Loot
+1. Loot window tracks all items which are BoP and tradeable
+2. Loot window can start Auctions or Dunk sessions
+3. Loot window can be cleared of individual items once they are manually handled
+
 ## Usage
 **/cl**, **/clhelp** - Displays the help list
 **/clladder** - Displays the Ladder window
