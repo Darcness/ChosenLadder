@@ -6,20 +6,51 @@ local F = NS.Functions
 
 local StreamFlag = NS.Data.Constants.StreamFlag
 
-function GetMinimumBid()
-    local currentBid = D.currentBid or 0
-    if currentBid < 50 then
-        return 50
-    elseif currentBid < 300 then
-        return currentBid + 10
-    elseif currentBid < 1000 then
-        return currentBid + 50
-    else
-        return currentBid + 100
+local tip = CreateFrame("GameTooltip", "Tooltip", nil, "GameTooltipTemplate")
+
+local function isTradable(itemLocation)
+    local itemLink = C_Item.GetItemLink(itemLocation)
+    tip:SetOwner(UIParent, "ANCHOR_NONE")
+    tip:SetBagItem(itemLocation:GetBagAndSlot())
+    for i = 1, tip:NumLines() do
+        if (string.find(_G["TooltipTextLeft" .. i]:GetText(), string.format(BIND_TRADE_TIME_REMAINING, ".*"))) then
+            return true
+        end
     end
+    -- tip:Hide()
 end
 
-function ChosenLadder:GROUP_ROSTER_UPDATE(...)
+function ChosenLadder:BAG_UPDATE_DELAYED()
+    if D.lootMasterItems == nil then
+        D.lootMasterItems = {}
+    end
+
+    for bag = 0, 4 do
+        for slot = 0, GetContainerNumSlots(bag) do
+            local itemID = GetContainerItemID(bag, slot)
+            if itemID then
+                local itemLocation = ItemLocation:CreateFromBagAndSlot(bag, slot)
+                local item = Item:CreateFromBagAndSlot(bag, slot)
+                local guid = item:GetItemGUID()
+                local itemLink = item:GetItemLink()
+                if isTradable(itemLocation) then
+                    local current = F.Find(D.lootMasterItems, function(i) return i.guid == guid end)
+                    if current == nil then
+                        table.insert(D.lootMasterItems, {
+                            guid = guid,
+                            itemLink = itemLink,
+                            sold = false
+                        })
+                    end
+
+                end
+            end
+        end
+    end
+    UI.Loot:PopulateLootList()
+end
+
+function ChosenLadder:GROUP_ROSTER_UPDATE()
     local lootMethod, masterLooterPartyId, _ = GetLootMethod()
     D.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0)
 
@@ -40,13 +71,16 @@ function ChosenLadder:GROUP_ROSTER_UPDATE(...)
 end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
-    local myName = UnitName("player")
-    if D.auctionItem ~= nil then
-        if not D.IsPlayerInRaid(playerName) then
-            -- Nothing to process, this is just whisper chatter.
-            return
-        end
+    if not D.IsPlayerInRaid(playerName) then
+        -- Nothing to process, this is just whisper chatter.
+        return
+    end
 
+    local myName = UnitName("player")
+    local auctionItem = D.Auction:GetItemLink()
+    local dunkItem = D.Auction:GetItemLink()
+
+    if auctionItem ~= nil then
         local bid = tonumber(text)
         if bid == nil then
             ChosenLadder:Whisper(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A, myName,
@@ -56,24 +90,18 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
         end
 
         bid = math.floor(bid)
-        local minBid = GetMinimumBid()
+        local minBid = D.Auction:GetMinimumBid()
         if bid < minBid then
             ChosenLadder:Whisper(string.format("[%s]: Invalid Bid! The minimum bid is %d", A, minBid), playerName)
             return
         end
 
-        D.currentBid = bid
-        D.currentWinner = playerName
+        D.Auction:Bid(playerName, bid)
         SendChatMessage("Current Bid: " .. bid, "RAID")
         return
     end
 
-    if D.dunkItem ~= nil then
-        if not D.IsPlayerInRaid(playerName) then
-            -- Nothing to process, this is just whisper chatter.
-            return
-        end
-
+    if dunkItem ~= nil then
         text = string.lower(text)
         local dunkWord = F.Find(D.Constants.AsheosWords,
             function(word) return text == word end)
@@ -92,7 +120,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
             return
         end
 
-        local pos = D.RegisterDunkByGUID(guid)
+        local pos = D.Dunk:RegisterDunkByGUID(guid)
         if pos <= 0 then
             -- In the raid, but not in the LootLadder?
             ChosenLadder:Whisper(string.format("[%s]: We couldn't find you in the raid list! Contact the loot master."
