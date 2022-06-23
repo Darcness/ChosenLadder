@@ -70,19 +70,11 @@ end
 D.IsPlayerInRaid = IsPlayerInRaid
 
 function SetPlayerGUIDByID(id, guid)
-    -- Might be a string, let's force a cleanup
-    local correctID = nil
-    if type(id) == "string" then
-        correctID = tonumber(id)
-    else
-        correctID = id
-    end
-
-    local player = GetPlayerByID(correctID)
+    local player = GetPlayerByID(id)
     if player ~= nil then
         player.guid = guid
     else
-        print("It went all fucky")
+        ChosenLadder:Print(string.format("Selected Player unable to be found! %s - %s", player, guid))
     end
 end
 

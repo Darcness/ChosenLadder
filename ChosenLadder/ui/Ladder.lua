@@ -16,10 +16,7 @@ local function RaidDrop_Initialize_Builder(id)
         for _, raider in ipairs(D.raidRoster) do
             local name = raider[1]
             local guid = UnitGUID(name)
-            if guid == nil then
-                -- Something went wrong?
-                ChosenLadder:Print("Invalid Guid for raid member - " .. name)
-            else
+            if guid ~= nil then
                 local guid = D.ShortenGuid(guid)
 
                 local info = UIDropDownMenu_CreateInfo()
@@ -167,7 +164,7 @@ local function CreateImportFrame()
             end
             D.BuildPlayerList(lines)
 
-            ToggleImportFrame()
+            Ladder:ToggleImportFrame()
         end
     )
     UI.importSaveButton = saveButton
