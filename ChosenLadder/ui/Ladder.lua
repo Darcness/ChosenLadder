@@ -13,7 +13,28 @@ local function RaidDrop_Initialize_Builder(id)
         UIDropDownMenu_SetSelectedValue(frame, nil, nil)
         UIDropDownMenu_SetText(frame, "")
 
-        for _, raider in ipairs(D.raidRoster) do
+        local clear = UIDropDownMenu_CreateInfo()
+        clear.value = "0"
+        clear.text = "Clear Selection"
+        clear.func = function(b)
+            UIDropDownMenu_SetSelectedValue(frame, "0", "0")
+            UIDropDownMenu_SetText(frame, "Clear Selection")
+            b.checked = true
+            D.SetPlayerGUIDByID(id, "0")
+        end
+
+        UIDropDownMenu_AddButton(clear, level)
+
+        local sortedRoster = {}
+        for k, v in pairs(D.raidRoster) do
+            if k ~= nil and v ~= nil then
+                table.insert(sortedRoster, v)
+            end
+        end
+
+        table.sort(sortedRoster, function(a, b) return a[1] < b[1] end)
+
+        for _, raider in ipairs(sortedRoster) do
             local name = raider[1]
             local guid = UnitGUID(name)
             if guid ~= nil then

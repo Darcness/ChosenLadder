@@ -87,26 +87,14 @@ end
 D.ShortenGuid = ShortenGuid
 
 function GetPlayerByID(id)
-    for k, v in ipairs(LootLadder.players) do
-        if v.id == id then
-            return v, k
-        end
-    end
-
-    return nil, 0
+    return F.Find(LootLadder.players, function(player) return player.id == id end)
 end
 
 D.GetPlayerByID = GetPlayerByID
 
 function GetPlayerByGUID(guid)
     guid = ShortenGuid(guid)
-    for k, v in ipairs(LootLadder.players) do
-        if v.guid == guid then
-            return v, k
-        end
-    end
-
-    return nil, 0
+    return F.Find(LootLadder.players, function(player) return player.guid == guid end)
 end
 
 D.GetPlayerByGUID = GetPlayerByGUID

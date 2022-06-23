@@ -74,7 +74,7 @@ function Auction:Start(auctionItem)
     clearAuction(self)
     self.auctionItem = auctionItem
     SendChatMessage(string.format("Beginning auction for %s, please whisper %s your bids.", self:GetItemLink(),
-        UnitName("player")), "RAID_WARNING")
+        UnitName("player")), "RAID")
 end
 
 function Auction:GetMinimumBid()
