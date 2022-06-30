@@ -18,9 +18,16 @@ local function clearAuction(obj)
 end
 
 function Auction:GetItemLink()
-    local itemNum = tonumber(self.auctionItem)
-    if itemNum ~= nil then
-        return D.lootMasterItems[itemNum]
+    if self.auctionItem == nil then
+        return nil
+    end
+
+    if F.StartsWith(self.auctionItem, "Item-4648-0-") then
+        local item = D.GetLootItemByGUID(self.auctionItem)
+        if item == nil or item.itemLink == nil then
+            return nil
+        end
+        return item.itemLink
     end
 
     return self.auctionItem
@@ -28,7 +35,7 @@ end
 
 function Auction:Complete(forceCancel)
     if not D.isLootMaster then
-        self:Print("You're not the loot master!")
+        ChosenLadder:Print("You're not the loot master!")
         return
     end
 
@@ -62,12 +69,12 @@ end
 
 function Auction:Start(auctionItem)
     if not D.isLootMaster then
-        self:Print("You're not the loot master!")
+        ChosenLadder:Print("You're not the loot master!")
         return
     end
 
     if self.auctionItem ~= nil then
-        self:Print("You're still running an auction for " .. self:GetItemLink())
+        ChosenLadder:Print("You're still running an auction for " .. self:GetItemLink())
         return
     end
 

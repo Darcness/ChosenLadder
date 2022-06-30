@@ -144,23 +144,25 @@ function Loot:PopulateLootList()
     end
 
     for lootIdx, lootItem in ipairs(D.lootMasterItems) do
-        -- Store the loot row, since we can't count on the WoW client to garbage collect
-        local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or
-            CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
-        row:Show()
+        if lootItem ~= nil and lootItem.guid ~= nil then
+            -- Store the loot row, since we can't count on the WoW client to garbage collect
+            local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or
+                CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
+            row:Show()
 
-        for _, child in ipairs({ row:GetChildren() }) do
-            if F.StartsWith(child:GetName(), UI.UIPrefixes.LootDunkButton) then
-                -- The Dunk button!
-                child:SetEnabled(D.isLootMaster and not lootItem.sold)
-            elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootAuctionButton) then
-                -- The Auction button!
-                child:SetEnabled(D.isLootMaster and not lootItem.sold)
-            elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootItemNameString) then
-                if lootItem.sold then
-                    child:SetFontObject("GameFontDisable")
-                else
-                    child:SetFontObject("GameFontNormal")
+            for _, child in ipairs({ row:GetChildren() }) do
+                if F.StartsWith(child:GetName(), UI.UIPrefixes.LootDunkButton) then
+                    -- The Dunk button!
+                    child:SetEnabled(D.isLootMaster and not lootItem.sold)
+                elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootAuctionButton) then
+                    -- The Auction button!
+                    child:SetEnabled(D.isLootMaster and not lootItem.sold)
+                elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootItemNameString) then
+                    if lootItem.sold then
+                        child:SetFontObject("GameFontDisable")
+                    else
+                        child:SetFontObject("GameFontNormal")
+                    end
                 end
             end
         end

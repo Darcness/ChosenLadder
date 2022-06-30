@@ -35,7 +35,7 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
                 local itemLink = item:GetItemLink()
                 if isTradable(itemLocation) then
                     local current = F.Find(D.lootMasterItems, function(i) return i.guid == guid end)
-                    if current == nil then
+                    if current == nil and guid ~= nil and itemLink ~= nil then
                         table.insert(D.lootMasterItems, {
                             guid = guid,
                             itemLink = itemLink,
@@ -115,7 +115,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
         local guid = D.ShortenGuid(UnitGUID(Ambiguate(playerName, "all")))
         if guid == nil then
             -- Couldn't get a guid?  Something is off here.
-            self:Print(string.format("Unable to find a GUID for player %s! Please select them from a dropdown.",
+            ChosenLadder:Print(string.format("Unable to find a GUID for player %s! Please select them from a dropdown.",
                 Ambiguate(playerName, "all")))
             return
         end
@@ -152,14 +152,14 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
 
             local timestampStr = vars[1]:gsub(beginSyncFlag, "")
             local timestamp = tonumber(timestampStr)
-            self:Print(
+            ChosenLadder:Print(
                 "Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. LootLadder.lastModified
             )
             if timestamp > LootLadder.lastModified then
                 -- Begin Sync
                 D.syncing = StreamFlag.Started
             else
-                self:Print("Sync Request Denied from " .. sender)
+                ChosenLadder:Print("Sync Request Denied from " .. sender)
             end
 
             if D.syncing == StreamFlag.Started then
