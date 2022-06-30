@@ -101,7 +101,7 @@ end
 
 function FormatNames()
     local names = ""
-    for k, v in pairs(LootLadder.players) do
+    for k, v in pairs(ChosenLadderLootLadder.players) do
         names = names .. string.format("%s:%s:%s", v.id, v.name, (v.guid or "")) .. "\n"
     end
     return names
@@ -119,7 +119,7 @@ function Ladder:PopulatePlayerList()
         child:Hide()
     end
 
-    for playerIdx, player in ipairs(LootLadder.players) do
+    for playerIdx, player in ipairs(ChosenLadderLootLadder.players) do
         -- Store the player row, since we can't count on the WoW client to garbage collect
         if _G[UI.UIPrefixes.PlayerRow .. player.id] == nil then
             _G[UI.UIPrefixes.PlayerRow .. player.id] = CreatePlayerRowItem(UI.scrollChild, player, playerIdx)

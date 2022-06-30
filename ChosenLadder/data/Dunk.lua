@@ -70,16 +70,16 @@ function Dunk:CompleteProcess(id)
 
     local newPlayers = {}
     -- Initialize newPlayers with nulls, since we're inserting in weird places.
-    for k, _ in pairs(LootLadder.players) do
+    for k, _ in pairs(ChosenLadderLootLadder.players) do
         newPlayers[k] = nil
     end
 
     local foundPos = 1
     local newPos = 1
     local found = nil
-    local len = #LootLadder.players
+    local len = #ChosenLadderLootLadder.players
 
-    for currentPos, v in pairs(LootLadder.players) do
+    for currentPos, v in pairs(ChosenLadderLootLadder.players) do
         if id == v.id then
             -- Let's save this guy for later.
             found = v
@@ -116,8 +116,8 @@ function Dunk:CompleteProcess(id)
         end
     end
 
-    LootLadder.players = newPlayers
-    LootLadder.lastModified = GetServerTime()
+    ChosenLadderLootLadder.players = newPlayers
+    ChosenLadderLootLadder.lastModified = GetServerTime()
     table.insert(
         self.history,
         {

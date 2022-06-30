@@ -8,13 +8,13 @@ D.isLootMaster = false
 D.lootMasterItems = {}
 
 function BuildPlayerList(rows)
-    LootLadder.players = {}
+    ChosenLadderLootLadder.players = {}
 
     for _, v in ipairs(rows) do
         local nameParts = F.Split(v, ":")
         if #nameParts >= 2 then
             table.insert(
-                LootLadder.players,
+                ChosenLadderLootLadder.players,
                 {
                     id = nameParts[1],
                     name = nameParts[2],
@@ -28,18 +28,18 @@ function BuildPlayerList(rows)
         end
     end
 
-    LootLadder.lastModified = GetServerTime()
+    ChosenLadderLootLadder.lastModified = GetServerTime()
 end
 
 D.BuildPlayerList = BuildPlayerList
 
 function GenerateSyncData(localDebug)
-    local timeMessage = D.Constants.BeginSyncFlag .. LootLadder.lastModified
+    local timeMessage = D.Constants.BeginSyncFlag .. ChosenLadderLootLadder.lastModified
     local channel = "RAID"
 
     local fullMessage = timeMessage .. "|"
 
-    for _, player in ipairs(LootLadder.players) do
+    for _, player in ipairs(ChosenLadderLootLadder.players) do
         fullMessage = fullMessage .. player.name .. "|"
     end
 
@@ -87,14 +87,14 @@ end
 D.ShortenGuid = ShortenGuid
 
 function GetPlayerByID(id)
-    return F.Find(LootLadder.players, function(player) return player.id == id end)
+    return F.Find(ChosenLadderLootLadder.players, function(player) return player.id == id end)
 end
 
 D.GetPlayerByID = GetPlayerByID
 
 function GetPlayerByGUID(guid)
     guid = ShortenGuid(guid)
-    return F.Find(LootLadder.players, function(player) return player.guid == guid end)
+    return F.Find(ChosenLadderLootLadder.players, function(player) return player.guid == guid end)
 end
 
 D.GetPlayerByGUID = GetPlayerByGUID
@@ -125,3 +125,14 @@ function RemoveLootItemByGUID(guid)
 end
 
 D.RemoveLootItemByGUID = RemoveLootItemByGUID
+
+function GetPrintableBidSteps()
+    local stepLabels = {}
+    for i, stepData in ipairs(ChosenLadderBidSteps) do
+        table.insert(stepLabels, string.format("%d:%d", stepData.start, stepData.step))
+    end
+
+    return table.concat(stepLabels, "|")
+end
+
+D.GetPrintableBidSteps = GetPrintableBidSteps

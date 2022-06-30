@@ -122,7 +122,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
 
         local pos = D.Dunk:RegisterDunkByGUID(guid)
         if pos <= 0 then
-            -- In the raid, but not in the LootLadder?
+            -- In the raid, but not in the ChosenLadderLootLadder?
             ChosenLadder:Whisper(string.format("[%s]: We couldn't find you in the raid list! Contact the loot master."
                 , A), playerName)
             return
@@ -153,9 +153,9 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
             local timestampStr = vars[1]:gsub(beginSyncFlag, "")
             local timestamp = tonumber(timestampStr)
             ChosenLadder:Print(
-                "Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. LootLadder.lastModified
+                "Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. ChosenLadderLootLadder.lastModified
             )
-            if timestamp > LootLadder.lastModified then
+            if timestamp > ChosenLadderLootLadder.lastModified then
                 -- Begin Sync
                 D.syncing = StreamFlag.Started
             else

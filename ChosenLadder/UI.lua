@@ -25,7 +25,9 @@ UI.UIPrefixes = {
     LootDunkButton = "ChosenLadderLootDunkButton",
     LootAuctionButton = "ChosenLadderLootAuctionButton",
     LootItemNameString = "ChosenLadderLootTextString",
-    LootItemClearButton = "ChosenLadderLootClearButton"
+    LootItemClearButton = "ChosenLadderLootClearButton",
+    InterfaceOptionsPanel = "ChosenLadderInterfaceOptionsMainFrame",
+    InterfaceOptionsToggleMainWindowButton = "ChosenLadderInterfaceOptionsMainWindowButton  "
 }
 
 function CreateMainWindowFrame()

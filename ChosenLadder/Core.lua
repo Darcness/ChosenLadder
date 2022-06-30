@@ -5,17 +5,19 @@ local F = NS.Functions
 local D = NS.Data
 
 function ChosenLadder:OnInitialize()
-    if LootLadder == nil then
-        LootLadder = {}
+    if ChosenLadderLootLadder == nil then
+        ChosenLadderLootLadder = {
+            players = {}
+        }
     end
 
-    if LootLadder.lastModified == nil then
-        LootLadder.lastModified = 0
+    if ChosenLadderLootLadder.lastModified == nil then
+        ChosenLadderLootLadder.lastModified = 0
     end
 
     local newPlayers = {}
     -- Do a little data validation, just in case.
-    for _, player in ipairs(LootLadder.players) do
+    for _, player in ipairs(ChosenLadderLootLadder.players or {}) do
         if player.id ~= nil then
             -- Initialize them as not present.
             player.present = false
@@ -26,12 +28,24 @@ function ChosenLadder:OnInitialize()
         end
     end
 
-    LootLadder.players = newPlayers
+    ChosenLadderLootLadder.players = newPlayers
 
-    D.auctionHistory = {}
-    D.currentBid = 0
-    D.currentWinner = nil
-    D.ladderHistory = {}
+    if ChosenLadderBidSteps == nil then
+        ChosenLadderBidSteps = {
+            [1] = {
+                start = 50,
+                step = 10
+            },
+            [2] = {
+                start = 300,
+                step = 50
+            },
+            [3] = {
+                start = 1000,
+                step = 100
+            }
+        }
+    end
 end
 
 function YouSoBad(action)
@@ -52,8 +66,9 @@ function ChosenLadder:OnEnable()
     self:RegisterChatCommand("clhelp", "Help")
     self:RegisterEvent("GROUP_ROSTER_UPDATE", ChosenLadder:GROUP_ROSTER_UPDATE())
     self:RegisterEvent("CHAT_MSG_WHISPER", ChosenLadder:CHAT_MSG_WHISPER())
-    -- self:RegisterEvent("OPEN_MASTER_LOOT_LIST", ChosenLadder:OPEN_MASTER_LOOT_LIST())
     self:RegisterEvent("BAG_UPDATE_DELAYED", ChosenLadder:BAG_UPDATE_DELAYED())
+
+    UI.InterfaceOptions:CreatePanel()
 end
 
 function ChosenLadder:ToggleLadder()
