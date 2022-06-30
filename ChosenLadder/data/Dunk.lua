@@ -22,7 +22,11 @@ function Dunk:GetItemLink()
     end
 
     if F.StartsWith(self.dunkItem.guid, "Item-4648-0-") then
-        return F.Find(D.lootMasterItems, function(item) return item.guid == self.dunkItem.guid end)
+        local item = D.GetLootItemByGUID(self.dunkItem.guid)
+        if item == nil or item.itemLink == nil then
+            return nil
+        end
+        return item.itemLink
     end
 
     return self.dunkItem
@@ -30,7 +34,7 @@ end
 
 function Dunk:CompleteAnnounce(forceId)
     if not D.isLootMaster then
-        self:Print("You're not the loot master!")
+        ChosenLadder:Print("You're not the loot master!")
         return
     end
 

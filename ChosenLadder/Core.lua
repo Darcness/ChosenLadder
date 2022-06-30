@@ -22,7 +22,7 @@ function ChosenLadder:OnInitialize()
             table.insert(newPlayers, player)
         else
             -- no id? They're bad data.
-            self:Print("User missing ID. Ignoring...")
+            ChosenLadder:Print("User missing ID. Ignoring...")
         end
     end
 
@@ -75,13 +75,13 @@ end
 
 function ChosenLadder:Dunk(input)
     if not D.isLootMaster then
-        self:Print("You're not the loot master!")
+        ChosenLadder:Print("You're not the loot master!")
         return
     end
 
     local arg1 = self:GetArgs(input, 1)
     if arg1 == nil then
-        self:Print("Usage: /cldunk <itemLink/stop>")
+        ChosenLadder:Print("Usage: /cldunk <itemLink/stop>")
         return
     end
 
@@ -95,19 +95,19 @@ function ChosenLadder:Dunk(input)
         -- We have an item link!
         D.Dunk:Start(arg1)
     else
-        self:Print("Usage: /cldunk <itemLink/stop>")
+        ChosenLadder:Print("Usage: /cldunk <itemLink/stop>")
     end
 end
 
 function ChosenLadder:Auction(input)
     if not D.isLootMaster then
-        self:Print("You're not the loot master!")
+        ChosenLadder:Print("You're not the loot master!")
         return
     end
 
     local arg1, arg2 = self:GetArgs(input, 2)
     if arg1 == nil then
-        self:Print("Usage: /clauction <start/stop> [itemLink]")
+        ChosenLadder:Print("Usage: /clauction <start/stop> [itemLink]")
         return
     end
 
@@ -117,58 +117,58 @@ function ChosenLadder:Auction(input)
             -- We have an item link!
             D.Auction:Start(arg2)
         else
-            self:Print("Usage: /clauction <start/stop> [itemLink]")
+            ChosenLadder:Print("Usage: /clauction <start/stop> [itemLink]")
         end
     elseif string.lower(arg1) == "stop" then
         D.Auction:Complete()
     else
-        self:Print("Usage: /clauction <start/stop> [itemLink]")
+        ChosenLadder:Print("Usage: /clauction <start/stop> [itemLink]")
     end
 end
 
 function ChosenLadder:PrintHistory(input)
     local type = self:GetArgs(input, 1)
     if type == nil then
-        self:Print("Usage: /cllog <auction/ladder>")
+        ChosenLadder:Print("Usage: /cllog <auction/ladder>")
         return
     end
 
     type = string.lower(type)
     if type == "auction" then
-        self:Print("Auction History")
+        ChosenLadder:Print("Auction History")
         for k, v in pairs(D.Auction.history) do
-            self:Print(string.format("%s to %s for %d", v.item, Ambiguate(v.name, "all"), v.bid))
+            ChosenLadder:Print(string.format("%s to %s for %d", v.item, Ambiguate(v.name, "all"), v.bid))
         end
     elseif type == "ladder" then
-        self:Print("Ladder History")
+        ChosenLadder:Print("Ladder History")
         for k, v in pairs(D.Dunk.history) do
-            self:Print(
+            ChosenLadder:Print(
                 string.format("%s moved to position %d from position %d",
                     Ambiguate(select(6, GetPlayerInfoByGUID(v.player.guid)), "all"), v.to, v.from)
             )
         end
     else
-        self:Print("Usage: /cllog <auction/ladder>")
+        ChosenLadder:Print("Usage: /cllog <auction/ladder>")
     end
 end
 
 function ChosenLadder:Help()
-    self:Print("ChosenLadder Help")
-    self:Print("/cl, /clhelp - Displays this list")
-    self:Print("/clladder - Toggles the main ladder window")
-    self:Print(
+    ChosenLadder:Print("ChosenLadder Help")
+    ChosenLadder:Print("/cl, /clhelp - Displays this list")
+    ChosenLadder:Print("/clladder - Toggles the main ladder window")
+    ChosenLadder:Print(
         "/clauction <start/stop> [<itemLink>] - Starts an auction (for the linked item) or stops the current auction"
     )
-    self:Print(
+    ChosenLadder:Print(
         "/cldunk <itemLink/stop> - Starts an dunk session (for the linked item) or stops the current auction"
     )
-    self:Print("/cllog <auction/ladder> - Displays the list of completed auctions or ladder dunks")
+    ChosenLadder:Print("/cllog <auction/ladder> - Displays the list of completed auctions or ladder dunks")
 end
 
 function ChosenLadder:Whisper(text, target)
     local myName = UnitName("player")
     if myName == Ambiguate(target, "all") then
-        self:Print(text)
+        ChosenLadder:Print(text)
     else
         SendChatMessage(text, "WHISPER", nil, target)
     end
