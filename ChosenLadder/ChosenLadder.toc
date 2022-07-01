@@ -3,7 +3,7 @@
 ## Version: 1.2.1
 ## Notes: Ladder addon for The Chosen Guild
 ## Author: Darc
-## SavedVariables: ChosenLadderLootLadder, ChosenLadderBidSteps
+## SavedVariables: ChosenLadderLootLadder, ChosenLadderBidSteps, ChosenLadderOutputChannel
 
 
 lib\LibStub\LibStub.lua

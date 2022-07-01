@@ -24,7 +24,7 @@ function ChosenLadder:OnInitialize()
             table.insert(newPlayers, player)
         else
             -- no id? They're bad data.
-            ChosenLadder:Print("User missing ID. Ignoring...")
+            ChosenLadder:PrintToWindow("User missing ID. Ignoring...")
         end
     end
 
@@ -46,6 +46,8 @@ function ChosenLadder:OnInitialize()
             }
         }
     end
+
+    ChosenLadderOutputChannel = ChosenLadderOutputChannel or 1
 end
 
 function YouSoBad(action)
@@ -90,13 +92,13 @@ end
 
 function ChosenLadder:Dunk(input)
     if not D.isLootMaster then
-        ChosenLadder:Print("You're not the loot master!")
+        ChosenLadder:PrintToWindow("You're not the loot master!")
         return
     end
 
     local arg1 = self:GetArgs(input, 1)
     if arg1 == nil then
-        ChosenLadder:Print("Usage: /cldunk <itemLink/stop>")
+        ChosenLadder:PrintToWindow("Usage: /cldunk <itemLink/stop>")
         return
     end
 
@@ -110,19 +112,19 @@ function ChosenLadder:Dunk(input)
         -- We have an item link!
         D.Dunk:Start(arg1)
     else
-        ChosenLadder:Print("Usage: /cldunk <itemLink/stop>")
+        ChosenLadder:PrintToWindow("Usage: /cldunk <itemLink/stop>")
     end
 end
 
 function ChosenLadder:Auction(input)
     if not D.isLootMaster then
-        ChosenLadder:Print("You're not the loot master!")
+        ChosenLadder:PrintToWindow("You're not the loot master!")
         return
     end
 
     local arg1, arg2 = self:GetArgs(input, 2)
     if arg1 == nil then
-        ChosenLadder:Print("Usage: /clauction <start/stop> [itemLink]")
+        ChosenLadder:PrintToWindow("Usage: /clauction <start/stop> [itemLink]")
         return
     end
 
@@ -132,59 +134,64 @@ function ChosenLadder:Auction(input)
             -- We have an item link!
             D.Auction:Start(arg2)
         else
-            ChosenLadder:Print("Usage: /clauction <start/stop> [itemLink]")
+            ChosenLadder:PrintToWindow("Usage: /clauction <start/stop> [itemLink]")
         end
     elseif string.lower(arg1) == "stop" then
         D.Auction:Complete()
     else
-        ChosenLadder:Print("Usage: /clauction <start/stop> [itemLink]")
+        ChosenLadder:PrintToWindow("Usage: /clauction <start/stop> [itemLink]")
     end
 end
 
 function ChosenLadder:PrintHistory(input)
     local type = self:GetArgs(input, 1)
     if type == nil then
-        ChosenLadder:Print("Usage: /cllog <auction/ladder>")
+        ChosenLadder:PrintToWindow("Usage: /cllog <auction/ladder>")
         return
     end
 
     type = string.lower(type)
     if type == "auction" then
-        ChosenLadder:Print("Auction History")
+        ChosenLadder:PrintToWindow("Auction History")
         for k, v in pairs(D.Auction.history) do
-            ChosenLadder:Print(string.format("%s to %s for %d", v.item, Ambiguate(v.name, "all"), v.bid))
+            ChosenLadder:PrintToWindow(string.format("%s to %s for %d", v.item, Ambiguate(v.name, "all"), v.bid))
         end
     elseif type == "ladder" then
-        ChosenLadder:Print("Ladder History")
+        ChosenLadder:PrintToWindow("Ladder History")
         for k, v in pairs(D.Dunk.history) do
-            ChosenLadder:Print(
+            ChosenLadder:PrintToWindow(
                 string.format("%s moved to position %d from position %d",
                     Ambiguate(select(6, GetPlayerInfoByGUID(v.player.guid)), "all"), v.to, v.from)
             )
         end
     else
-        ChosenLadder:Print("Usage: /cllog <auction/ladder>")
+        ChosenLadder:PrintToWindow("Usage: /cllog <auction/ladder>")
     end
 end
 
 function ChosenLadder:Help()
-    ChosenLadder:Print("ChosenLadder Help")
-    ChosenLadder:Print("/cl, /clhelp - Displays this list")
-    ChosenLadder:Print("/clladder - Toggles the main ladder window")
-    ChosenLadder:Print(
+    ChosenLadder:PrintToWindow("ChosenLadder Help")
+    ChosenLadder:PrintToWindow("/cl, /clhelp - Displays this list")
+    ChosenLadder:PrintToWindow("/clladder - Toggles the main ladder window")
+    ChosenLadder:PrintToWindow(
         "/clauction <start/stop> [<itemLink>] - Starts an auction (for the linked item) or stops the current auction"
     )
-    ChosenLadder:Print(
+    ChosenLadder:PrintToWindow(
         "/cldunk <itemLink/stop> - Starts an dunk session (for the linked item) or stops the current auction"
     )
-    ChosenLadder:Print("/cllog <auction/ladder> - Displays the list of completed auctions or ladder dunks")
+    ChosenLadder:PrintToWindow("/cllog <auction/ladder> - Displays the list of completed auctions or ladder dunks")
 end
 
 function ChosenLadder:Whisper(text, target)
     local myName = UnitName("player")
     if myName == Ambiguate(target, "all") then
-        ChosenLadder:Print(text)
+        ChosenLadder:PrintToWindow(text)
     else
         SendChatMessage(text, "WHISPER", nil, target)
     end
+end
+
+function ChosenLadder:PrintToWindow(text)
+    local chatFrame = _G["ChatFrame" .. ChosenLadderOutputChannel] or DEFAULT_CHAT_FRAME
+    ChosenLadder:Print(chatFrame, text)
 end

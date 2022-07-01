@@ -266,7 +266,7 @@ function Ladder:CreateMainFrame(mainFrame)
         "OnClick",
         function(self, button, down)
             D.GenerateSyncData(false)
-            ChosenLadder:Print("Submitting Sync Request")
+            ChosenLadder:PrintToWindow("Submitting Sync Request")
         end
     )
     UI.syncButton = syncButton

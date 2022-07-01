@@ -12,7 +12,12 @@ UI.Constants = {
         top = 24,
         bottom = 3
     },
-    LeftFrame = { width = 106 }
+    LeftFrame = { width = 106 },
+    DevBackdrop = {
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        tileEdge = true,
+        edgeSize = 8
+    }
 }
 
 
@@ -26,8 +31,10 @@ UI.UIPrefixes = {
     LootAuctionButton = "ChosenLadderLootAuctionButton",
     LootItemNameString = "ChosenLadderLootTextString",
     LootItemClearButton = "ChosenLadderLootClearButton",
-    InterfaceOptionsPanel = "ChosenLadderInterfaceOptionsMainFrame",
-    InterfaceOptionsToggleMainWindowButton = "ChosenLadderInterfaceOptionsMainWindowButton  "
+    OptionsPanel = "ChosenLadderOptionsMainFrame",
+    OptionsToggleMainWindowButton = "ChosenLadderOptionsMainWindowButton",
+    OptionsBidSteps = "ChosenLadderOptionsBidSteps",
+    OptionsOutputDropdown = "ChosenLadderOptionsOutputDropdown"
 }
 
 function CreateMainWindowFrame()

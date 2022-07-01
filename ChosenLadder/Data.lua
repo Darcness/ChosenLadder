@@ -24,7 +24,7 @@ function BuildPlayerList(rows)
                 }
             )
         else
-            ChosenLadder:Print("Invalid Import Data: " .. v)
+            ChosenLadder:PrintToWindow("Invalid Import Data: " .. v)
         end
     end
 
@@ -74,7 +74,7 @@ function SetPlayerGUIDByID(id, guid)
     if player ~= nil then
         player.guid = guid
     else
-        ChosenLadder:Print(string.format("Selected Player unable to be found! %s - %s", player, guid))
+        ChosenLadder:PrintToWindow(string.format("Selected Player unable to be found! %s - %s", player, guid))
     end
 end
 
@@ -136,3 +136,21 @@ function GetPrintableBidSteps()
 end
 
 D.GetPrintableBidSteps = GetPrintableBidSteps
+
+function SetBidSteps(string)
+    local newSteps = {}
+    for _, group in ipairs(F.Split(string, "|")) do
+        local values = F.Split(group, ":")
+        if #values == 2 and tonumber(values[2]) then
+            table.insert(newSteps, {
+                start = values[1],
+                step = tonumber(values[2])
+            })
+        end
+    end
+
+    print(F.Dump(newSteps))
+    ChosenLadderBidSteps = newSteps
+end
+
+D.SetBidSteps = SetBidSteps

@@ -34,14 +34,14 @@ end
 
 function Dunk:CompleteAnnounce(forceId)
     if not D.isLootMaster then
-        ChosenLadder:Print("You're not the loot master!")
+        ChosenLadder:PrintToWindow("You're not the loot master!")
         return
     end
 
     local item = self:GetDunkItemLink()
 
     if item == nil then
-        ChosenLadder:Print("No current dunk session!")
+        ChosenLadder:PrintToWindow("No current dunk session!")
         return
     end
 
@@ -61,11 +61,11 @@ function Dunk:CompleteAnnounce(forceId)
 end
 
 function Dunk:CompleteProcess(id)
-    ChosenLadder:Print("Registered Dunks:")
+    ChosenLadder:PrintToWindow("Registered Dunks:")
 
     -- We're assuming the list is already sorted by now.
     for _, v in ipairs(self.dunks) do
-        ChosenLadder:Print(string.format("%s - %d", v.player.name, v.pos))
+        ChosenLadder:PrintToWindow(string.format("%s - %d", v.player.name, v.pos))
     end
 
     local newPlayers = {}
@@ -112,7 +112,7 @@ function Dunk:CompleteProcess(id)
         if newPlayers[i] == nil then
             newPlayers[i] = found
             targetPos = i
-            ChosenLadder:Print(found.name .. " moved to position " .. targetPos .. " from position " .. foundPos)
+            ChosenLadder:PrintToWindow(found.name .. " moved to position " .. targetPos .. " from position " .. foundPos)
         end
     end
 
