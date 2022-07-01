@@ -8,13 +8,13 @@ D.isLootMaster = false
 D.lootMasterItems = {}
 
 function BuildPlayerList(rows)
-    LootLadder.players = {}
+    ChosenLadderLootLadder.players = {}
 
     for _, v in ipairs(rows) do
         local nameParts = F.Split(v, ":")
         if #nameParts >= 2 then
             table.insert(
-                LootLadder.players,
+                ChosenLadderLootLadder.players,
                 {
                     id = nameParts[1],
                     name = nameParts[2],
@@ -24,22 +24,22 @@ function BuildPlayerList(rows)
                 }
             )
         else
-            ChosenLadder:Print("Invalid Import Data: " .. v)
+            ChosenLadder:PrintToWindow("Invalid Import Data: " .. v)
         end
     end
 
-    LootLadder.lastModified = GetServerTime()
+    ChosenLadderLootLadder.lastModified = GetServerTime()
 end
 
 D.BuildPlayerList = BuildPlayerList
 
 function GenerateSyncData(localDebug)
-    local timeMessage = D.Constants.BeginSyncFlag .. LootLadder.lastModified
+    local timeMessage = D.Constants.BeginSyncFlag .. ChosenLadderLootLadder.lastModified
     local channel = "RAID"
 
     local fullMessage = timeMessage .. "|"
 
-    for _, player in ipairs(LootLadder.players) do
+    for _, player in ipairs(ChosenLadderLootLadder.players) do
         fullMessage = fullMessage .. player.name .. "|"
     end
 
@@ -74,7 +74,7 @@ function SetPlayerGUIDByID(id, guid)
     if player ~= nil then
         player.guid = guid
     else
-        ChosenLadder:Print(string.format("Selected Player unable to be found! %s - %s", player, guid))
+        ChosenLadder:PrintToWindow(string.format("Selected Player unable to be found! %s - %s", player, guid))
     end
 end
 
@@ -87,14 +87,14 @@ end
 D.ShortenGuid = ShortenGuid
 
 function GetPlayerByID(id)
-    return F.Find(LootLadder.players, function(player) return player.id == id end)
+    return F.Find(ChosenLadderLootLadder.players, function(player) return player.id == id end)
 end
 
 D.GetPlayerByID = GetPlayerByID
 
 function GetPlayerByGUID(guid)
     guid = ShortenGuid(guid)
-    return F.Find(LootLadder.players, function(player) return player.guid == guid end)
+    return F.Find(ChosenLadderLootLadder.players, function(player) return player.guid == guid end)
 end
 
 D.GetPlayerByGUID = GetPlayerByGUID
@@ -125,3 +125,31 @@ function RemoveLootItemByGUID(guid)
 end
 
 D.RemoveLootItemByGUID = RemoveLootItemByGUID
+
+function GetPrintableBidSteps()
+    local stepLabels = {}
+    for i, stepData in ipairs(ChosenLadderBidSteps) do
+        table.insert(stepLabels, string.format("%d:%d", stepData.start, stepData.step))
+    end
+
+    return table.concat(stepLabels, "|")
+end
+
+D.GetPrintableBidSteps = GetPrintableBidSteps
+
+function SetBidSteps(string)
+    local newSteps = {}
+    for _, group in ipairs(F.Split(string, "|")) do
+        local values = F.Split(group, ":")
+        if #values == 2 and tonumber(values[2]) then
+            table.insert(newSteps, {
+                start = values[1],
+                step = tonumber(values[2])
+            })
+        end
+    end
+
+    ChosenLadderBidSteps = newSteps
+end
+
+D.SetBidSteps = SetBidSteps

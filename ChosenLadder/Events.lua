@@ -115,14 +115,14 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
         local guid = D.ShortenGuid(UnitGUID(Ambiguate(playerName, "all")))
         if guid == nil then
             -- Couldn't get a guid?  Something is off here.
-            ChosenLadder:Print(string.format("Unable to find a GUID for player %s! Please select them from a dropdown.",
+            ChosenLadder:PrintToWindow(string.format("Unable to find a GUID for player %s! Please select them from a dropdown.",
                 Ambiguate(playerName, "all")))
             return
         end
 
         local pos = D.Dunk:RegisterDunkByGUID(guid)
         if pos <= 0 then
-            -- In the raid, but not in the LootLadder?
+            -- In the raid, but not in the ChosenLadderLootLadder?
             ChosenLadder:Whisper(string.format("[%s]: We couldn't find you in the raid list! Contact the loot master."
                 , A), playerName)
             return
@@ -152,14 +152,14 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
 
             local timestampStr = vars[1]:gsub(beginSyncFlag, "")
             local timestamp = tonumber(timestampStr)
-            ChosenLadder:Print(
-                "Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. LootLadder.lastModified
+            ChosenLadder:PrintToWindow(
+                "Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. ChosenLadderLootLadder.lastModified
             )
-            if timestamp > LootLadder.lastModified then
+            if timestamp > ChosenLadderLootLadder.lastModified then
                 -- Begin Sync
                 D.syncing = StreamFlag.Started
             else
-                ChosenLadder:Print("Sync Request Denied from " .. sender)
+                ChosenLadder:PrintToWindow("Sync Request Denied from " .. sender)
             end
 
             if D.syncing == StreamFlag.Started then

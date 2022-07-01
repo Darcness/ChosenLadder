@@ -35,14 +35,14 @@ end
 
 function Auction:Complete(forceCancel)
     if not D.isLootMaster then
-        ChosenLadder:Print("You're not the loot master!")
+        ChosenLadder:PrintToWindow("You're not the loot master!")
         return
     end
 
     local item = self:GetItemLink()
 
     if item == nil then
-        ChosenLadder:Print("You're not running an auction!")
+        ChosenLadder:PrintToWindow("You're not running an auction!")
         return
     end
 
@@ -69,12 +69,12 @@ end
 
 function Auction:Start(auctionItem)
     if not D.isLootMaster then
-        ChosenLadder:Print("You're not the loot master!")
+        ChosenLadder:PrintToWindow("You're not the loot master!")
         return
     end
 
     if self.auctionItem ~= nil then
-        ChosenLadder:Print("You're still running an auction for " .. self:GetItemLink())
+        ChosenLadder:PrintToWindow("You're still running an auction for " .. self:GetItemLink())
         return
     end
 
@@ -86,19 +86,19 @@ end
 
 function Auction:GetMinimumBid()
     local currentBid = self.currentBid
+    
+    local mySteps = F.Filter(ChosenLadderBidSteps, function(step) return currentBid >= tonumber(step.start) end)
 
-    if currentBid < 50 then
-        return 50
-    elseif currentBid < 300 then
-        return currentBid + 10
-    elseif currentBid < 1000 then
-        return currentBid + 50
-    else
-        return currentBid + 100
+    if #mySteps == 0 then -- Do minimum bid
+        return ChosenLadderBidSteps[1].start
+    else -- Return most recent step
+        return mySteps[#mySteps].step + currentBid
     end
 end
 
 function Auction:Bid(name, bid)
+    local bidNum = tonumber(bid)
+
     self.currentWinner = name
-    self.currentBid = bid
+    self.currentBid = bidNum
 end
