@@ -106,10 +106,37 @@ function IO:CreatePanel()
 
     outputRow:SetWidth(fontOutput:GetWidth() + 4 + 100)
 
+    local minimapRow = CreateFrame("Frame", "ChosenLadderOptionsMinimapContainer", panel, "BackdropTemplate")
+    minimapRow:SetPoint("TOPLEFT", outputRow, 0, -(rowHeight + 8))
+    minimapRow:SetHeight(rowHeight)
+
+    local minimapCheck = CreateFrame("CheckButton", nil, minimapRow, "UICheckButtonTemplate")
+    minimapCheck:SetSize(28, 28)
+    minimapCheck:SetPoint("LEFT", minimapRow, 0, 0)
+    minimapCheck:SetChecked(not ChosenLadder.db.profile.minimap.hide)
+    minimapCheck:SetScript("OnClick", function(self) ChosenLadder:SetMinimapHidden(not self:GetChecked()) end)
+
+    local fontMinimap = minimapRow:CreateFontString("ChosenLadderOptionsMinimapFontString", nil, "GameFontNormal")
+    fontMinimap:SetPoint("LEFT", minimapCheck, minimapCheck:GetWidth() + 8, 0)
+    fontMinimap:SetText("Show Minimap Icon")
+    minimapCheck:SetFontString(fontMinimap)
+
+    minimapRow:SetWidth(minimapCheck:GetWidth() + 8 + fontMinimap:GetWidth())
+
     function panel.okay()
         xpcall(function()
             ChosenLadderOutputChannel = UIDropDownMenu_GetSelectedValue(outputDropdown)
             D.SetBidSteps(editBox:GetText())
+        end, geterrorhandler())
+    end
+
+    function panel.default()
+        xpcall(function()
+            ChosenLadderOutputChannel = 1
+            UIDropDownMenu_SetSelectedValue(outputDropdown, 1, 1)
+            local defaultSteps = "50:10|300:50|1000:100"
+            D.SetBidSteps(defaultSteps)
+            editBox:SetText(defaultSteps)
         end, geterrorhandler())
     end
 

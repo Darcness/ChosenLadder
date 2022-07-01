@@ -149,7 +149,6 @@ function SetBidSteps(string)
         end
     end
 
-    print(F.Dump(newSteps))
     ChosenLadderBidSteps = newSteps
 end
 

@@ -48,6 +48,24 @@ function ChosenLadder:OnInitialize()
     end
 
     ChosenLadderOutputChannel = ChosenLadderOutputChannel or 1
+
+    local clLDB = LibStub("LibDataBroker-1.1"):NewDataObject(A, {
+        type = "data source",
+        text = A,
+        icon = "Interface\\Icons\\INV_Box_04",
+        OnClick = function(clickedFrame, button) ChosenLadder:MinimapClick(button) end,
+        OnEnter = function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+            GameTooltip:SetText(A)
+            GameTooltip:AddLine("Left Click to toggle ChosenLadder window", 1, 1, 1, true)
+            GameTooltip:AddLine("Right Click to open Interface Options", 1, 1, 1, false)
+            GameTooltip:Show()
+        end,
+        OnLeave = function(self) GameTooltip:Hide() end
+    })
+
+    self.db = LibStub("AceDB-3.0"):New("ChosenLadderDB", { profile = { minimap = { hide = false } } })
+    NS.Icon:Register(A, clLDB, self.db.profile.minimap)
 end
 
 function YouSoBad(action)
@@ -71,6 +89,23 @@ function ChosenLadder:OnEnable()
     self:RegisterEvent("BAG_UPDATE_DELAYED", ChosenLadder:BAG_UPDATE_DELAYED())
 
     UI.InterfaceOptions:CreatePanel()
+end
+
+function ChosenLadder:MinimapClick(button)
+    if button == "RightButton" then
+        InterfaceOptionsFrame_OpenToCategory(UI.InterfaceOptions.ioPanel)
+    elseif button == "LeftButton" then
+        UI.ToggleMainWindowFrame()
+    end
+end
+
+function ChosenLadder:SetMinimapHidden(hidden)
+    self.db.profile.minimap.hide = hidden
+    if self.db.profile.minimap.hide then
+        NS.Icon:Hide(A)
+    else
+        NS.Icon:Show(A)
+    end
 end
 
 function ChosenLadder:ToggleLadder()
