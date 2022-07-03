@@ -128,7 +128,6 @@ function Ladder:PopulatePlayerList()
         -- Grab the stored player row and visually reorder it.
         local playerRow = _G[UI.UIPrefixes.PlayerRow .. player.id]
         playerRow:SetPoint("TOPLEFT", UI.scrollChild, 0, (playerIdx - 1) * -28)
-        -- Show them, in case they existed before and we hid them.
         playerRow:Show()
 
         -- Set up DunkButton values

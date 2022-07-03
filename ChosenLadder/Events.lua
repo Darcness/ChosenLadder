@@ -67,7 +67,7 @@ function ChosenLadder:GROUP_ROSTER_UPDATE()
         table.insert(D.raidRoster, rosterInfo)
     end
 
-    UI.PopulatePlayerList()
+    UI.Ladder:PopulatePlayerList()
 end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
@@ -85,7 +85,6 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
         if bid == nil then
             ChosenLadder:Whisper(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A, myName,
                 minBid), playerName)
-
             return
         end
 
@@ -130,7 +129,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
 
         ChosenLadder:Whisper(string.format("[%s]: Dunk registered! Current position: %d", A, pos), playerName)
 
-        UI.PopulatePlayerList()
+        UI.Ladder:PopulatePlayerList()
 
         return
     end
@@ -174,7 +173,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
 
                 if D.syncing == StreamFlag.Complete then
                     D.BuildPlayerList(players)
-                    UI.PopulatePlayerList()
+                    UI.Ladder:PopulatePlayerList()
                     D.syncing = StreamFlag.Empty
                 end
             end

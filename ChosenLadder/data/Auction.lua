@@ -85,14 +85,14 @@ function Auction:Start(auctionItem)
 end
 
 function Auction:GetMinimumBid()
-    local currentBid = self.currentBid
+    local currentBid = tonumber(self.currentBid) or 0
     
-    local mySteps = F.Filter(ChosenLadderBidSteps, function(step) return currentBid >= tonumber(step.start) end)
+    local mySteps = F.Filter(ChosenLadderBidSteps, function(step) return currentBid >= (tonumber(step.start) or 0) end)
 
     if #mySteps == 0 then -- Do minimum bid
         return ChosenLadderBidSteps[1].start
     else -- Return most recent step
-        return mySteps[#mySteps].step + currentBid
+        return tonumber(mySteps[#mySteps].step) + currentBid
     end
 end
 
