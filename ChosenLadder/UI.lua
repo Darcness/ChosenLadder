@@ -34,7 +34,8 @@ UI.UIPrefixes = {
     OptionsPanel = "ChosenLadderOptionsMainFrame",
     OptionsToggleMainWindowButton = "ChosenLadderOptionsMainWindowButton",
     OptionsBidSteps = "ChosenLadderOptionsBidSteps",
-    OptionsOutputDropdown = "ChosenLadderOptionsOutputDropdown"
+    OptionsOutputDropdown = "ChosenLadderOptionsOutputDropdown",
+    OptionsLadderDropdown = "ChosenLadderOptionsLadderTypeDropdown"
 }
 
 function CreateMainWindowFrame()

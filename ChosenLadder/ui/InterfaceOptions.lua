@@ -31,6 +31,25 @@ local function ChatFrame_Initialize(frame, level, menuList)
     end
 end
 
+local function LadderType_Initialize(frame, level, menuList)
+    for k, v in ipairs(D.Constants.LadderType) do
+        local info = UIDropDownMenu_CreateInfo()
+        info.value = k
+        info.text = v
+        info.func = function(item)
+            UIDropDownMenu_SetSelectedValue(frame, k, k)
+            UIDropDownMenu_SetText(frame, v)
+        end
+
+        UIDropDownMenu_AddButton(info, level)
+
+        if k == ChosenLadder.db.char.ladderType then
+            UIDropDownMenu_SetSelectedValue(frame, k, k)
+            UIDropDownMenu_SetText(frame, v)
+        end
+    end
+end
+
 function IO:CreatePanel()
     local rowHeight = 24
     local panel = CreateFrame("Frame", UI.UIPrefixes.OptionsPanel)
@@ -114,17 +133,36 @@ function IO:CreatePanel()
 
     outputRow:SetWidth(fontOutput:GetWidth() + 4 + 100)
 
+    local ladderTypeRow = CreateFrame("Frame", "ChosenLadderOptionsLadderTypeContainer", panel,
+        "BackdropTemplate")
+    ladderTypeRow:SetPoint("TOPLEFT", outputRow, 0, -(rowHeight + 8))
+    ladderTypeRow:SetHeight(rowHeight)
+
+    local fontLadderType = ladderTypeRow:CreateFontString("ChosenLadderOptionsLadderTypeFontString", nil,
+        "GameFontNormal")
+    fontLadderType:SetPoint("LEFT", outputRow, 0, 0)
+    fontLadderType:SetText("Ladder Type")
+
+    local ladderTypeDropdown = CreateFrame("Frame", UI.UIPrefixes.OptionsLadderDropdown, ladderTypeRow,
+        "UIDropdownMenuTemplate")
+    ladderTypeDropdown:SetPoint("LEFT", fontLadderType, fontLadderType:GetWidth() + 4, -2)
+    UIDropDownMenu_SetWidth(ladderTypeDropdown, 100)
+    UIDropDownMenu_Initialize(ladderTypeDropdown, LadderType_Initialize)
+
+    ladderTypeRow:SetWidth(fontLadderType:GetWidth() + 4 + 100)
+
     function panel.okay()
         xpcall(function()
             ChosenLadderOutputChannel = UIDropDownMenu_GetSelectedValue(outputDropdown)
             D.SetBidSteps(editBox:GetText())
+            ChosenLadder.db.char.ladderType = UIDropDownMenu_GetSelectedValue(ladderTypeDropdown)
         end, geterrorhandler())
     end
 
     function panel.default()
         xpcall(function()
             ChosenLadderOutputChannel = 1
-            UIDropDownMenu_SetSelectedValue(outputDropdown, 1, 1)
+            UIDropDownMenu_SetSelectedValue(ladderTypeDropdown, 1, 1)
             local defaultSteps = "50:10|300:50|1000:100"
             D.SetBidSteps(defaultSteps)
             editBox:SetText(defaultSteps)
