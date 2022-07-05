@@ -9,18 +9,18 @@ local Loot = UI.Loot
 
 local UIC = UI.Constants
 
-for i = 1, 16 do
-    local item = Item:CreateFromEquipmentSlot(i)
-    local guid = item:GetItemGUID()
-    local itemLink = item:GetItemLink()
+-- for i = 1, 16 do
+--     local item = Item:CreateFromEquipmentSlot(i)
+--     local guid = item:GetItemGUID()
+--     local itemLink = item:GetItemLink()
 
-    table.insert(D.lootMasterItems, {
-        guid = guid,
-        itemLink = itemLink,
-        sold = false
-    })
+--     table.insert(D.lootMasterItems, {
+--         guid = guid,
+--         itemLink = itemLink,
+--         sold = false
+--     })
 
-end
+-- end
 
 local function CreateLootRowItem(parentScrollFrame, item, idx)
     local row = CreateFrame("Frame", UI.UIPrefixes.LootRow .. item.guid, parentScrollFrame, "BackdropTemplate")
@@ -148,9 +148,7 @@ function Loot:PopulateLootList()
             -- Store the loot row, since we can't count on the WoW client to garbage collect
             local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or
                 CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
-            print(lootIdx - 1)
             row:SetPoint("TOPLEFT", self.scrollChild, 4, (lootIdx - 1) * -28)
-            print(row:GetPoint("TOPLEFT"))
             row:Show()
 
 

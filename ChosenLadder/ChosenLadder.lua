@@ -31,8 +31,8 @@ StreamFlag = {
 }
 
 LadderType = {
-    SKSSimple = "SK Simple",
-    SKSFreezing = "SK w/ Freezing"
+    ["SK Simple"] = 1,
+    ["SK w/ Freezing"] = 2
 }
 
 NS.Data.Constants.StreamFlag = StreamFlag
@@ -77,7 +77,12 @@ function Dump(o)
         end
         return s .. '} '
     else
-        return tostring(o)
+        if type(o) ~= 'number' then
+            return string.format("\"%s\"", tostring(o))
+        else
+            return tostring(o)
+        end
+
     end
 end
 

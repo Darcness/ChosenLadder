@@ -32,20 +32,21 @@ local function ChatFrame_Initialize(frame, level, menuList)
 end
 
 local function LadderType_Initialize(frame, level, menuList)
-    for k, v in ipairs(D.Constants.LadderType) do
+    for k, v in pairs(D.Constants.LadderType) do
         local info = UIDropDownMenu_CreateInfo()
-        info.value = k
-        info.text = v
+        info.value = v
+        info.text = k
         info.func = function(item)
-            UIDropDownMenu_SetSelectedValue(frame, k, k)
-            UIDropDownMenu_SetText(frame, v)
+            UIDropDownMenu_SetSelectedValue(frame, v, v)
+            UIDropDownMenu_SetText(frame, k)
+            item.checked = true
         end
 
         UIDropDownMenu_AddButton(info, level)
 
-        if k == ChosenLadder.db.char.ladderType then
-            UIDropDownMenu_SetSelectedValue(frame, k, k)
-            UIDropDownMenu_SetText(frame, v)
+        if v == ChosenLadder.db.char.ladderType then
+            UIDropDownMenu_SetSelectedValue(frame, v, v)
+            UIDropDownMenu_SetText(frame, k)
         end
     end
 end
@@ -140,7 +141,7 @@ function IO:CreatePanel()
 
     local fontLadderType = ladderTypeRow:CreateFontString("ChosenLadderOptionsLadderTypeFontString", nil,
         "GameFontNormal")
-    fontLadderType:SetPoint("LEFT", outputRow, 0, 0)
+    fontLadderType:SetPoint("LEFT", ladderTypeRow, 0, 0)
     fontLadderType:SetText("Ladder Type")
 
     local ladderTypeDropdown = CreateFrame("Frame", UI.UIPrefixes.OptionsLadderDropdown, ladderTypeRow,
@@ -162,6 +163,7 @@ function IO:CreatePanel()
     function panel.default()
         xpcall(function()
             ChosenLadderOutputChannel = 1
+            UIDropDownMenu_SetSelectedValue(outputDropdown, 1, 1)
             UIDropDownMenu_SetSelectedValue(ladderTypeDropdown, 1, 1)
             local defaultSteps = "50:10|300:50|1000:100"
             D.SetBidSteps(defaultSteps)
