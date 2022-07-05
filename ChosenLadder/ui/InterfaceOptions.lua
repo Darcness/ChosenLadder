@@ -42,18 +42,26 @@ function IO:CreatePanel()
     fontTitle:SetPoint("TOPLEFT", panel, 8, -8)
     fontTitle:SetText(A)
 
-    local toggleButton = CreateFrame("Button", UI.UIPrefixes.OptionsToggleMainWindowButton, panel,
-        "UIPanelButtonTemplate")
-    toggleButton:SetPoint("TOPLEFT", fontTitle, -2, -(fontTitle:GetHeight() + 4))
-    toggleButton:SetWidth(102)
-    toggleButton:SetText("Toggle Ladder")
-    toggleButton:SetScript("OnClick", function()
-        UI.ToggleMainWindowFrame()
-    end)
+    local minimapRow = CreateFrame("Frame", "ChosenLadderOptionsMinimapContainer", panel, "BackdropTemplate")
+    minimapRow:SetPoint("TOPLEFT", fontTitle, 0, -(rowHeight + 8))
+    minimapRow:SetHeight(rowHeight)
+
+    local minimapCheck = CreateFrame("CheckButton", nil, minimapRow, "UICheckButtonTemplate")
+    minimapCheck:SetSize(28, 28)
+    minimapCheck:SetPoint("LEFT", minimapRow, 0, 0)
+    minimapCheck:SetChecked(not ChosenLadder.db.profile.minimap.hide)
+    minimapCheck:SetScript("OnClick", function(self) ChosenLadder:SetMinimapHidden(not self:GetChecked()) end)
+
+    local fontMinimap = minimapRow:CreateFontString("ChosenLadderOptionsMinimapFontString", nil, "GameFontNormal")
+    fontMinimap:SetPoint("LEFT", minimapCheck, minimapCheck:GetWidth() + 8, 0)
+    fontMinimap:SetText("Show Minimap Icon")
+    minimapCheck:SetFontString(fontMinimap)
+
+    minimapRow:SetWidth(minimapCheck:GetWidth() + 8 + fontMinimap:GetWidth())
 
     local bidRow = CreateFrame("Frame", "ChosenLadderOptionsBiddingStepsFontContainer", panel,
         "BackdropTemplate")
-    bidRow:SetPoint("TOPLEFT", toggleButton, 2, -(toggleButton:GetHeight() + 4))
+    bidRow:SetPoint("TOPLEFT", minimapRow, 2, -(rowHeight + 8))
     bidRow:SetHeight(rowHeight)
     bidRow:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
@@ -105,23 +113,6 @@ function IO:CreatePanel()
     UIDropDownMenu_Initialize(outputDropdown, ChatFrame_Initialize)
 
     outputRow:SetWidth(fontOutput:GetWidth() + 4 + 100)
-
-    local minimapRow = CreateFrame("Frame", "ChosenLadderOptionsMinimapContainer", panel, "BackdropTemplate")
-    minimapRow:SetPoint("TOPLEFT", outputRow, 0, -(rowHeight + 8))
-    minimapRow:SetHeight(rowHeight)
-
-    local minimapCheck = CreateFrame("CheckButton", nil, minimapRow, "UICheckButtonTemplate")
-    minimapCheck:SetSize(28, 28)
-    minimapCheck:SetPoint("LEFT", minimapRow, 0, 0)
-    minimapCheck:SetChecked(not ChosenLadder.db.profile.minimap.hide)
-    minimapCheck:SetScript("OnClick", function(self) ChosenLadder:SetMinimapHidden(not self:GetChecked()) end)
-
-    local fontMinimap = minimapRow:CreateFontString("ChosenLadderOptionsMinimapFontString", nil, "GameFontNormal")
-    fontMinimap:SetPoint("LEFT", minimapCheck, minimapCheck:GetWidth() + 8, 0)
-    fontMinimap:SetText("Show Minimap Icon")
-    minimapCheck:SetFontString(fontMinimap)
-
-    minimapRow:SetWidth(minimapCheck:GetWidth() + 8 + fontMinimap:GetWidth())
 
     function panel.okay()
         xpcall(function()
