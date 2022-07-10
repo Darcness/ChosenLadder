@@ -60,14 +60,22 @@ function Dunk:CompleteAnnounce(forceId)
     end
 end
 
-function Dunk:CompleteProcess(id)
-    ChosenLadder:PrintToWindow("Registered Dunks:")
+-- Forces the found player to the end of the list.
+local function ProcessStandardDunk(id)
+    local newPlayers = { table.unpack(ChosenLadderLootLadder.players) }
 
-    -- We're assuming the list is already sorted by now.
-    for _, v in ipairs(self.dunks) do
-        ChosenLadder:PrintToWindow(string.format("%s - %d", v.player.name, v.pos))
+    local found, foundPos = F.Find(newPlayers, function(p) return p.id == id end)
+
+    if found ~= nil and foundPos ~= nil then
+        table.remove(newPlayers, foundPos)
+        table.insert(newPlayers, found)
     end
 
+    return newPlayers, found, foundPos, #newPlayers
+end
+
+--Processes a 'Freezing' dunk, which means that players where 'present = false' are frozen into their current ladder spot.
+local function ProcessFreezingDunk(id)
     local newPlayers = {}
     -- Initialize newPlayers with nulls, since we're inserting in weird places.
     for k, _ in pairs(ChosenLadderLootLadder.players) do
@@ -113,8 +121,24 @@ function Dunk:CompleteProcess(id)
             newPlayers[i] = found
             targetPos = i
             ChosenLadder:PrintToWindow(found.name .. " moved to position " .. targetPos .. " from position " .. foundPos)
+            break
         end
     end
+
+    return newPlayers, found, foundPos, targetPos
+end
+
+function Dunk:CompleteProcess(id)
+    ChosenLadder:PrintToWindow("Registered Dunks:")
+
+    -- We're assuming the list is already sorted by now.
+    for _, v in ipairs(self.dunks) do
+        ChosenLadder:PrintToWindow(string.format("%s - %d", v.player.name, v.pos))
+    end
+
+    local newPlayers, found, foundPos, targetPos = (
+        ChosenLadder.db.char.ladderType == D.Constants.LadderType["SK w/ Freezing"] and ProcessFreezingDunk(id) or
+            ProcessStandardDunk(id))
 
     ChosenLadderLootLadder.players = newPlayers
     ChosenLadderLootLadder.lastModified = GetServerTime()

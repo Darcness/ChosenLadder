@@ -9,18 +9,18 @@ local Loot = UI.Loot
 
 local UIC = UI.Constants
 
-for i = 1, 16 do
-    local item = Item:CreateFromEquipmentSlot(i)
-    local guid = item:GetItemGUID()
-    local itemLink = item:GetItemLink()
+-- for i = 1, 16 do
+--     local item = Item:CreateFromEquipmentSlot(i)
+--     local guid = item:GetItemGUID()
+--     local itemLink = item:GetItemLink()
 
-    table.insert(D.lootMasterItems, {
-        guid = guid,
-        itemLink = itemLink,
-        sold = false
-    })
+--     table.insert(D.lootMasterItems, {
+--         guid = guid,
+--         itemLink = itemLink,
+--         sold = false
+--     })
 
-end
+-- end
 
 local function CreateLootRowItem(parentScrollFrame, item, idx)
     local row = CreateFrame("Frame", UI.UIPrefixes.LootRow .. item.guid, parentScrollFrame, "BackdropTemplate")
@@ -128,12 +128,12 @@ function Loot:CreateMainFrame(mainFrame)
         end
     )
 
-    self:PopulateLootList()
+    Loot:PopulateLootList()
 end
 
 function Loot:PopulateLootList()
     -- If there's no scrollChild yet, we have nothing to populate.
-    if UI.scrollChild == nil then
+    if self.scrollChild == nil then
         return
     end
 
@@ -148,7 +148,9 @@ function Loot:PopulateLootList()
             -- Store the loot row, since we can't count on the WoW client to garbage collect
             local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or
                 CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
+            row:SetPoint("TOPLEFT", self.scrollChild, 4, (lootIdx - 1) * -28)
             row:Show()
+
 
             for _, child in ipairs({ row:GetChildren() }) do
                 if F.StartsWith(child:GetName(), UI.UIPrefixes.LootDunkButton) then

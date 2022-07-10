@@ -30,7 +30,13 @@ StreamFlag = {
     Complete = 3
 }
 
+LadderType = {
+    ["SK Simple"] = 1,
+    ["SK w/ Freezing"] = 2
+}
+
 NS.Data.Constants.StreamFlag = StreamFlag
+NS.Data.Constants.LadderType = LadderType
 
 ChosenLadder = LibStub("AceAddon-3.0"):NewAddon(A, "AceConsole-3.0", "AceComm-3.0", "AceEvent-3.0")
 
@@ -71,7 +77,12 @@ function Dump(o)
         end
         return s .. '} '
     else
-        return tostring(o)
+        if type(o) ~= 'number' then
+            return string.format("\"%s\"", tostring(o))
+        else
+            return tostring(o)
+        end
+
     end
 end
 

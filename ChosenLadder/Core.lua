@@ -4,6 +4,11 @@ local UI = NS.UI
 local F = NS.Functions
 local D = NS.Data
 
+local defaultDB = {
+    profile = { minimap = { hide = false } },
+    char = { ladderType = D.Constants.LadderType.SKSSimple }
+}
+
 function ChosenLadder:OnInitialize()
     if ChosenLadderLootLadder == nil then
         ChosenLadderLootLadder = {
@@ -53,18 +58,18 @@ function ChosenLadder:OnInitialize()
         type = "data source",
         text = A,
         icon = "Interface\\Icons\\INV_Box_04",
-        OnClick = function(clickedFrame, button) ChosenLadder:MinimapClick(button) end,
+        OnClick = function(_, button) ChosenLadder:MinimapClick(button) end,
         OnEnter = function(self)
             GameTooltip:SetOwner(self, "ANCHOR_LEFT")
             GameTooltip:SetText(A)
-            GameTooltip:AddLine("Left Click to toggle ChosenLadder window", 1, 1, 1, true)
-            GameTooltip:AddLine("Right Click to open Interface Options", 1, 1, 1, false)
+            GameTooltip:AddLine("Left-Click to toggle ChosenLadder window", 1, 1, 1, false)
+            GameTooltip:AddLine("Right-Click to open Interface Options", 1, 1, 1, false)
             GameTooltip:Show()
         end,
-        OnLeave = function(self) GameTooltip:Hide() end
+        OnLeave = function() GameTooltip:Hide() end
     })
 
-    self.db = LibStub("AceDB-3.0"):New("ChosenLadderDB", { profile = { minimap = { hide = false } } })
+    self.db = LibStub("AceDB-3.0"):New("ChosenLadderDB", defaultDB)
     NS.Icon:Register(A, clLDB, self.db.profile.minimap)
 end
 
