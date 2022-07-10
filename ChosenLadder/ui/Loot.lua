@@ -46,7 +46,7 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
     dunkButton:SetScript(
         "OnClick",
         function(self, button, down)
-            if D.dunkItem == item.guid then
+            if D.Dunk.dunkItem == item.guid then
                 D.Dunk:CompleteAnnounce()
             else
                 D.Dunk:Start(item.guid)
@@ -63,7 +63,7 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
     auctionButton:SetScript(
         "OnClick",
         function(self, button, down)
-            if D.dunkItem == item.guid then
+            if D.Auction.auctionItem == item.guid then
                 D.Auction:Complete()
             else
                 D.Auction:Start(item.guid)
