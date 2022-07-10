@@ -21,8 +21,9 @@ function Dunk:GetItemLink()
         return nil
     end
 
-    if F.StartsWith(self.dunkItem.guid, "Item-4648-0-") then
-        local item = D.GetLootItemByGUID(self.dunkItem.guid)
+    if F.StartsWith(self.dunkItem, "Item-4648-0-") then
+        -- It's a guid, get the link
+        local item = D.GetLootItemByGUID(self.dunkItem)
         if item == nil or item.itemLink == nil then
             return nil
         end
