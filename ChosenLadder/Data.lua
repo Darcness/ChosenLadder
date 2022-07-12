@@ -1,49 +1,100 @@
 local CL, NS = ...
 
-local D = NS.Data
+---@type Functions
 local F = NS.Functions
 
-D.raidRoster = {}
-D.isLootMaster = false
-D.lootMasterItems = {}
+---@class Data
+---@field Constants DataConstants
+---@field raidRoster RaidRosterInfo[]
+---@field isLootMaster boolean
+---@field lootMasterItems LootItem[]
+---@field Auction Auction
+---@field Dunk Dunk
+---@field syncing number
+local Data = {
+    ---@class DataConstants
+    ---@field BeginSyncFlag string
+    ---@field EndSyncFlag string
+    ---@field AsheosWords string[]
+    ---@field StreamFlag table<string, number>
+    ---@field LadderType table<string, number>
+    Constants = {
+        BeginSyncFlag = "BEGIN SYNC:",
+        EndSyncFlag = "END SYNC",
+        AsheosWords = {
+            "dunk",
+            "sunk",
+            "funk",
+            "dink",
+            "dynk",
+            "dumk",
+            "dubk",
+            "dunl",
+            "duni",
+            "dunm",
+            "dlunk",
+            "drunk"
+        },
+        StreamFlag = {
+            Empty = 1,
+            Started = 2,
+            Complete = 3
+        },
+        LadderType = {
+            ["SK Simple"] = 1,
+            ["SK w/ Freezing"] = 2
+        }
+    },
+    raidRoster = {},
+    isLootMaster = false,
+    lootMasterItems = {},
+    syncing = 1
+}
+NS.Data = Data
 
-function BuildPlayerList(rows)
-    ChosenLadderLootLadder.players = {}
+---@param rows string[]
+function Data:BuildPlayerList(rows)
+    ---@type DatabasePlayer[]
+    local newPlayers = {}
 
     for _, v in ipairs(rows) do
         local nameParts = F.Split(v, ":")
         if #nameParts >= 2 then
-            table.insert(
-                ChosenLadderLootLadder.players,
-                {
-                    id = nameParts[1],
-                    name = nameParts[2],
-                    guid = nameParts[3],
-                    present = false,
-                    log = ""
-                }
-            )
+            ---@class DatabasePlayer
+            ---@field id string
+            ---@field name string
+            ---@field guid string
+            ---@field present boolean
+            ---@field log string
+            local player = {
+                id = nameParts[1],
+                name = nameParts[2],
+                guid = nameParts[3],
+                present = false,
+                log = ""
+            }
+            table.insert(newPlayers, player)
         else
             ChosenLadder:PrintToWindow("Invalid Import Data: " .. v)
         end
     end
 
-    ChosenLadderLootLadder.lastModified = GetServerTime()
+    ChosenLadder:Database().factionrealm.ladder.players = newPlayers
+    ChosenLadder:Database().factionrealm.ladder.lastModified = GetServerTime()
 end
 
-D.BuildPlayerList = BuildPlayerList
-
-function GenerateSyncData(localDebug)
-    local timeMessage = D.Constants.BeginSyncFlag .. ChosenLadderLootLadder.lastModified
+---@param localDebug? boolean
+function Data:GenerateSyncData(localDebug)
+    local timeMessage = self.Constants.BeginSyncFlag .. ChosenLadder:Database().factionrealm.ladder.lastModified
     local channel = "RAID"
 
     local fullMessage = timeMessage .. "|"
 
-    for _, player in ipairs(ChosenLadderLootLadder.players) do
+    for _, player in ipairs(ChosenLadder:GetLadderPlayers()) do
         fullMessage = fullMessage .. player.name .. "|"
     end
 
-    local endMessage = D.Constants.EndSyncFlag
+    local endMessage = self.Constants.EndSyncFlag
     fullMessage = fullMessage .. endMessage
 
     if localDebug then
@@ -53,11 +104,11 @@ function GenerateSyncData(localDebug)
     end
 end
 
-D.GenerateSyncData = GenerateSyncData
-
-function IsPlayerInRaid(playername)
+---@param playername string
+---@return boolean
+function Data:IsPlayerInRaid(playername)
     if playername ~= nil then
-        for k, v in ipairs(D.raidRoster) do
+        for _, v in ipairs(self.raidRoster) do
             if v[1] == Ambiguate(playername, "all") then
                 return true
             end
@@ -67,10 +118,10 @@ function IsPlayerInRaid(playername)
     return false
 end
 
-D.IsPlayerInRaid = IsPlayerInRaid
-
-function SetPlayerGUIDByID(id, guid)
-    local player = GetPlayerByID(id)
+---@param id string
+---@param guid string
+function Data:SetPlayerGUIDByID(id, guid)
+    local player = self:GetPlayerByID(id)
     if player ~= nil then
         player.guid = guid
     else
@@ -78,78 +129,78 @@ function SetPlayerGUIDByID(id, guid)
     end
 end
 
-D.SetPlayerGUIDByID = SetPlayerGUIDByID
-
-function ShortenGuid(guid)
-    return string.gsub(guid, "Player%-4648%-", "")
+---@param id string
+function Data:GetPlayerByID(id)
+    ---@param player DatabasePlayer
+    local player, playerloc = F.Find(ChosenLadder:GetLadderPlayers(), function(player) return player.id == id end)
+    return player, playerloc
 end
 
-D.ShortenGuid = ShortenGuid
-
-function GetPlayerByID(id)
-    return F.Find(ChosenLadderLootLadder.players, function(player) return player.id == id end)
+---@param guid string
+---@return DatabasePlayer|nil
+---@return integer|nil
+function Data:GetPlayerByGUID(guid)
+    guid = F.ShortenPlayerGuid(guid)
+    ---@param player DatabasePlayer
+    local player, playerloc = F.Find(ChosenLadder:GetLadderPlayers(), function(player) return player.guid == guid end)
+    return player, playerloc
 end
 
-D.GetPlayerByID = GetPlayerByID
-
-function GetPlayerByGUID(guid)
-    guid = ShortenGuid(guid)
-    return F.Find(ChosenLadderLootLadder.players, function(player) return player.guid == guid end)
-end
-
-D.GetPlayerByGUID = GetPlayerByGUID
-
-function SetPresentById(id, present)
-    local player = GetPlayerByID(id)
+---@param id string
+---@param present boolean
+function Data:SetPresentById(id, present)
+    local player = self:GetPlayerByID(id)
     if player ~= nil then
         player.present = present
     end
 end
 
-D.SetPresentById = SetPresentById
-
-function GetLootItemByGUID(guid)
-    return F.Find(D.lootMasterItems, function(item) return item.guid == guid end)
+---@param guid string
+function Data:GetLootItemByGUID(guid)
+    local loot, lootloc = F.Find(self.lootMasterItems, function(item) return item.guid == guid end)
+    return loot, lootloc
 end
 
-D.GetLootItemByGUID = GetLootItemByGUID
-
-function RemoveLootItemByGUID(guid)
+---@param guid string
+function Data:RemoveLootItemByGUID(guid)
     local newItems = {}
-    for _, item in pairs(D.lootMasterItems) do
+    for _, item in pairs(self.lootMasterItems) do
         if item.guid ~= guid then
             table.insert(newItems, item)
         end
     end
-    D.lootMasterItems = newItems
+    self.lootMasterItems = newItems
 end
 
-D.RemoveLootItemByGUID = RemoveLootItemByGUID
-
-function GetPrintableBidSteps()
+---@return string
+function Data:GetPrintableBidSteps()
     local stepLabels = {}
-    for i, stepData in ipairs(ChosenLadderBidSteps) do
+    for i, stepData in ipairs(ChosenLadder:Database().factionrealm.bidSteps) do
         table.insert(stepLabels, string.format("%d:%d", stepData.start, stepData.step))
     end
 
     return table.concat(stepLabels, "|")
 end
 
-D.GetPrintableBidSteps = GetPrintableBidSteps
-
-function SetBidSteps(string)
+---@param input string
+function Data:SetBidSteps(input)
+    ---@type DatabaseBidStep[]
     local newSteps = {}
-    for _, group in ipairs(F.Split(string, "|")) do
+    for _, group in ipairs(F.Split(input, "|")) do
         local values = F.Split(group, ":")
-        if #values == 2 and tonumber(values[2]) then
-            table.insert(newSteps, {
-                start = values[1],
-                step = tonumber(values[2])
-            })
+        local start = tonumber(values[1])
+        local step = tonumber(values[2])
+        if #values == 2 and start ~= nil and step ~= nil then
+            ---@class DatabaseBidStep
+            ---@field start number
+            ---@field step number
+            local bidStep = {
+                start = start,
+                step = step
+            }
+            table.insert(newSteps, bidStep)
         end
     end
 
-    ChosenLadderBidSteps = newSteps
+    ChosenLadder:Database().factionrealm.bidSteps = newSteps
 end
-
-D.SetBidSteps = SetBidSteps

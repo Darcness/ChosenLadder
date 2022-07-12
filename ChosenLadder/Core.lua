@@ -1,42 +1,53 @@
+---@diagnostic disable: undefined-field
 local A, NS = ...
 
+---@type UI
 local UI = NS.UI
+---@type Functions
 local F = NS.Functions
+---@type Data
 local D = NS.Data
 
+---@class DatabasePlayer
+---@field id string
+---@field name string
+---@field guid string
+---@field present boolean
+---@field log string
+
+---@class Database
+---@field char DatabaseChar
+---@field profile DatabaseProfile
+---@field factionrealm DatabaseFactionRealm
 local defaultDB = {
-    profile = { minimap = { hide = false } },
-    char = { ladderType = D.Constants.LadderType.SKSSimple }
-}
-
-function ChosenLadder:OnInitialize()
-    if ChosenLadderLootLadder == nil then
-        ChosenLadderLootLadder = {
+    ---@class DatabaseChar
+    ---@field minimap MinimapOptions
+    ---@field ouputChannel number
+    char = {
+        ---@class MinimapOptions
+        ---@field hide boolean
+        minimap = {
+            hide = false
+        },
+        outputChannel = 1
+    },
+    ---@class DatabaseProfile
+    ---@field ladderType number
+    profile = {
+        ladderType = D.Constants.LadderType.SKSSimple
+    },
+    ---@class DatabaseFactionRealm
+    ---@field ladder DatabaseLadder
+    ---@field bidSteps DatabaseBidStep[]
+    factionrealm = {
+        ---@class DatabaseLadder
+        ---@field lastModified number
+        ---@field players DatabasePlayer[]
+        ladder = {
+            lastModified = 0,
             players = {}
-        }
-    end
-
-    if ChosenLadderLootLadder.lastModified == nil then
-        ChosenLadderLootLadder.lastModified = 0
-    end
-
-    local newPlayers = {}
-    -- Do a little data validation, just in case.
-    for _, player in ipairs(ChosenLadderLootLadder.players or {}) do
-        if player.id ~= nil then
-            -- Initialize them as not present.
-            player.present = false
-            table.insert(newPlayers, player)
-        else
-            -- no id? They're bad data.
-            ChosenLadder:PrintToWindow("User missing ID. Ignoring...")
-        end
-    end
-
-    ChosenLadderLootLadder.players = newPlayers
-
-    if ChosenLadderBidSteps == nil then
-        ChosenLadderBidSteps = {
+        },
+        bidSteps = {
             [1] = {
                 start = 50,
                 step = 10
@@ -50,10 +61,16 @@ function ChosenLadder:OnInitialize()
                 step = 100
             }
         }
-    end
+    }
+}
 
-    ChosenLadderOutputChannel = ChosenLadderOutputChannel or 1
+---@return Database
+function ChosenLadder:Database()
+    return self.db
+end
 
+function ChosenLadder:OnInitialize()
+    -- Set up the base Addon options
     local clLDB = LibStub("LibDataBroker-1.1"):NewDataObject(A, {
         type = "data source",
         text = A,
@@ -69,8 +86,24 @@ function ChosenLadder:OnInitialize()
         OnLeave = function() GameTooltip:Hide() end
     })
 
+    -- Register the Database
     self.db = LibStub("AceDB-3.0"):New("ChosenLadderDB", defaultDB)
-    NS.Icon:Register(A, clLDB, self.db.profile.minimap)
+    NS.Icon:Register(A, clLDB, ChosenLadder:Database().char.minimap)
+
+    local newPlayers = {}
+    -- Do a little data validation on the ladder, just in case.
+    for _, player in ipairs(ChosenLadder:Database().factionrealm.ladder.players or {}) do
+        if player.id ~= nil then
+            -- Initialize them as not present.
+            player.present = false
+            table.insert(newPlayers, player)
+        else
+            -- no id? They're bad data.
+            ChosenLadder:PrintToWindow("User missing ID. Ignoring...")
+        end
+    end
+
+    ChosenLadder:Database().factionrealm.ladder.players = newPlayers
 end
 
 function YouSoBad(action)
@@ -100,7 +133,7 @@ function ChosenLadder:MinimapClick(button)
     if button == "RightButton" then
         InterfaceOptionsFrame_OpenToCategory(UI.InterfaceOptions.ioPanel)
     elseif button == "LeftButton" then
-        UI.ToggleMainWindowFrame()
+        UI:ToggleMainWindowFrame()
     end
 end
 
@@ -119,7 +152,7 @@ function ChosenLadder:ToggleLadder()
         UI.importFrame:Hide()
     end
 
-    UI.ToggleMainWindowFrame()
+    UI:ToggleMainWindowFrame()
 end
 
 function ChosenLadder:SendMessage(message, destination)
@@ -231,7 +264,12 @@ function ChosenLadder:Whisper(text, target)
     end
 end
 
+---@param text string
 function ChosenLadder:PrintToWindow(text)
     local chatFrame = _G["ChatFrame" .. ChosenLadderOutputChannel] or DEFAULT_CHAT_FRAME
     ChosenLadder:Print(chatFrame, text)
+end
+
+function ChosenLadder:GetLadderPlayers()
+    return ChosenLadder:Database().factionrealm.ladder.players
 end

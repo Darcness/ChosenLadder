@@ -1,11 +1,17 @@
+---@diagnostic disable: param-type-mismatch
 local A, NS = ...
 
+---@type Data
 local D = NS.Data
+---@type UI
 local UI = NS.UI
+---@type Functions
 local F = NS.Functions
 
-UI.Ladder = {}
-local Ladder = UI.Ladder
+---@class Ladder
+local Ladder = {}
+UI.Ladder = Ladder
+
 local UIC = UI.Constants
 
 local function RaidDrop_Initialize_Builder(id)
@@ -21,7 +27,7 @@ local function RaidDrop_Initialize_Builder(id)
             UIDropDownMenu_SetSelectedValue(frame, "0", "0")
             UIDropDownMenu_SetText(frame, "Clear Selection")
             b.checked = true
-            D.SetPlayerGUIDByID(id, "0")
+            D:SetPlayerGUIDByID(id, "0")
         end
 
         UIDropDownMenu_AddButton(clear, level)
@@ -39,7 +45,7 @@ local function RaidDrop_Initialize_Builder(id)
             local name = raider[1]
             local guid = UnitGUID(name)
             if guid ~= nil then
-                local guid = D.ShortenGuid(guid)
+                local guid = F.ShortenPlayerGuid(guid)
 
                 local info = UIDropDownMenu_CreateInfo()
                 info.value = guid
@@ -48,17 +54,17 @@ local function RaidDrop_Initialize_Builder(id)
                     UIDropDownMenu_SetSelectedValue(frame, guid, guid)
                     UIDropDownMenu_SetText(frame, name)
                     b.checked = true
-                    D.SetPlayerGUIDByID(id, guid)
+                    D:SetPlayerGUIDByID(id, guid)
                 end
 
                 UIDropDownMenu_AddButton(info, level)
 
-                local player = D.GetPlayerByGUID(guid)
+                local player = D:GetPlayerByGUID(guid)
                 if player ~= nil and player.id == id then
                     -- This id (player row) has the guid for this raid member.  Select them.
                     UIDropDownMenu_SetSelectedValue(frame, guid, guid)
                     UIDropDownMenu_SetText(frame, name)
-                    D.SetPresentById(id, true)
+                    D:SetPresentById(id, true)
                 end
             end
         end
@@ -75,8 +81,7 @@ local function CreatePlayerRowItem(parentScrollFrame, player, idx)
     raidDrop:SetPoint("TOPLEFT", row, 0, 0)
     UIDropDownMenu_SetWidth(raidDrop, 100)
     UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(player.id))
-    -- raidDrop:SetEnabled(D.isLootMaster or false)
-
+    
     -- Set the Font
     local textFont = row:CreateFontString(UI.UIPrefixes.PlayerNameString .. player.id, nil, "GameFontNormal")
     textFont:SetText(idx .. " - " .. player.name)
@@ -91,7 +96,7 @@ local function CreatePlayerRowItem(parentScrollFrame, player, idx)
         "OnClick",
         function(self, button, down)
             D.Dunk:CompleteAnnounce(player.id)
-            D.Dunk:CompleteProcess(player.id, D.Dunk.dunkItem)
+            D.Dunk:CompleteProcess(player.id)
             Ladder:PopulatePlayerList()
         end
     )
@@ -101,7 +106,7 @@ end
 
 function FormatNames()
     local names = ""
-    for k, v in pairs(ChosenLadderLootLadder.players) do
+    for k, v in pairs(ChosenLadder:GetLadderPlayers()) do
         names = names .. string.format("%s:%s:%s", v.id, v.name, (v.guid or "")) .. "\n"
     end
     return names
@@ -119,7 +124,7 @@ function Ladder:PopulatePlayerList()
         child:Hide()
     end
 
-    for playerIdx, player in ipairs(ChosenLadderLootLadder.players) do
+    for playerIdx, player in ipairs(ChosenLadder:GetLadderPlayers()) do
         -- Store the player row, since we can't count on the WoW client to garbage collect
         if _G[UI.UIPrefixes.PlayerRow .. player.id] == nil then
             _G[UI.UIPrefixes.PlayerRow .. player.id] = CreatePlayerRowItem(UI.scrollChild, player, playerIdx)
@@ -158,9 +163,10 @@ local function CreateImportFrame()
     mainFrame:SetScript(
         "OnHide",
         function(self)
-            ToggleMainWindowFrame()
+            UI:ToggleMainWindowFrame()
         end
     )
+    ---@diagnostic disable-next-line: assign-type-mismatch
     UI.importFrame = mainFrame
     _G["ChosenLadderImportFrame"] = mainFrame
 
@@ -178,18 +184,19 @@ local function CreateImportFrame()
     saveButton:SetScript(
         "OnClick",
         function(self, button, down)
-            local text = ChosenLadderImportEditBox:GetText()
+            local text = _G["ChosenLadderImportEditBox"]:GetText()
             local lines = {}
             for line in text:gmatch("([^\n]*)\n?") do
                 if string.len(line) > 0 then
                     table.insert(lines, F.Trim(line))
                 end
             end
-            D.BuildPlayerList(lines)
+            D:BuildPlayerList(lines)
 
             Ladder:ToggleImportFrame()
         end
     )
+    ---@diagnostic disable-next-line: assign-type-mismatch
     UI.importSaveButton = saveButton
 
     -- Content Window
@@ -204,7 +211,7 @@ local function CreateImportFrame()
     scrollFrame:EnableMouse(true)
 
     contentFrame.scroll = scrollFrame
-    contentFrame.scrollbar = ChosenLadderImportScrollFrameScrollBar
+    contentFrame.scrollbar = _G["ChosenLadderImportScrollFrameScrollBar"]
 
     -- Create the scrolling child frame, set its width to fit, and give it an arbitrary minimum height (such as 1)
     local editBox = CreateFrame("EditBox", "ChosenLadderImportEditBox", scrollFrame)
@@ -237,6 +244,7 @@ function Ladder:ToggleImportFrame()
     end
 end
 
+---@param mainFrame Frame
 function Ladder:CreateMainFrame(mainFrame)
     local actionFrame = CreateFrame("Frame", "ChosenLadderActionContentFrame", mainFrame, "BackdropTemplate")
     actionFrame:SetPoint("TOPLEFT", mainFrame, UIC.FrameInset.left, -UIC.FrameInset.top)
@@ -250,7 +258,7 @@ function Ladder:CreateMainFrame(mainFrame)
     importButton:SetScript(
         "OnClick",
         function(self, button, down)
-            UI.ToggleMainWindowFrame()
+            UI:ToggleMainWindowFrame()
             Ladder:ToggleImportFrame()
         end
     )
@@ -268,6 +276,7 @@ function Ladder:CreateMainFrame(mainFrame)
             ChosenLadder:PrintToWindow("Submitting Sync Request")
         end
     )
+    ---@diagnostic disable-next-line: assign-type-mismatch
     UI.syncButton = syncButton
 
     -- Content Window
@@ -281,6 +290,7 @@ function Ladder:CreateMainFrame(mainFrame)
     scrollFrame:EnableMouse(true)
 
     contentFrame.scroll = scrollFrame
+    ---@diagnostic disable-next-line: undefined-global
     contentFrame.scrollbar = ChosenLadderScrollFrameScrollBar
 
     -- Create the scrolling child frame, set its width to fit

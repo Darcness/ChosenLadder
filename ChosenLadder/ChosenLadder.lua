@@ -1,60 +1,36 @@
 local A, NS = ...
 
--- UI Container
-NS.UI = {}
--- Functions Container
-NS.Functions = {}
--- Data Container
-NS.Data = {}
-NS.Data.Constants = {}
-NS.Data.Constants.BeginSyncFlag = "BEGIN SYNC:"
-NS.Data.Constants.EndSyncFlag = "END SYNC"
-NS.Data.Constants.AsheosWords = {
-    "dunk",
-    "sunk",
-    "funk",
-    "dink",
-    "dynk",
-    "dumk",
-    "dubk",
-    "dunl",
-    "duni",
-    "dunm",
-    "dlunk",
-    "drunk"
-}
-
-StreamFlag = {
-    Empty = 1,
-    Started = 2,
-    Complete = 3
-}
-
-LadderType = {
-    ["SK Simple"] = 1,
-    ["SK w/ Freezing"] = 2
-}
-
-NS.Data.Constants.StreamFlag = StreamFlag
-NS.Data.Constants.LadderType = LadderType
-
 ChosenLadder = LibStub("AceAddon-3.0"):NewAddon(A, "AceConsole-3.0", "AceComm-3.0", "AceEvent-3.0")
 
 NS.CL = ChosenLadder
 NS.Icon = LibStub("LibDBIcon-1.0")
 
+---@alias array<T> { [number] : T }
+
+-- Functions Container
+---@class Functions
+local Functions = {}
+NS.Functions = Functions
+
+---@diagnostic disable-next-line: deprecated
+unpack = unpack or table.unpack
+
 function Trim(s)
     return s:match "^%s*(.*%S)" or ""
 end
 
-NS.Functions.Trim = Trim
+Functions.Trim = Trim
 
 function StartsWith(str, start)
     return str:sub(1, #start) == start
 end
 
-NS.Functions.StartsWith = StartsWith
+Functions.StartsWith = StartsWith
 
+---comment
+---@param inputstr string
+---@param sep string
+---@return string[]
 function Split(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -66,7 +42,7 @@ function Split(inputstr, sep)
     return t
 end
 
-NS.Functions.Split = Split
+Functions.Split = Split
 
 function Dump(o)
     if type(o) == 'table' then
@@ -86,7 +62,7 @@ function Dump(o)
     end
 end
 
-NS.Functions.Dump = Dump
+Functions.Dump = Dump
 
 function ToArray(t)
     local ret = {}
@@ -97,7 +73,7 @@ function ToArray(t)
     return ret
 end
 
-NS.Functions.ToArray = ToArray
+Functions.ToArray = ToArray
 
 function Filter(t, f)
     local ret = {}
@@ -110,14 +86,23 @@ function Filter(t, f)
     return ret
 end
 
-NS.Functions.Filter = Filter
+Functions.Filter = Filter
 
+---@generic T : table
+---@param t array<T>
+---@param f function
+---@return array<T>
 function FilterArray(t, f)
     return ToArray(Filter(t, f))
 end
 
-NS.Functions.FilterArray = FilterArray
+Functions.FilterArray = FilterArray
 
+---@generic T : table
+---@param t array<T>
+---@param f function
+---@return T|nil
+---@return integer|nil
 function Find(t, f)
     for k, v in ipairs(t) do
         if f(v) then
@@ -128,4 +113,10 @@ function Find(t, f)
     return nil, nil
 end
 
-NS.Functions.Find = Find
+Functions.Find = Find
+
+function ShortenPlayerGuid(guid)
+    return string.gsub(guid, "Player%-4648%-", "")
+end
+
+Functions.ShortenPlayerGuid = ShortenPlayerGuid

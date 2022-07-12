@@ -1,16 +1,22 @@
+---@diagnostic disable: param-type-mismatch
 local A, NS = ...
 
+---@type Data
 local D = NS.Data
+---@type UI
 local UI = NS.UI
+---@type Functions
 local F = NS.Functions
 
-UI.InterfaceOptions = {}
-local IO = UI.InterfaceOptions
+---@class InterfaceOptions
+local InterfaceOptions = {}
+UI.InterfaceOptions = InterfaceOptions
+
 local UIC = UI.Constants
 
 local function ChatFrame_Initialize(frame, level, menuList)
     for i = 1, NUM_CHAT_WINDOWS do
-        local name, _, _, _, _, _, shown, locked, docked, uninteractible = GetChatWindowInfo(i)
+        local name, _, _, _, _, _, _, _, _, uninteractible = GetChatWindowInfo(i)
         if name ~= nil and name ~= "" and not uninteractible then
             local info = UIDropDownMenu_CreateInfo()
             info.value = i
@@ -44,14 +50,14 @@ local function LadderType_Initialize(frame, level, menuList)
 
         UIDropDownMenu_AddButton(info, level)
 
-        if v == ChosenLadder.db.char.ladderType then
+        if v == ChosenLadder:Database().profile.ladderType then
             UIDropDownMenu_SetSelectedValue(frame, v, v)
             UIDropDownMenu_SetText(frame, k)
         end
     end
 end
 
-function IO:CreatePanel()
+function InterfaceOptions:CreatePanel()
     local rowHeight = 24
     local panel = CreateFrame("Frame", UI.UIPrefixes.OptionsPanel)
     panel.name = A
@@ -69,7 +75,7 @@ function IO:CreatePanel()
     local minimapCheck = CreateFrame("CheckButton", nil, minimapRow, "UICheckButtonTemplate")
     minimapCheck:SetSize(28, 28)
     minimapCheck:SetPoint("LEFT", minimapRow, 0, 0)
-    minimapCheck:SetChecked(not ChosenLadder.db.profile.minimap.hide)
+    minimapCheck:SetChecked(not ChosenLadder:Database().char.minimap.hide)
     minimapCheck:SetScript("OnClick", function(self) ChosenLadder:SetMinimapHidden(not self:GetChecked()) end)
 
     local fontMinimap = minimapRow:CreateFontString("ChosenLadderOptionsMinimapFontString", nil, "GameFontNormal")
@@ -113,7 +119,7 @@ function IO:CreatePanel()
     editBox:SetPoint("LEFT", fontSteps, fontSteps:GetWidth() + 8, 0)
     editBox:SetAutoFocus(false)
     editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-    editBox:SetText(D.GetPrintableBidSteps())
+    editBox:SetText(D:GetPrintableBidSteps())
     editBox:SetCursorPosition(0)
 
     bidRow:SetWidth(fontSteps:GetWidth() + 8 + editBox:GetWidth())
@@ -155,8 +161,8 @@ function IO:CreatePanel()
     function panel.okay()
         xpcall(function()
             ChosenLadderOutputChannel = UIDropDownMenu_GetSelectedValue(outputDropdown)
-            D.SetBidSteps(editBox:GetText())
-            ChosenLadder.db.char.ladderType = UIDropDownMenu_GetSelectedValue(ladderTypeDropdown)
+            D:SetBidSteps(editBox:GetText())
+            ChosenLadder:Database().profile.ladderType = UIDropDownMenu_GetSelectedValue(ladderTypeDropdown)
         end, geterrorhandler())
     end
 
@@ -166,7 +172,7 @@ function IO:CreatePanel()
             UIDropDownMenu_SetSelectedValue(outputDropdown, 1, 1)
             UIDropDownMenu_SetSelectedValue(ladderTypeDropdown, 1, 1)
             local defaultSteps = "50:10|300:50|1000:100"
-            D.SetBidSteps(defaultSteps)
+            D:SetBidSteps(defaultSteps)
             editBox:SetText(defaultSteps)
         end, geterrorhandler())
     end
