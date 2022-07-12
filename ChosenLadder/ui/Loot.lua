@@ -1,11 +1,15 @@
+---@diagnostic disable: param-type-mismatch
 local A, NS = ...
 
+---@type Data
 local D = NS.Data
+---@type UI
 local UI = NS.UI
 local F = NS.Functions
 
-UI.Loot = {}
-local Loot = UI.Loot
+---@class Loot
+local Loot = {}
+UI.Loot = Loot
 
 local UIC = UI.Constants
 
@@ -22,10 +26,15 @@ local UIC = UI.Constants
 
 -- end
 
+---@param parentScrollFrame Frame
+---@param item LootItem
+---@param idx number
+---@return BackdropTemplate|Frame
 local function CreateLootRowItem(parentScrollFrame, item, idx)
     local row = CreateFrame("Frame", UI.UIPrefixes.LootRow .. item.guid, parentScrollFrame, "BackdropTemplate")
     row:SetSize(parentScrollFrame:GetWidth() - 8, 28)
     row:SetPoint("TOPLEFT", parentScrollFrame, 12, (idx - 1) * -28)
+    ---@diagnostic disable-next-line: redundant-parameter
     row:SetHyperlinksEnabled(true)
     row:SetScript("OnHyperlinkClick", function(self, link, text, button)
         GameTooltip:SetOwner(row, "ANCHOR_CURSOR")
@@ -77,7 +86,7 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
     clearButton:SetWidth(48)
     clearButton:SetPoint("TOPRIGHT", auctionButton, -(auctionButton:GetWidth() + 2), 0)
     clearButton:SetScript("OnClick", function(self, button, down)
-        D.RemoveLootItemByGUID(item.guid)
+        D:RemoveLootItemByGUID(item.guid)
         Loot:PopulateLootList()
     end)
 
@@ -112,7 +121,7 @@ function Loot:CreateMainFrame(mainFrame)
     scrollFrame:EnableMouse(true)
 
     contentFrame.scroll = scrollFrame
-    contentFrame.scrollbar = ChosenLadderLootScrollFrameScrollBar
+    contentFrame.scrollbar = _G["ChosenLadderLootScrollFrameScrollBar"]
 
     -- Create the scrolling child frame, set its width to fit
     local scrollChild = CreateFrame("Frame")

@@ -1,10 +1,27 @@
 local A, NS = ...
 
+---@type UI
 local UI = NS.UI
+---@type Data
 local D = NS.Data
+---@type Functions
 local F = NS.Functions
 
-local StreamFlag = NS.Data.Constants.StreamFlag
+local StreamFlag = D.Constants.StreamFlag
+
+---@class RaidRosterInfo
+---@field name string
+---@field rank number
+---@field subgroup number
+---@field level number
+---@field class string
+---@field fileName string
+---@field zone string?
+---@field online boolean
+---@field isDead boolean
+---@field role string
+---@field isML boolean
+---@field combatRole string
 
 local tip = CreateFrame("GameTooltip", "Tooltip", nil, "GameTooltipTemplate")
 
@@ -36,11 +53,16 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
                 if isTradable(itemLocation) then
                     local current = F.Find(D.lootMasterItems, function(i) return i.guid == guid end)
                     if current == nil and guid ~= nil and itemLink ~= nil then
-                        table.insert(D.lootMasterItems, {
+                        ---@class LootItem
+                        ---@field guid string
+                        ---@field itemLink string
+                        ---@field sold boolean
+                        local lootItem = {
                             guid = guid,
                             itemLink = itemLink,
                             sold = false
-                        })
+                        }
+                        table.insert(D.lootMasterItems, lootItem)
                     end
 
                 end
@@ -50,17 +72,38 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
     UI.Loot:PopulateLootList()
 end
 
+---@return RaidRosterInfo
+function BuildRaidRosterInfoByRaidIndex(raidIndex)
+    local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex)
+    ---@type RaidRosterInfo
+    local info = {
+        name = name,
+        rank = rank,
+        subgroup = subgroup,
+        level = level,
+        class = class,
+        fileName = fileName,
+        zone = zone,
+        online = online,
+        isDead = isDead,
+        role = role,
+        isML = isML,
+        combatRole = combatRole
+    }
+    return info
+end
+
 function ChosenLadder:GROUP_ROSTER_UPDATE()
     local lootMethod, masterLooterPartyId, _ = GetLootMethod()
     D.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0)
 
-    UI.UpdateElementsByPermission()
+    UI:UpdateElementsByPermission()
 
     D.raidRoster = {}
     for i = 1, MAX_RAID_MEMBERS do
-        local rosterInfo = { GetRaidRosterInfo(i) }
+        local rosterInfo = BuildRaidRosterInfoByRaidIndex(i)
         -- Break early if we hit a nil (this means we've reached the full number of players)
-        if rosterInfo[1] == nil then
+        if rosterInfo.name == nil then
             return
         end
 
@@ -71,7 +114,7 @@ function ChosenLadder:GROUP_ROSTER_UPDATE()
 end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
-    if not D.IsPlayerInRaid(playerName) then
+    if not D:IsPlayerInRaid(playerName) then
         -- Nothing to process, this is just whisper chatter.
         return
     end
@@ -82,6 +125,8 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
 
     if auctionItem ~= nil then
         local bid = tonumber(text)
+        local minBid = D.Auction:GetMinimumBid()
+
         if bid == nil then
             ChosenLadder:Whisper(string.format("[%s]: Invalid Bid! To bid on the item, type: /whisper %s %d", A, myName,
                 minBid), playerName)
@@ -89,7 +134,6 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
         end
 
         bid = math.floor(bid)
-        local minBid = D.Auction:GetMinimumBid()
         if bid < minBid then
             ChosenLadder:Whisper(string.format("[%s]: Invalid Bid! The minimum bid is %d", A, minBid), playerName)
             return
@@ -111,15 +155,16 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
             return
         end
 
-        local guid = D.ShortenGuid(UnitGUID(Ambiguate(playerName, "all")))
+        local guid = F.ShortenPlayerGuid(UnitGUID(Ambiguate(playerName, "all")))
         if guid == nil then
             -- Couldn't get a guid?  Something is off here.
-            ChosenLadder:PrintToWindow(string.format("Unable to find a GUID for player %s! Please select them from a dropdown.",
-                Ambiguate(playerName, "all")))
+            ChosenLadder:PrintToWindow(
+                string.format("Unable to find a GUID for player %s! Please select them from a dropdown.",
+                    Ambiguate(playerName, "all")))
             return
         end
 
-        local pos = D.Dunk:RegisterDunkByGUID(guid)
+        local pos = D.Dunk:RegisterByGUID(guid)
         if pos <= 0 then
             -- In the raid, but not in the ChosenLadderLootLadder?
             ChosenLadder:Whisper(string.format("[%s]: We couldn't find you in the raid list! Contact the loot master."
@@ -140,7 +185,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
         local beginSyncFlag = D.Constants.BeginSyncFlag
         local endSyncFlag = D.Constants.EndSyncFlag
 
-        if StartsWith(message, beginSyncFlag) then
+        if F.StartsWith(message, beginSyncFlag) then
             local vars = {}
             local players = {}
 
@@ -149,12 +194,14 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                 table.insert(vars, str)
             end
 
+            local lastModified = ChosenLadder:Database().factionrealm.ladder.lastModified
             local timestampStr = vars[1]:gsub(beginSyncFlag, "")
             local timestamp = tonumber(timestampStr)
-            ChosenLadder:PrintToWindow(
-                "Incoming Sync request from " .. sender .. ": " .. timestamp .. " - Local: " .. ChosenLadderLootLadder.lastModified
-            )
-            if timestamp > ChosenLadderLootLadder.lastModified then
+            ChosenLadder:PrintToWindow(string.format(
+                "Incoming Sync request from %s: %s - Local: %s",
+                sender, timestamp, lastModified
+            ))
+            if timestamp > lastModified then
                 -- Begin Sync
                 D.syncing = StreamFlag.Started
             else
@@ -163,7 +210,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
 
             if D.syncing == StreamFlag.Started then
                 for k, v in ipairs(vars) do
-                    if StartsWith(v, beginSyncFlag) then
+                    if F.StartsWith(v, beginSyncFlag) then
                     elseif v == endSyncFlag then
                         D.syncing = StreamFlag.Complete
                     else
@@ -172,7 +219,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                 end
 
                 if D.syncing == StreamFlag.Complete then
-                    D.BuildPlayerList(players)
+                    D:BuildPlayerList(players)
                     UI.Ladder:PopulatePlayerList()
                     D.syncing = StreamFlag.Empty
                 end

@@ -3,13 +3,19 @@ local CL, NS = ...
 local D = NS.Data
 local F = NS.Functions
 
-D.Auction = {
+---@class Auction
+---@field auctionItem? string
+---@field currentBid number
+---@field currentWinner? string
+---@field history AuctionHistoryItem[]
+local Auction = {
     auctionItem = nil,
     currentBid = 0,
     currentWinner = nil,
     history = {}
 }
-local Auction = D.Auction
+
+D.Auction = Auction
 
 local function clearAuction(obj)
     obj.auctionItem = nil
@@ -55,14 +61,16 @@ function Auction:Complete(forceCancel)
     SendChatMessage(string.format("Auction Complete! %s wins %s for %d gold!", Ambiguate(self.currentWinner, "all"),
         self:GetItemLink(), self.currentBid), "RAID")
 
-    table.insert(
-        self.history,
-        {
-            name = self.currentWinner,
-            bid = self.currentBid,
-            item = item
-        }
-    )
+    ---@class AuctionHistoryItem
+    ---@field name string
+    ---@field bid number
+    ---@field item string
+    local historyItem = {
+        name = self.currentWinner,
+        bid = self.currentBid,
+        item = item
+    }
+    table.insert(self.history, historyItem)
 
     clearAuction(self)
 end
@@ -86,11 +94,12 @@ end
 
 function Auction:GetMinimumBid()
     local currentBid = tonumber(self.currentBid) or 0
-    
-    local mySteps = F.Filter(ChosenLadderBidSteps, function(step) return currentBid >= (tonumber(step.start) or 0) end)
+    local bidSteps = ChosenLadder:Database().factionrealm.bidSteps
+
+    local mySteps = F.Filter(bidSteps, function(step) return currentBid >= (tonumber(step.start) or 0) end)
 
     if #mySteps == 0 then -- Do minimum bid
-        return ChosenLadderBidSteps[1].start
+        return bidSteps[1].start
     else -- Return most recent step
         return tonumber(mySteps[#mySteps].step) + currentBid
     end
@@ -100,5 +109,5 @@ function Auction:Bid(name, bid)
     local bidNum = tonumber(bid)
 
     self.currentWinner = name
-    self.currentBid = bidNum
+    self.currentBid = bidNum or 0
 end

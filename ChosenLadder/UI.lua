@@ -1,42 +1,69 @@
+---@diagnostic disable: param-type-mismatch
 local A, NS = ...
 
+---@type Data
 local D = NS.Data
-local UI = NS.UI
+---@type Functions
 local F = NS.Functions
 
-UI.Constants = {
-    actionButtonWidth = 102,
-    FrameInset = {
-        left = 6,
-        right = 6,
-        top = 24,
-        bottom = 3
+-- UI Container
+---@class UI
+---@field UIPrefixes UIPrefixes
+---@field Constants UIConstants
+---@field Loot Loot
+---@field Ladder Ladder
+---@field InterfaceOptions InterfaceOptions
+---@field scrollChild? Frame
+---@field importFrame? Frame
+---@field syncButton? Button
+---@field importSaveButton? Button
+local UI = {
+    ---@class UIConstants
+    ---@field actionButtonWidth number
+    ---@field FrameInset UIConstantFrameInset
+    ---@field LeftFrame UIConstantLeftFrame
+    ---@field DevBackdrop backdropInfo
+    Constants = {
+        actionButtonWidth = 102,
+        ---@class UIConstantFrameInset
+        ---@field left number
+        ---@field right number
+        ---@field top number
+        ---@field bottom number
+        FrameInset = {
+            left = 6,
+            right = 6,
+            top = 24,
+            bottom = 3
+        },
+        ---@class UIConstantLeftFrame
+        ---@field width number
+        LeftFrame = { width = 106 },
+        DevBackdrop = {
+            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+            tileEdge = true,
+            edgeSize = 8
+        }
     },
-    LeftFrame = { width = 106 },
-    DevBackdrop = {
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tileEdge = true,
-        edgeSize = 8
+    ---@class UIPrefixes
+    UIPrefixes = {
+        PlayerRow = "ChosenLadderPlayerRow",
+        PlayerDunkButton = "ChosenLadderDunkButton",
+        PlayerNameString = "ChosenLadderTextString",
+        RaidMemberDropDown = "ChosenLadderRaidMemberDropDown",
+        LootRow = "ChosenLadderLootRow",
+        LootDunkButton = "ChosenLadderLootDunkButton",
+        LootAuctionButton = "ChosenLadderLootAuctionButton",
+        LootItemNameString = "ChosenLadderLootTextString",
+        LootItemClearButton = "ChosenLadderLootClearButton",
+        OptionsPanel = "ChosenLadderOptionsMainFrame",
+        OptionsToggleMainWindowButton = "ChosenLadderOptionsMainWindowButton",
+        OptionsBidSteps = "ChosenLadderOptionsBidSteps",
+        OptionsOutputDropdown = "ChosenLadderOptionsOutputDropdown",
+        OptionsLadderDropdown = "ChosenLadderOptionsLadderTypeDropdown"
     }
 }
-
-
-UI.UIPrefixes = {
-    PlayerRow = "ChosenLadderPlayerRow",
-    PlayerDunkButton = "ChosenLadderDunkButton",
-    PlayerNameString = "ChosenLadderTextString",
-    RaidMemberDropDown = "ChosenLadderRaidMemberDropDown",
-    LootRow = "ChosenLadderLootRow",
-    LootDunkButton = "ChosenLadderLootDunkButton",
-    LootAuctionButton = "ChosenLadderLootAuctionButton",
-    LootItemNameString = "ChosenLadderLootTextString",
-    LootItemClearButton = "ChosenLadderLootClearButton",
-    OptionsPanel = "ChosenLadderOptionsMainFrame",
-    OptionsToggleMainWindowButton = "ChosenLadderOptionsMainWindowButton",
-    OptionsBidSteps = "ChosenLadderOptionsBidSteps",
-    OptionsOutputDropdown = "ChosenLadderOptionsOutputDropdown",
-    OptionsLadderDropdown = "ChosenLadderOptionsLadderTypeDropdown"
-}
+NS.UI = UI
 
 function CreateMainWindowFrame()
     local mainWidth = 600
@@ -52,7 +79,6 @@ function CreateMainWindowFrame()
     mainFrame:SetScript("OnDragStart", mainFrame.StartMoving)
     mainFrame:SetScript("OnDragStop", mainFrame.StopMovingOrSizing)
     UI.mainFrame = mainFrame
-    _G["ChosenLadderFrame"] = mainFrame
 
     -- Title Text
     local title = mainFrame:CreateFontString("ARTWORK", nil, "GameFontNormal")
@@ -99,24 +125,20 @@ function CreateMainWindowFrame()
     UI.Ladder:PopulatePlayerList()
 end
 
-UI.CreateMainWindowFrame = CreateMainWindowFrame
-
-function ToggleMainWindowFrame()
-    if (UI.mainFrame == nil) then
+function UI:ToggleMainWindowFrame()
+    if (self.mainFrame == nil) then
         CreateMainWindowFrame()
         return
     end
 
-    if UI.mainFrame:IsShown() then
-        UI.mainFrame:Hide()
+    if self.mainFrame:IsShown() then
+        self.mainFrame:Hide()
     else
-        UI.mainFrame:Show()
+        self.mainFrame:Show()
     end
 end
 
-UI.ToggleMainWindowFrame = ToggleMainWindowFrame
-
-function UpdateElementsByPermission()
+function UI:UpdateElementsByPermission()
     if UI.syncButton ~= nil then
         UI.syncButton:SetEnabled(D.isLootMaster or false)
     end
@@ -125,7 +147,5 @@ function UpdateElementsByPermission()
         UI.importSaveButton:SetEnabled(D.isLootMaster or false)
     end
 
-    UI.Ladder:PopulatePlayerList()
+    self.Ladder:PopulatePlayerList()
 end
-
-UI.UpdateElementsByPermission = UpdateElementsByPermission
