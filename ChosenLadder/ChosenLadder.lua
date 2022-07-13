@@ -45,20 +45,21 @@ end
 Functions.Split = Split
 
 function Dump(o)
-    if type(o) == 'table' then
-        local s = '{ '
+    if type(o) == "table" then
+        local s = "{ "
         for k, v in pairs(o) do
-            if type(k) ~= 'number' then k = '"' .. k .. '"' end
-            s = s .. '[' .. k .. '] = ' .. Dump(v) .. ','
+            if type(k) ~= "number" then
+                k = '"' .. k .. '"'
+            end
+            s = s .. "[" .. k .. "] = " .. Dump(v) .. ","
         end
-        return s .. '} '
+        return s .. "} "
     else
-        if type(o) ~= 'number' then
-            return string.format("\"%s\"", tostring(o))
+        if type(o) ~= "number" then
+            return string.format('"%s"', tostring(o))
         else
             return tostring(o)
         end
-
     end
 end
 
@@ -104,9 +105,11 @@ Functions.FilterArray = FilterArray
 ---@return T|nil
 ---@return integer|nil
 function Find(t, f)
-    for k, v in ipairs(t) do
-        if f(v) then
-            return v, k
+    if t ~= nil then
+        for k, v in ipairs(t) do
+            if f(v) then
+                return v, k
+            end
         end
     end
 
