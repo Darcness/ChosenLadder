@@ -60,6 +60,7 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
             else
                 D.Dunk:Start(item.guid)
             end
+            Loot:PopulateLootList()
         end
     )
 
@@ -77,6 +78,7 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
             else
                 D.Auction:Start(item.guid)
             end
+            Loot:PopulateLootList()
         end
     )
 

@@ -29,7 +29,7 @@ local function ChatFrame_Initialize(frame, level, menuList)
 
             UIDropDownMenu_AddButton(info, level)
 
-            if i == ChosenLadderOutputChannel then
+            if i == ChosenLadder:Database().char.outputChannel then
                 UIDropDownMenu_SetSelectedValue(frame, i, i)
                 UIDropDownMenu_SetText(frame, name)
             end
@@ -160,7 +160,7 @@ function InterfaceOptions:CreatePanel()
 
     function panel.okay()
         xpcall(function()
-            ChosenLadderOutputChannel = UIDropDownMenu_GetSelectedValue(outputDropdown)
+            ChosenLadder:Database().char.outputChannel = UIDropDownMenu_GetSelectedValue(outputDropdown)
             D:SetBidSteps(editBox:GetText())
             ChosenLadder:Database().profile.ladderType = UIDropDownMenu_GetSelectedValue(ladderTypeDropdown)
         end, geterrorhandler())
@@ -168,7 +168,7 @@ function InterfaceOptions:CreatePanel()
 
     function panel.default()
         xpcall(function()
-            ChosenLadderOutputChannel = 1
+            ChosenLadder:Database().char.outputChannel = 1
             UIDropDownMenu_SetSelectedValue(outputDropdown, 1, 1)
             UIDropDownMenu_SetSelectedValue(ladderTypeDropdown, 1, 1)
             local defaultSteps = "50:10|300:50|1000:100"

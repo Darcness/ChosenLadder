@@ -121,7 +121,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
 
     local myName = UnitName("player")
     local auctionItem = D.Auction:GetItemLink()
-    local dunkItem = D.Auction:GetItemLink()
+    local dunkItem = D.Dunk:GetItemLink()
 
     if auctionItem ~= nil then
         local bid = tonumber(text)
@@ -147,6 +147,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
     if dunkItem ~= nil then
         text = string.lower(text)
         local dunkWord = F.Find(D.Constants.AsheosWords,
+        ---@param word string
             function(word) return text == word end)
 
         if dunkWord == nil then
