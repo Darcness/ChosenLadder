@@ -43,7 +43,7 @@ local function RaidDrop_Initialize_Builder(id)
         table.sort(sortedRoster, function(a, b) return a.name < b.name end)
 
         for _, raider in ipairs(sortedRoster) do
-            local name = raider[1]
+            local name = raider.name
             local guid = UnitGUID(name)
             if guid ~= nil then
                 local guid = F.ShortenPlayerGuid(guid)
