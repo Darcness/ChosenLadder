@@ -1,6 +1,8 @@
 local CL, NS = ...
 
+---@type Data
 local D = NS.Data
+---@type Functions
 local F = NS.Functions
 
 ---@class Auction
@@ -24,19 +26,19 @@ local function clearAuction(obj)
 end
 
 function Auction:GetItemLink()
-    if self.auctionItem == nil then
+    if Auction.auctionItem == nil then
         return nil
     end
 
-    if F.StartsWith(self.auctionItem, "Item-4648-0-") then
-        local item = D.GetLootItemByGUID(self.auctionItem)
+    if F.StartsWith(Auction.auctionItem, "Item-4648-0-") then
+        local item = D:GetLootItemByGUID(Auction.auctionItem)
         if item == nil or item.itemLink == nil then
             return nil
         end
         return item.itemLink
     end
 
-    return self.auctionItem
+    return Auction.auctionItem
 end
 
 function Auction:Complete(forceCancel)
@@ -45,58 +47,75 @@ function Auction:Complete(forceCancel)
         return
     end
 
-    local item = self:GetItemLink()
+    local item = Auction:GetItemLink()
 
     if item == nil then
         ChosenLadder:PrintToWindow("You're not running an auction!")
         return
     end
 
-    if self.currentBid == 0 or forceCancel then
+    if Auction.currentBid == 0 or forceCancel then
         SendChatMessage("Auction Canceled by " .. UnitName("player") .. "!", "RAID")
-        clearAuction(self)
+        clearAuction(Auction)
         return
     end
 
-    SendChatMessage(string.format("Auction Complete! %s wins %s for %d gold!", Ambiguate(self.currentWinner, "all"),
-        self:GetItemLink(), self.currentBid), "RAID")
+    SendChatMessage(
+        string.format(
+            "Auction Complete! %s wins %s for %d gold!",
+            Ambiguate(Auction.currentWinner, "all"),
+            Auction:GetItemLink(),
+            Auction.currentBid
+        ),
+        "RAID"
+    )
 
     ---@class AuctionHistoryItem
     ---@field name string
     ---@field bid number
     ---@field item string
     local historyItem = {
-        name = self.currentWinner,
-        bid = self.currentBid,
+        name = Auction.currentWinner,
+        bid = Auction.currentBid,
         item = item
     }
-    table.insert(self.history, historyItem)
+    table.insert(Auction.history, historyItem)
 
-    clearAuction(self)
+    clearAuction(Auction)
 end
 
+---@param auctionItem string
 function Auction:Start(auctionItem)
     if not D.isLootMaster then
         ChosenLadder:PrintToWindow("You're not the loot master!")
         return
     end
 
-    if self.auctionItem ~= nil then
-        ChosenLadder:PrintToWindow("You're still running an auction for " .. self:GetItemLink())
+    if Auction.auctionItem ~= nil then
+        ChosenLadder:PrintToWindow("You're still running an auction for " .. (Auction:GetItemLink() or "UKNOWN"))
         return
     end
 
-    clearAuction(self)
-    self.auctionItem = auctionItem
-    SendChatMessage(string.format("Beginning auction for %s, please whisper %s your bids.", self:GetItemLink(),
-        UnitName("player")), "RAID")
+    clearAuction(Auction)
+    Auction.auctionItem = auctionItem
+    local itemLink = Auction:GetItemLink() or "UNKNOWN"
+    SendChatMessage(
+        string.format("Beginning auction for %s, please whisper %s your bids.", itemLink, UnitName("player")),
+        "RAID"
+    )
 end
 
 function Auction:GetMinimumBid()
-    local currentBid = tonumber(self.currentBid) or 0
+    local currentBid = tonumber(Auction.currentBid) or 0
     local bidSteps = ChosenLadder:Database().factionrealm.bidSteps
 
-    local mySteps = F.Filter(bidSteps, function(step) return currentBid >= (tonumber(step.start) or 0) end)
+    local mySteps =
+        F.Filter(
+        bidSteps,
+        function(step)
+            return currentBid >= (tonumber(step.start) or 0)
+        end
+    )
 
     if #mySteps == 0 then -- Do minimum bid
         return bidSteps[1].start
@@ -108,6 +127,6 @@ end
 function Auction:Bid(name, bid)
     local bidNum = tonumber(bid)
 
-    self.currentWinner = name
-    self.currentBid = bidNum or 0
+    Auction.currentWinner = name
+    Auction.currentBid = bidNum or 0
 end
