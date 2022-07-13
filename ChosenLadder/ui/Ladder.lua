@@ -32,6 +32,7 @@ local function RaidDrop_Initialize_Builder(id)
 
         UIDropDownMenu_AddButton(clear, level)
 
+        ---@type RaidRosterInfo[]
         local sortedRoster = {}
         for k, v in pairs(D.raidRoster) do
             if k ~= nil and v ~= nil then
@@ -39,7 +40,7 @@ local function RaidDrop_Initialize_Builder(id)
             end
         end
 
-        table.sort(sortedRoster, function(a, b) return a[1] < b[1] end)
+        table.sort(sortedRoster, function(a, b) return a.name < b.name end)
 
         for _, raider in ipairs(sortedRoster) do
             local name = raider[1]
