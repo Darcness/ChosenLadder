@@ -266,7 +266,7 @@ end
 
 ---@param text string
 function ChosenLadder:PrintToWindow(text)
-    local chatFrame = _G["ChatFrame" .. ChosenLadderOutputChannel] or DEFAULT_CHAT_FRAME
+    local chatFrame = _G["ChatFrame" .. ChosenLadder:Database().char.outputChannel] or DEFAULT_CHAT_FRAME
     ChosenLadder:Print(chatFrame, text)
 end
 

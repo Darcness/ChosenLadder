@@ -69,7 +69,7 @@ function Data:BuildPlayerList(rows)
             local player = {
                 id = nameParts[1],
                 name = nameParts[2],
-                guid = nameParts[3],
+                guid = nameParts[3] or "",
                 present = false,
                 log = ""
             }
@@ -109,7 +109,7 @@ end
 function Data:IsPlayerInRaid(playername)
     if playername ~= nil then
         for _, v in ipairs(self.raidRoster) do
-            if v[1] == Ambiguate(playername, "all") then
+            if v.name == Ambiguate(playername, "all") then
                 return true
             end
         end
