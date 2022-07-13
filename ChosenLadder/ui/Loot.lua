@@ -167,9 +167,11 @@ function Loot:PopulateLootList()
                 if F.StartsWith(child:GetName(), UI.UIPrefixes.LootDunkButton) then
                     -- The Dunk button!
                     child:SetEnabled(D.isLootMaster and not lootItem.sold)
+                    child:SetText(D.Dunk.dunkItem == lootItem.guid and "Cancel Dunk" or "Start Dunk")
                 elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootAuctionButton) then
                     -- The Auction button!
                     child:SetEnabled(D.isLootMaster and not lootItem.sold)
+                    child:SetText(D.Auction.auctionItem == lootItem.guid and "Cancel Auction" or "Start Auction")
                 elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootItemNameString) then
                     if lootItem.sold then
                         child:SetFontObject("GameFontDisable")

@@ -85,7 +85,7 @@ end
 
 ---@param localDebug? boolean
 function Data:GenerateSyncData(localDebug)
-    local timeMessage = self.Constants.BeginSyncFlag .. ChosenLadder:Database().factionrealm.ladder.lastModified
+    local timeMessage = Data.Constants.BeginSyncFlag .. ChosenLadder:Database().factionrealm.ladder.lastModified
     local channel = "RAID"
 
     local fullMessage = timeMessage .. "|"
@@ -94,7 +94,7 @@ function Data:GenerateSyncData(localDebug)
         fullMessage = fullMessage .. player.name .. "|"
     end
 
-    local endMessage = self.Constants.EndSyncFlag
+    local endMessage = Data.Constants.EndSyncFlag
     fullMessage = fullMessage .. endMessage
 
     if localDebug then
@@ -108,7 +108,7 @@ end
 ---@return boolean
 function Data:IsPlayerInRaid(playername)
     if playername ~= nil then
-        for _, v in ipairs(self.raidRoster) do
+        for _, v in ipairs(Data.raidRoster) do
             if v.name == Ambiguate(playername, "all") then
                 return true
             end
@@ -121,7 +121,7 @@ end
 ---@param id string
 ---@param guid string
 function Data:SetPlayerGUIDByID(id, guid)
-    local player = self:GetPlayerByID(id)
+    local player = Data:GetPlayerByID(id)
     if player ~= nil then
         player.guid = guid
     else
@@ -149,7 +149,7 @@ end
 ---@param id string
 ---@param present boolean
 function Data:SetPresentById(id, present)
-    local player = self:GetPlayerByID(id)
+    local player = Data:GetPlayerByID(id)
     if player ~= nil then
         player.present = present
     end
@@ -157,19 +157,19 @@ end
 
 ---@param guid string
 function Data:GetLootItemByGUID(guid)
-    local loot, lootloc = F.Find(self.lootMasterItems, function(item) return item.guid == guid end)
+    local loot, lootloc = F.Find(Data.lootMasterItems, function(item) return item.guid == guid end)
     return loot, lootloc
 end
 
 ---@param guid string
 function Data:RemoveLootItemByGUID(guid)
     local newItems = {}
-    for _, item in pairs(self.lootMasterItems) do
+    for _, item in pairs(Data.lootMasterItems) do
         if item.guid ~= guid then
             table.insert(newItems, item)
         end
     end
-    self.lootMasterItems = newItems
+    Data.lootMasterItems = newItems
 end
 
 ---@return string
