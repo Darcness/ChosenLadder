@@ -1,6 +1,6 @@
 ## Interface: 20504
 ## Title: ChosenLadder
-## Version: 1.4.5
+## Version: 1.4.6
 ## Notes: Ladder addon for The Chosen Guild
 ## Author: Darc
 ## SavedVariables: ChosenLadderDB
@@ -19,10 +19,11 @@ lib\AceDB-3.0\AceDB-3.0.xml
 ChosenLadder.lua
 
 Data.lua
+UI.lua
+
 data\Auction.lua
 data\Dunk.lua
 
-UI.lua
 ui\Ladder.lua
 ui\Loot.lua
 ui\InterfaceOptions.lua

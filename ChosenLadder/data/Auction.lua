@@ -81,6 +81,9 @@ function Auction:Complete(forceCancel)
     }
     table.insert(Auction.history, historyItem)
 
+    -- This will noop if auctionItem is not a guid.
+    D:RemoveLootItemByGUID(Auction.auctionItem)
+
     clearAuction(Auction)
 end
 

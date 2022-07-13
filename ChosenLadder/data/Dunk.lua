@@ -7,6 +7,8 @@ local UI = NS.UI
 ---@type Functions
 local F = NS.Functions
 
+local Loot = UI.Loot
+
 ---@class Dunk
 ---@field dunkItem? string
 ---@field dunks DunkAttempt[]
@@ -24,16 +26,16 @@ local function clearData(obj)
 end
 
 function Dunk:GetItemLink()
-    if self.dunkItem ~= nil and F.StartsWith(self.dunkItem, "Item-4648-0-") then
+    if Dunk.dunkItem ~= nil and F.StartsWith(Dunk.dunkItem, "Item-4648-0-") then
         -- It's a guid, get the link
-        local item = D:GetLootItemByGUID(self.dunkItem)
+        local item = D:GetLootItemByGUID(Dunk.dunkItem)
         if item == nil or item.itemLink == nil then
             return nil
         end
         return item.itemLink
     end
 
-    return self.dunkItem
+    return Dunk.dunkItem
 end
 
 ---@param forceId? string
@@ -43,21 +45,30 @@ function Dunk:CompleteAnnounce(forceId)
         return
     end
 
-    local item = self:GetItemLink()
+    local item = Dunk:GetItemLink()
 
     if item == nil then
         ChosenLadder:PrintToWindow("No current dunk session!")
         return
     end
 
-    if #self.dunks < 1 then
-        SendChatMessage("Cancelling dunk session for " .. self:GetItemLink(), "RAID")
+    if #Dunk.dunks < 1 then
+        SendChatMessage("Cancelling dunk session for " .. Dunk:GetItemLink(), "RAID")
     else
-        table.sort(self.dunks, function(i1, i2)
-            return i1.pos < i2.pos
-        end)
+        table.sort(
+            Dunk.dunks,
+            function(i1, i2)
+                return i1.pos < i2.pos
+            end
+        )
 
-        local id = forceId or self.dunks[0].player.id
+        local id = forceId
+        if id == nil and #Dunk.dunks > 0 then
+            id = Dunk.dunks[0].player.id
+        end
+
+
+
         local player = D:GetPlayerByID(id)
 
         if player ~= nil then
@@ -76,9 +87,15 @@ end
 ---@return integer|nil
 ---@return integer
 local function ProcessStandardDunk(id)
-    local newPlayers = { unpack(ChosenLadder:GetLadderPlayers()) }
+    local newPlayers = {unpack(ChosenLadder:GetLadderPlayers())}
 
-    local found, foundPos = F.Find(newPlayers, function(p) return p.id == id end)
+    local found, foundPos =
+        F.Find(
+        newPlayers,
+        function(p)
+            return p.id == id
+        end
+    )
 
     if found ~= nil and foundPos ~= nil then
         table.remove(newPlayers, foundPos)
@@ -154,7 +171,7 @@ function Dunk:CompleteProcess(id)
     ChosenLadder:PrintToWindow("Registered Dunks:")
 
     -- We're assuming the list is already sorted by now.
-    for _, v in ipairs(self.dunks) do
+    for _, v in ipairs(Dunk.dunks) do
         ChosenLadder:PrintToWindow(string.format("%s - %d", v.player.name, v.pos))
     end
 
@@ -170,13 +187,14 @@ function Dunk:CompleteProcess(id)
         error("Unable to find player by id " .. id)
     end
 
-    ChosenLadder:PrintToWindow(string.format("%s moved to position %d from position %d",
-        found.name, targetPos, foundPos))
+    ChosenLadder:PrintToWindow(
+        string.format("%s moved to position %d from position %d", found.name, targetPos, foundPos)
+    )
 
     ChosenLadder:Database().factionrealm.ladder.players = newPlayers
     ChosenLadder:Database().factionrealm.ladder.lastModified = GetServerTime()
 
-    local item = D:GetLootItemByGUID(self.dunkItem) or { guid = self.dunkItem }
+    local item = D:GetLootItemByGUID(Dunk.dunkItem) or {guid = Dunk.dunkItem}
     ---@class DunkHistoryItem
     ---@field player DatabasePlayer
     ---@field from number
@@ -186,25 +204,25 @@ function Dunk:CompleteProcess(id)
         player = found,
         from = foundPos,
         to = targetPos,
-        item = item.guid or self.dunkItem
+        item = item.guid or Dunk.dunkItem
     }
 
-    table.insert(self.history, historyItem)
+    table.insert(Dunk.history, historyItem)
 
-    -- This will no-op if self.dunkItem is an itemLink
-    D:RemoveLootItemByGUID(self.dunkItem)
+    -- This will no-op if Dunk.dunkItem is an itemLink
+    D:RemoveLootItemByGUID(Dunk.dunkItem)
     UI.Loot:PopulateLootList()
 
-    clearData(self)
+    clearData(Dunk)
 
     D:GenerateSyncData(false)
 end
 
 function Dunk:Start(dunkItem)
-    clearData(self)
-    self.dunkItem = dunkItem
+    clearData(Dunk)
+    Dunk.dunkItem = dunkItem
     SendChatMessage(
-        string.format("Beginning Dunks for %s, please whisper DUNK to %s", self:GetItemLink(), UnitName("player")),
+        string.format("Beginning Dunks for %s, please whisper DUNK to %s", Dunk:GetItemLink(), UnitName("player")),
         "RAID_WARNING"
     )
 end
@@ -215,8 +233,8 @@ function Dunk:RegisterByGUID(guid)
         ---@class DunkAttempt
         ---@field player DatabasePlayer
         ---@field pos integer
-        local dunkAttempt = { player = player, pos = pos }
-        table.insert(self.dunks, dunkAttempt)
+        local dunkAttempt = {player = player, pos = pos}
+        table.insert(Dunk.dunks, dunkAttempt)
         return pos
     end
 
