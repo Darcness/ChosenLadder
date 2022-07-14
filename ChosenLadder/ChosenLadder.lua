@@ -123,3 +123,13 @@ function ShortenPlayerGuid(guid)
 end
 
 Functions.ShortenPlayerGuid = ShortenPlayerGuid
+
+---Determines if the supplied value is an item link
+---@param val string
+---@return boolean
+function IsItemLink(val)
+    local itemParts = Functions.Split(val, "|")
+    return #itemParts > 1 and Functions.StartsWith(itemParts[2], "Hitem:")
+end
+
+Functions.IsItemLink = IsItemLink

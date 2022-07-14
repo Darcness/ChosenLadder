@@ -38,8 +38,7 @@ function Dunk:GetItemLink()
     return Dunk.dunkItem
 end
 
----@param forceId? string
-function Dunk:CompleteAnnounce(forceId)
+function Dunk:Cancel()
     if not D.isLootMaster then
         ChosenLadder:PrintToWindow("You're not the loot master!")
         return
@@ -52,32 +51,33 @@ function Dunk:CompleteAnnounce(forceId)
         return
     end
 
-    if #Dunk.dunks < 1 then
-        SendChatMessage("Cancelling dunk session for " .. Dunk:GetItemLink(), "RAID")
-    else
-        table.sort(
-            Dunk.dunks,
-            function(i1, i2)
-                return i1.pos < i2.pos
-            end
-        )
+    SendChatMessage("Cancelling dunk session for " .. Dunk:GetItemLink(), "RAID")
+    Dunk.dunks = {}
+end
 
-        local id = forceId
-        if id == nil and #Dunk.dunks > 0 then
-            id = Dunk.dunks[0].player.id
-        end
-
-
-
-        local player = D:GetPlayerByID(id)
-
-        if player ~= nil then
-            SendChatMessage(string.format("%s won by %s! Congrats!", item, player.name), "RAID")
-        else
-            SendChatMessage("ERROR: Missing player. Dunk Session Cancelled", "RAID")
-            ChosenLadder:PrintToWindow("Unable to find player by id: " .. id)
-        end
+---@param id string
+function Dunk:CompleteAnnounce(id)
+    if not D.isLootMaster then
+        ChosenLadder:PrintToWindow("You're not the loot master!")
+        return
     end
+
+    local item = Dunk:GetItemLink()
+
+    if item == nil then
+        ChosenLadder:PrintToWindow("No current dunk session!")
+        return
+    end
+
+    local player = D:GetPlayerByID(id)
+
+    if player ~= nil then
+        SendChatMessage(string.format("%s won by %s! Congrats!", item, player.name), "RAID")
+    else
+        SendChatMessage("ERROR: Missing player. Dunk Session Cancelled", "RAID")
+        ChosenLadder:PrintToWindow("Unable to find player by id: " .. id)
+    end
+
 end
 
 ---Forces the found player to the end of the list.
@@ -87,10 +87,10 @@ end
 ---@return integer|nil
 ---@return integer
 local function ProcessStandardDunk(id)
-    local newPlayers = {unpack(ChosenLadder:GetLadderPlayers())}
+    local newPlayers = { unpack(ChosenLadder:GetLadderPlayers()) }
 
     local found, foundPos =
-        F.Find(
+    F.Find(
         newPlayers,
         function(p)
             return p.id == id
@@ -194,14 +194,14 @@ function Dunk:CompleteProcess(id)
     ChosenLadder:Database().factionrealm.ladder.players = newPlayers
     ChosenLadder:Database().factionrealm.ladder.lastModified = GetServerTime()
 
-    local item = D:GetLootItemByGUID(Dunk.dunkItem) or {guid = Dunk.dunkItem}
+    local item = D:GetLootItemByGUID(Dunk.dunkItem) or { guid = Dunk.dunkItem }
     ---@class DunkHistoryItem
-    ---@field player DatabasePlayer
+    ---@field playerName string
     ---@field from number
     ---@field to number
     ---@field item string
     local historyItem = {
-        player = found,
+        playerName = found.name,
         from = foundPos,
         to = targetPos,
         item = item.guid or Dunk.dunkItem
@@ -233,7 +233,7 @@ function Dunk:RegisterByGUID(guid)
         ---@class DunkAttempt
         ---@field player DatabasePlayer
         ---@field pos integer
-        local dunkAttempt = {player = player, pos = pos}
+        local dunkAttempt = { player = player, pos = pos }
         table.insert(Dunk.dunks, dunkAttempt)
         return pos
     end

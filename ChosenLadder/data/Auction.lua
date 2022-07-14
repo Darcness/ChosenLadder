@@ -41,6 +41,7 @@ function Auction:GetItemLink()
     return Auction.auctionItem
 end
 
+---@param forceCancel? boolean
 function Auction:Complete(forceCancel)
     if not D.isLootMaster then
         ChosenLadder:PrintToWindow("You're not the loot master!")
