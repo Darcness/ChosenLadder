@@ -56,7 +56,7 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
         "OnClick",
         function(self, button, down)
             if D.Dunk.dunkItem == item.guid then
-                D.Dunk:CompleteAnnounce()
+                D.Dunk:Cancel()
             else
                 D.Dunk:Start(item.guid)
             end

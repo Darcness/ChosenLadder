@@ -171,21 +171,19 @@ function ChosenLadder:Dunk(input)
 
     local arg1 = self:GetArgs(input, 1)
     if arg1 == nil then
-        ChosenLadder:PrintToWindow("Usage: /cldunk <itemLink/stop>")
-        return
-    end
-
-    if string.lower(arg1) == "stop" then
-        D.Dunk:Complete()
-        return
-    end
-
-    local itemParts = F.Split(arg1, "|")
-    if F.StartsWith(itemParts[2], "Hitem:") then
-        -- We have an item link!
-        D.Dunk:Start(arg1)
+        ChosenLadder:PrintToWindow("Usage: /cldunk <itemLink>|cancel")
+    elseif F.IsItemLink(arg1) then
+        -- starting a dunk session
+        if D.Dunk.dunkItem == nil then
+            D.Dunk:Start(arg1)
+        else
+            local itemLink = D.Dunk:GetItemLink()
+            ChosenLadder:PrintToWindow("Error: Still running a dunk session for " .. (itemLink or "UNKNOWN"))
+        end
+    elseif string.lower(arg1) == "cancel" then
+        D.Dunk:Cancel()
     else
-        ChosenLadder:PrintToWindow("Usage: /cldunk <itemLink/stop>")
+        ChosenLadder:PrintToWindow("Usage: /cldunk <itemLink>|cancel")
     end
 end
 
@@ -195,24 +193,23 @@ function ChosenLadder:Auction(input)
         return
     end
 
-    local arg1, arg2 = self:GetArgs(input, 2)
+    local arg1 = self:GetArgs(input, 1)
     if arg1 == nil then
-        ChosenLadder:PrintToWindow("Usage: /clauction <start/stop> [itemLink]")
-        return
-    end
-
-    if string.lower(arg1) == "start" then
-        local itemParts = F.Split(arg2, "|")
-        if F.StartsWith(itemParts[2], "Hitem:") then
-            -- We have an item link!
-            D.Auction:Start(arg2)
+        ChosenLadder:PrintToWindow("Usage: /clauction <itemLink>|stop")
+    elseif F.IsItemLink(arg1) then
+        -- starting an auction
+        if D.Auction.auctionItem == nil then
+            D.Auction:Start(arg1)
         else
-            ChosenLadder:PrintToWindow("Usage: /clauction <start/stop> [itemLink]")
+            local itemLink = D.Auction:GetItemLink()
+            ChosenLadder:PrintToWindow("Error: Still running an auction for " .. (itemLink or "UNKNOWN"))
         end
     elseif string.lower(arg1) == "stop" then
         D.Auction:Complete()
+    elseif string.lower(arg1) == "cancel" then
+        D.Auction:Complete(true)
     else
-        ChosenLadder:PrintToWindow("Usage: /clauction <start/stop> [itemLink]")
+        ChosenLadder:PrintToWindow("Usage: /clauction <itemLink>|stop")
     end
 end
 
@@ -234,7 +231,7 @@ function ChosenLadder:PrintHistory(input)
         for k, v in pairs(D.Dunk.history) do
             ChosenLadder:PrintToWindow(
                 string.format("%s moved to position %d from position %d",
-                    Ambiguate(select(6, GetPlayerInfoByGUID(v.player.guid)), "all"), v.to, v.from)
+                    Ambiguate(v.playerName, "all"), v.to, v.from)
             )
         end
     else
@@ -244,13 +241,13 @@ end
 
 function ChosenLadder:Help()
     ChosenLadder:PrintToWindow("ChosenLadder Help")
-    ChosenLadder:PrintToWindow("/cl, /clhelp - Displays this list")
-    ChosenLadder:PrintToWindow("/clladder - Toggles the main ladder window")
+    ChosenLadder:PrintToWindow("/clhelp - Displays this list")
+    ChosenLadder:PrintToWindow("/cl - Toggles the main ladder window")
     ChosenLadder:PrintToWindow(
-        "/clauction <start/stop> [<itemLink>] - Starts an auction (for the linked item) or stops the current auction"
+        "/clauction <itemLink>|stop|cancel - Starts an auction for the linked item OR stops and auction and announces a winner OR cancels an auction"
     )
     ChosenLadder:PrintToWindow(
-        "/cldunk <itemLink/stop> - Starts an dunk session (for the linked item) or stops the current auction"
+        "/cldunk <itemLink>|cancel - Starts an dunk session for the linked item OR cancels the current dunk session"
     )
     ChosenLadder:PrintToWindow("/cllog <auction/ladder> - Displays the list of completed auctions or ladder dunks")
 end
