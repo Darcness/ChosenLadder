@@ -51,7 +51,7 @@ function Dunk:Cancel()
         return
     end
 
-    SendChatMessage("Cancelling dunk session for " .. Dunk:GetItemLink(), "RAID")
+    ChosenLadder:PutOnBlast("Cancelling dunk session for " .. Dunk:GetItemLink())
     Dunk.dunks = {}
 end
 
@@ -72,9 +72,9 @@ function Dunk:CompleteAnnounce(id)
     local player = D:GetPlayerByID(id)
 
     if player ~= nil then
-        SendChatMessage(string.format("%s won by %s! Congrats!", item, player.name), "RAID")
+        ChosenLadder:PutOnBlast(string.format("%s won by %s! Congrats!", item, player.name))
     else
-        SendChatMessage("ERROR: Missing player. Dunk Session Cancelled", "RAID")
+        ChosenLadder:PutOnBlast("ERROR: Missing player. Dunk Session Cancelled")
         ChosenLadder:PrintToWindow("Unable to find player by id: " .. id)
     end
 
@@ -221,10 +221,8 @@ end
 function Dunk:Start(dunkItem)
     clearData(Dunk)
     Dunk.dunkItem = dunkItem
-    SendChatMessage(
-        string.format("Beginning Dunks for %s, please whisper DUNK to %s", Dunk:GetItemLink(), UnitName("player")),
-        "RAID_WARNING"
-    )
+    ChosenLadder:PutOnBlast(string.format("Beginning Dunks for %s, please whisper DUNK to %s", Dunk:GetItemLink(),
+        UnitName("player")))
 end
 
 function Dunk:RegisterByGUID(guid)

@@ -30,7 +30,7 @@ function Auction:GetItemLink()
         return nil
     end
 
-    if F.StartsWith(Auction.auctionItem, "Item-4648-0-") then
+    if F.IsItemLink(Auction.auctionItem) then
         local item = D:GetLootItemByGUID(Auction.auctionItem)
         if item == nil or item.itemLink == nil then
             return nil
@@ -56,19 +56,18 @@ function Auction:Complete(forceCancel)
     end
 
     if Auction.currentBid == 0 or forceCancel then
-        SendChatMessage("Auction Canceled by " .. UnitName("player") .. "!", "RAID")
+        ChosenLadder:PutOnBlast("Auction Canceled by " .. UnitName("player") .. "!")
         clearAuction(Auction)
         return
     end
 
-    SendChatMessage(
+    ChosenLadder:PutOnBlast(
         string.format(
             "Auction Complete! %s wins %s for %d gold!",
             Ambiguate(Auction.currentWinner, "all"),
             Auction:GetItemLink(),
             Auction.currentBid
-        ),
-        "RAID"
+        )
     )
 
     ---@class AuctionHistoryItem
@@ -103,23 +102,16 @@ function Auction:Start(auctionItem)
     clearAuction(Auction)
     Auction.auctionItem = auctionItem
     local itemLink = Auction:GetItemLink() or "UNKNOWN"
-    SendChatMessage(
-        string.format("Beginning auction for %s, please whisper %s your bids.", itemLink, UnitName("player")),
-        "RAID"
-    )
+    ChosenLadder:PutOnBlast(string.format("Beginning auction for %s, please whisper %s your bids.", itemLink,
+        UnitName("player")))
 end
 
 function Auction:GetMinimumBid()
     local currentBid = tonumber(Auction.currentBid) or 0
     local bidSteps = ChosenLadder:Database().factionrealm.bidSteps
 
-    local mySteps =
-        F.Filter(
-        bidSteps,
-        function(step)
-            return currentBid >= (tonumber(step.start) or 0)
-        end
-    )
+    local mySteps = F.Filter(bidSteps,
+        function(step) return currentBid >= (tonumber(step.start) or 0) end)
 
     if #mySteps == 0 then -- Do minimum bid
         return bidSteps[1].start

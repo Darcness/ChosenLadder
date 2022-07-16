@@ -136,6 +136,16 @@ function ChosenLadder:MinimapClick(button)
     end
 end
 
+---Sends out a big message to the entire raid.
+---@param message string
+function ChosenLadder:PutOnBlast(message)
+    local channel = "RAID"
+    if UnitIsGroupAssistant("player") or UnitIsGroupLeader("player") then
+        channel = "RAID_WARNING"
+    end
+    SendChatMessage(message, "CHANNEL")
+end
+
 function ChosenLadder:SetMinimapHidden(hidden)
     self.db.profile.minimap.hide = hidden
     if self.db.profile.minimap.hide then
