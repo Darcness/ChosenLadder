@@ -20,9 +20,9 @@ local Dunk = {
 }
 D.Dunk = Dunk
 
-local function clearData(obj)
-    obj.dunkItem = nil
-    obj.dunks = {}
+local function clearDunkSession()
+    Dunk.dunkItem = nil
+    Dunk.dunks = {}
 end
 
 function Dunk:GetItemLink()
@@ -53,31 +53,6 @@ function Dunk:Cancel()
 
     ChosenLadder:PutOnBlast("Cancelling dunk session for " .. Dunk:GetItemLink())
     Dunk.dunks = {}
-end
-
----@param id string
-function Dunk:CompleteAnnounce(id)
-    if not D.isLootMaster then
-        ChosenLadder:PrintToWindow("You're not the loot master!")
-        return
-    end
-
-    local item = Dunk:GetItemLink()
-
-    if item == nil then
-        ChosenLadder:PrintToWindow("No current dunk session!")
-        return
-    end
-
-    local player = D:GetPlayerByID(id)
-
-    if player ~= nil then
-        ChosenLadder:PutOnBlast(string.format("%s won by %s! Congrats!", item, player.name))
-    else
-        ChosenLadder:PutOnBlast("ERROR: Missing player. Dunk Session Cancelled")
-        ChosenLadder:PrintToWindow("Unable to find player by id: " .. id)
-    end
-
 end
 
 ---Forces the found player to the end of the list.
@@ -167,10 +142,38 @@ local function ProcessFreezingDunk(id)
     return newPlayers, found, foundPos, targetPos
 end
 
-function Dunk:CompleteProcess(id)
+---Processes a Dunk
+---@param id string ID of the player who wins
+function Dunk:Complete(id)
+    if not D.isLootMaster then
+        ChosenLadder:PrintToWindow("You're not the loot master!")
+        return
+    end
+
+    local item = Dunk:GetItemLink()
+
+    if item == nil then
+        ChosenLadder:PrintToWindow("No current dunk session!")
+        return
+    end
+
+    local player = D:GetPlayerByID(id)
+
+    if player == nil then
+        ChosenLadder:PutOnBlast("ERROR: Missing player. Dunk Session Cancelled")
+        ChosenLadder:PrintToWindow("Unable to find player by id: " .. id)
+        return
+    end
+
+    ChosenLadder:PutOnBlast(string.format("%s won by %s! Congrats!", item, player.name))
     ChosenLadder:PrintToWindow("Registered Dunks:")
 
-    -- We're assuming the list is already sorted by now.
+    ---@param a DunkAttempt
+    ---@param b DunkAttempt
+    table.sort(Dunk.dunks, function(a, b)
+        return a.pos - b.pos
+    end)
+
     for _, v in ipairs(Dunk.dunks) do
         ChosenLadder:PrintToWindow(string.format("%s - %d", v.player.name, v.pos))
     end
@@ -184,7 +187,7 @@ function Dunk:CompleteProcess(id)
     end
 
     if found == nil or foundPos == nil then
-        error("Unable to find player by id " .. id)
+        error("Dunk:Complete found the player id initially, but could not after Processing.  HOW?!")
     end
 
     ChosenLadder:PrintToWindow(
@@ -213,18 +216,22 @@ function Dunk:CompleteProcess(id)
     D:RemoveLootItemByGUID(Dunk.dunkItem)
     UI.Loot:PopulateLootList()
 
-    clearData(Dunk)
+    clearDunkSession()
 
     D:GenerateSyncData(false)
 end
 
+---@param dunkItem string Item link or GUID
 function Dunk:Start(dunkItem)
-    clearData(Dunk)
+    clearDunkSession()
     Dunk.dunkItem = dunkItem
     ChosenLadder:PutOnBlast(string.format("Beginning Dunks for %s, please whisper DUNK to %s", Dunk:GetItemLink(),
         UnitName("player")))
 end
 
+---Registers a dunk by a player's guid, returns their position in the list (0 if none)
+---@param guid string
+---@return integer
 function Dunk:RegisterByGUID(guid)
     local player, pos = D:GetPlayerByGUID(guid)
     if player ~= nil and pos ~= nil then

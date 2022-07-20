@@ -143,12 +143,12 @@ function ChosenLadder:PutOnBlast(message)
     if UnitIsGroupAssistant("player") or UnitIsGroupLeader("player") then
         channel = "RAID_WARNING"
     end
-    SendChatMessage(message, "CHANNEL")
+    SendChatMessage(message, channel)
 end
 
 function ChosenLadder:SetMinimapHidden(hidden)
-    self.db.profile.minimap.hide = hidden
-    if self.db.profile.minimap.hide then
+    ChosenLadder:Database().char.minimap.hide = hidden
+    if ChosenLadder:Database().char.minimap.hide then
         NS.Icon:Hide(A)
     else
         NS.Icon:Show(A)

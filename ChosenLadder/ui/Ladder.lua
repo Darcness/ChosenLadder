@@ -96,8 +96,7 @@ local function CreatePlayerRowItem(parentScrollFrame, player, idx)
     dunkButton:SetScript(
         "OnClick",
         function(self, button, down)
-            D.Dunk:CompleteAnnounce(player.id)
-            D.Dunk:CompleteProcess(player.id)
+            D.Dunk:Complete(player.id)
             Ladder:PopulatePlayerList()
         end
     )
