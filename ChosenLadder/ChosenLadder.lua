@@ -21,6 +21,9 @@ end
 
 Functions.Trim = Trim
 
+---@param str string
+---@param start string
+---@return boolean
 function StartsWith(str, start)
     return str:sub(1, #start) == start
 end
@@ -129,7 +132,16 @@ Functions.ShortenPlayerGuid = ShortenPlayerGuid
 ---@return boolean
 function IsItemLink(val)
     local itemParts = Functions.Split(val, "|")
-    return #itemParts > 1 and Functions.StartsWith(itemParts[2], "Hitem:")
+    return #itemParts > 1 and StartsWith(itemParts[2], "Hitem:")
 end
 
 Functions.IsItemLink = IsItemLink
+
+---Determins if the supplied value is an item GUID
+---@param val string
+---@return boolean
+function IsItemGUID(val)
+    return StartsWith(val, "Item-4648-0")
+end
+
+Functions.IsItemGUID = IsItemGUID
