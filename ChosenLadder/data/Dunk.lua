@@ -26,16 +26,20 @@ local function clearDunkSession()
 end
 
 function Dunk:GetItemLink()
-    if Dunk.dunkItem ~= nil and F.StartsWith(Dunk.dunkItem, "Item-4648-0-") then
-        -- It's a guid, get the link
-        local item = D:GetLootItemByGUID(Dunk.dunkItem)
-        if item == nil or item.itemLink == nil then
-            return nil
-        end
-        return item.itemLink
+    if Dunk.dunkItem == nil then
+        return nil
     end
 
-    return Dunk.dunkItem
+    if F.IsItemLink(Dunk.dunkItem) then
+        return Dunk.dunkItem
+    end
+
+    -- It's a guid, get the link
+    local item = D:GetLootItemByGUID(Dunk.dunkItem)
+    if item == nil or item.itemLink == nil then
+        return nil
+    end
+    return item.itemLink
 end
 
 function Dunk:Cancel()

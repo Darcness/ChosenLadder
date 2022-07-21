@@ -31,14 +31,14 @@ function Auction:GetItemLink()
     end
 
     if F.IsItemLink(Auction.auctionItem) then
-        local item = D:GetLootItemByGUID(Auction.auctionItem)
-        if item == nil or item.itemLink == nil then
-            return nil
-        end
-        return item.itemLink
+        return Auction.auctionItem
     end
 
-    return Auction.auctionItem
+    local item = D:GetLootItemByGUID(Auction.auctionItem)
+    if item == nil or item.itemLink == nil then
+        return nil
+    end
+    return item.itemLink
 end
 
 ---@param forceCancel? boolean

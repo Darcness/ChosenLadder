@@ -157,6 +157,7 @@ end
 
 ---@param guid string
 function Data:GetLootItemByGUID(guid)
+    ---@param item LootItem
     local loot, lootloc = F.Find(Data.lootMasterItems, function(item) return item.guid == guid end)
     return loot, lootloc
 end
