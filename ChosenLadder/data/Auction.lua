@@ -4,6 +4,8 @@ local CL, NS = ...
 local D = NS.Data
 ---@type Functions
 local F = NS.Functions
+---@type UI
+local UI = NS.UI
 
 ---@class Auction
 ---@field auctionItem? string
@@ -81,10 +83,14 @@ function Auction:Complete(forceCancel)
     }
     table.insert(Auction.history, historyItem)
 
-    -- This will noop if auctionItem is not a guid.
-    D:RemoveLootItemByGUID(Auction.auctionItem)
+    local lootItem = D:GetLootItemByGUID(Auction.auctionItem)
+    if lootItem ~= nil then
+        lootItem.sold = true
+    end
 
     clearAuction(Auction)
+    UI.Loot:PopulateLootList()
+    ChosenLadder:SetInventoryOverlays()
 end
 
 ---@param auctionItem string

@@ -82,7 +82,7 @@ local function CreatePlayerRowItem(parentScrollFrame, player, idx)
     raidDrop:SetPoint("TOPLEFT", row, 0, 0)
     UIDropDownMenu_SetWidth(raidDrop, 100)
     UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(player.id))
-    
+
     -- Set the Font
     local textFont = row:CreateFontString(UI.UIPrefixes.PlayerNameString .. player.id, nil, "GameFontNormal")
     textFont:SetText(idx .. " - " .. player.name)
@@ -104,12 +104,14 @@ local function CreatePlayerRowItem(parentScrollFrame, player, idx)
     return row
 end
 
+---Formats the Ladder names for backup/restore
+---@return string
 function FormatNames()
-    local names = ""
+    local names = {}
     for k, v in pairs(ChosenLadder:GetLadderPlayers()) do
-        names = names .. string.format("%s:%s:%s", v.id, v.name, (v.guid or "")) .. "\n"
+        table.insert(names, string.format("%s:%s:%s", v.id, v.name, (v.guid or "")))
     end
-    return names
+    return table.concat(names, "\n")
 end
 
 function Ladder:PopulatePlayerList()
@@ -254,7 +256,7 @@ function Ladder:CreateMainFrame(mainFrame)
     local importButton = CreateFrame("Button", "ChosenLadderImportButton", actionFrame, "UIPanelButtonTemplate")
     importButton:SetWidth(UIC.actionButtonWidth)
     importButton:SetPoint("TOPLEFT", actionFrame, 6, -6)
-    importButton:SetText("Import/Export")
+    importButton:SetText("Backup/Restore")
     importButton:SetScript(
         "OnClick",
         function(self, button, down)

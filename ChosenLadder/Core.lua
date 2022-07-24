@@ -113,19 +113,104 @@ function YouSoBad(action)
     )
 end
 
+---Fetches the Overlay objects for a particular inventory item Frame, builds if they don't exist.
+---@param bagName string
+---@param slotFrameNum number
+---@return BackdropTemplate|Frame
+---@return FontString
+local function GetOverlayForBagFrame(bagName, slotFrameNum)
+    local overlayFrameName = bagName .. "Item" .. slotFrameNum .. "Overlay"
+    local slotFrame = _G[bagName .. "Item" .. slotFrameNum]
+    local overlayFrame = _G[overlayFrameName] or
+        CreateFrame("Frame", overlayFrameName, slotFrame, "BackdropTemplate")
+    overlayFrame:SetAllPoints(slotFrame)
+    overlayFrame:SetFrameLevel(slotFrame:GetFrameLevel() + 1)
+    overlayFrame:SetBackdrop({
+        tile = true,
+        tileEdge = true,
+        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background"
+    })
+    local text = _G[overlayFrameName .. "Font"] or
+        overlayFrame:CreateFontString(overlayFrameName .. "Font", "OVERLAY", "GameFontNormal")
+    ---@diagnostic disable-next-line: param-type-mismatch
+    text:SetPoint("LEFT", overlayFrame, 0, 0)
+
+    return overlayFrame, text
+end
+
+local function GenerateBagFrameOverlays(frame)
+    local name = frame:GetName();
+    local bagstr = string.gsub(name, "ContainerFrame", "")
+    local bag = (tonumber(bagstr) or 1) - 1
+    local slotCount = GetContainerNumSlots(bag)
+    for slot = 1, slotCount do
+        local slotFrameNum = slotCount - (slot - 1)
+        -- Clear the overlay first, we'll re-colorize if necessary.
+        local overlayFrame, text = GetOverlayForBagFrame(name, slotFrameNum)
+        overlayFrame:SetBackdropColor(0, 0, 0, 0)
+        text:SetText("")
+
+        local itemID = GetContainerItemID(bag, slot)
+        if itemID then
+            local item = Item:CreateFromBagAndSlot(bag, slot)
+            local guid = item:GetItemGUID()
+            local itemData = D:GetLootItemByGUID(guid)
+            if itemData ~= nil and itemData.sold then
+                local overlayFrame, text = GetOverlayForBagFrame(name, slotFrameNum)
+                overlayFrame:SetBackdropColor(1, 0, 0, 0.4)
+                text:SetText("SOLD")
+            end
+        end
+    end
+end
+
+function ChosenLadder:SetInventoryOverlays()
+    for bag = 1, 5 do
+        GenerateBagFrameOverlays(_G["ContainerFrame" .. bag])
+    end
+end
+
 function ChosenLadder:OnEnable()
     hooksecurefunc(MasterLooterFrame, 'Hide', function(self) self:ClearAllPoints() end)
+    hooksecurefunc("ContainerFrame_GenerateFrame", GenerateBagFrameOverlays)
+    ChosenLadder:SetInventoryOverlays()
     self:RegisterComm(A, ChosenLadder:OnCommReceived())
     self:RegisterChatCommand("cl", "ToggleLadder")
     self:RegisterChatCommand("clauction", "Auction")
     self:RegisterChatCommand("cldunk", "Dunk")
     self:RegisterChatCommand("cllog", "PrintHistory")
     self:RegisterChatCommand("clhelp", "Help")
+    self:RegisterChatCommand("iamthecaptainnow", "IAmTheCaptainNow")
     self:RegisterEvent("GROUP_ROSTER_UPDATE", ChosenLadder:GROUP_ROSTER_UPDATE())
     self:RegisterEvent("CHAT_MSG_WHISPER", ChosenLadder:CHAT_MSG_WHISPER())
     self:RegisterEvent("BAG_UPDATE_DELAYED", ChosenLadder:BAG_UPDATE_DELAYED())
 
     UI.InterfaceOptions:CreatePanel()
+end
+
+function ChosenLadder:IAmTheCaptainNow()
+    local name, _ = UnitName("player")
+    if name == "Fastandan" or name == "Foladocus" or name == "Firannor" then
+        D.isLootMaster = true
+        ChosenLadder:PrintToWindow("Aye Aye, Captain!")
+        for bag = 0, 4 do
+            for slot = 1, GetContainerNumSlots(bag) do
+                local itemID = GetContainerItemID(bag, slot)
+                if itemID then
+                    local item = Item:CreateFromBagAndSlot(bag, slot)
+                    local guid = item:GetItemGUID()
+                    local itemLink = item:GetItemLink()
+
+                    table.insert(D.lootMasterItems, {
+                        guid = guid,
+                        itemLink = itemLink,
+                        sold = false
+                    })
+                end
+            end
+        end
+        UI:UpdateElementsByPermission()
+    end
 end
 
 function ChosenLadder:MinimapClick(button)

@@ -24,7 +24,7 @@ local UI = {
     ---@field LeftFrame UIConstantLeftFrame
     ---@field DevBackdrop backdropInfo
     Constants = {
-        actionButtonWidth = 102,
+        actionButtonWidth = 112,
         ---@class UIConstantFrameInset
         ---@field left number
         ---@field right number
@@ -38,7 +38,7 @@ local UI = {
         },
         ---@class UIConstantLeftFrame
         ---@field width number
-        LeftFrame = { width = 106 },
+        LeftFrame = { width = 116 },
         DevBackdrop = {
             edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
             tileEdge = true,
@@ -66,7 +66,7 @@ local UI = {
 NS.UI = UI
 
 function CreateMainWindowFrame()
-    local mainWidth = 600
+    local mainWidth = 650
     local mainHeight = 400
 
     local mainFrame = CreateFrame("Frame", "ChosenLadderFrame", UIParent, "BasicFrameTemplateWithInset")

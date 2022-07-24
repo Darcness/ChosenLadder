@@ -43,16 +43,18 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
     end
 
     for bag = 0, 4 do
-        for slot = 0, GetContainerNumSlots(bag) do
+        local slotCount = GetContainerNumSlots(bag)
+        for slot = 1, slotCount do
+            local slotFrameNum = slotCount - (slot - 1)
             local itemID = GetContainerItemID(bag, slot)
             if itemID then
                 local itemLocation = ItemLocation:CreateFromBagAndSlot(bag, slot)
                 local item = Item:CreateFromBagAndSlot(bag, slot)
                 local guid = item:GetItemGUID()
                 local itemLink = item:GetItemLink()
-                if isTradable(itemLocation) then
+                if isTradable(itemLocation) and itemLink ~= nil and guid ~= nil then
                     local current = F.Find(D.lootMasterItems, function(i) return i.guid == guid end)
-                    if current == nil and guid ~= nil and itemLink ~= nil then
+                    if current == nil then
                         ---@class LootItem
                         ---@field guid string
                         ---@field itemLink string
@@ -64,12 +66,12 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
                         }
                         table.insert(D.lootMasterItems, lootItem)
                     end
-
                 end
             end
         end
     end
     UI.Loot:PopulateLootList()
+    ChosenLadder:SetInventoryOverlays()
 end
 
 ---@return RaidRosterInfo
@@ -147,7 +149,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
     if dunkItem ~= nil then
         text = string.lower(text)
         local dunkWord = F.Find(D.Constants.AsheosWords,
-        ---@param word string
+            ---@param word string
             function(word) return text == word end)
 
         if dunkWord == nil then
@@ -182,18 +184,15 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
 end
 
 function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
-    if prefix == A and distribution == "RAID" and sender ~= UnitName("player") then
+    if prefix == A and distribution == "RAID" --[[ and sender ~= UnitName("player")]] then
         local beginSyncFlag = D.Constants.BeginSyncFlag
         local endSyncFlag = D.Constants.EndSyncFlag
 
         if F.StartsWith(message, beginSyncFlag) then
-            local vars = {}
+            local vars = F.Split(message, "|")
             local players = {}
 
-            -- carve it up
-            for str in string.gmatch(message, "([^\\|]+)") do
-                table.insert(vars, str)
-            end
+            ChosenLadder:PrintToWindow(message)
 
             local lastModified = ChosenLadder:Database().factionrealm.ladder.lastModified
             local timestampStr = vars[1]:gsub(beginSyncFlag, "")

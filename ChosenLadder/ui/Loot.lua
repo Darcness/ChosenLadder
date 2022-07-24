@@ -13,42 +13,33 @@ UI.Loot = Loot
 
 local UIC = UI.Constants
 
--- for i = 1, 16 do
---     local item = Item:CreateFromEquipmentSlot(i)
---     local guid = item:GetItemGUID()
---     local itemLink = item:GetItemLink()
-
---     table.insert(D.lootMasterItems, {
---         guid = guid,
---         itemLink = itemLink,
---         sold = false
---     })
-
--- end
-
 ---@param parentScrollFrame Frame
 ---@param item LootItem
 ---@param idx number
 ---@return BackdropTemplate|Frame
 local function CreateLootRowItem(parentScrollFrame, item, idx)
-    local row = CreateFrame("Frame", UI.UIPrefixes.LootRow .. item.guid, parentScrollFrame, "BackdropTemplate")
+    local rowName = UI.UIPrefixes.LootRow .. item.guid
+    local row = _G[rowName] or CreateFrame("Frame", rowName, parentScrollFrame, "BackdropTemplate")
     row:SetSize(parentScrollFrame:GetWidth() - 8, 28)
     row:SetPoint("TOPLEFT", parentScrollFrame, 12, (idx - 1) * -28)
     ---@diagnostic disable-next-line: redundant-parameter
-    row:SetHyperlinksEnabled(true)
-    row:SetScript("OnHyperlinkClick", function(self, link, text, button)
-        GameTooltip:SetOwner(row, "ANCHOR_CURSOR")
+    row:SetScript("OnEnter", function(self, link, text, button)
+        GameTooltip:SetOwner(row, "ANCHOR_TOPLEFT")
         GameTooltip:SetHyperlink(item.itemLink)
         GameTooltip:Show()
     end)
     row:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    row:Show()
 
-    local textFont = row:CreateFontString(UI.UIPrefixes.LootItemNameString .. item.guid, nil, "GameFontNormal")
-    textFont:SetText(item.itemLink)
+    local textFontName = UI.UIPrefixes.LootItemNameString .. item.guid
+    local textFont = _G[textFontName] or
+        row:CreateFontString(textFontName, nil, item.sold and "GameFontDisable" or "GameFontNormal")
+    textFont:SetText(item.itemLink .. (item.sold and " - SOLD" or ""))
     textFont:SetPoint("TOPLEFT", row, 4, -8)
 
     -- Dunk Button
-    local dunkButton = CreateFrame("Button", UI.UIPrefixes.LootDunkButton .. item.guid, row, "UIPanelButtonTemplate")
+    local dunkButtonName = UI.UIPrefixes.LootDunkButton .. item.guid
+    local dunkButton = _G[dunkButtonName] or CreateFrame("Button", dunkButtonName, row, "UIPanelButtonTemplate")
     dunkButton:SetText(D.Dunk.dunkItem == item.guid and "Cancel Dunk" or "Start Dunk")
     dunkButton:SetWidth(92)
     dunkButton:SetPoint("TOPRIGHT", row, -2, -2)
@@ -63,9 +54,11 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
             Loot:PopulateLootList()
         end
     )
+    dunkButton:SetEnabled(not item.sold)
 
     -- Auction Button
-    local auctionButton = CreateFrame("Button", UI.UIPrefixes.LootAuctionButton .. item.guid, row,
+    local actionButtonName = UI.UIPrefixes.LootAuctionButton .. item.guid
+    local auctionButton = _G[actionButtonName] or CreateFrame("Button", actionButtonName, row,
         "UIPanelButtonTemplate")
     auctionButton:SetText(D.Auction.auctionItem == item.guid and "Cancel Auction" or "Start Auction")
     auctionButton:SetWidth(102)
@@ -78,12 +71,12 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
             else
                 D.Auction:Start(item.guid)
             end
-            Loot:PopulateLootList()
         end
     )
+    auctionButton:SetEnabled(not item.sold)
 
-    local clearButton = CreateFrame("Button", UI.UIPrefixes.LootItemClearButton .. item.guid, row,
-        "UIPanelButtonTemplate")
+    local clearButtonName = UI.UIPrefixes.LootItemClearButton .. item.guid
+    local clearButton = _G[clearButtonName] or CreateFrame("Button", clearButtonName, row, "UIPanelButtonTemplate")
     clearButton:SetText("Clear")
     clearButton:SetWidth(48)
     clearButton:SetPoint("TOPRIGHT", auctionButton, -(auctionButton:GetWidth() + 2), 0)
@@ -157,29 +150,29 @@ function Loot:PopulateLootList()
     for lootIdx, lootItem in ipairs(D.lootMasterItems) do
         if lootItem ~= nil and lootItem.guid ~= nil then
             -- Store the loot row, since we can't count on the WoW client to garbage collect
-            local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or
+            -- local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or
                 CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
-            row:SetPoint("TOPLEFT", self.scrollChild, 4, (lootIdx - 1) * -28)
-            row:Show()
+            -- row:SetPoint("TOPLEFT", self.scrollChild, 4, (lootIdx - 1) * -28)
+            -- row:Show()
 
 
-            for _, child in ipairs({ row:GetChildren() }) do
-                if F.StartsWith(child:GetName(), UI.UIPrefixes.LootDunkButton) then
-                    -- The Dunk button!
-                    child:SetEnabled(D.isLootMaster and not lootItem.sold)
-                    child:SetText(D.Dunk.dunkItem == lootItem.guid and "Cancel Dunk" or "Start Dunk")
-                elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootAuctionButton) then
-                    -- The Auction button!
-                    child:SetEnabled(D.isLootMaster and not lootItem.sold)
-                    child:SetText(D.Auction.auctionItem == lootItem.guid and "Cancel Auction" or "Start Auction")
-                elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootItemNameString) then
-                    if lootItem.sold then
-                        child:SetFontObject("GameFontDisable")
-                    else
-                        child:SetFontObject("GameFontNormal")
-                    end
-                end
-            end
+            -- for _, child in ipairs({ row:GetChildren() }) do
+            --     if F.StartsWith(child:GetName(), UI.UIPrefixes.LootDunkButton) then
+            --         -- The Dunk button!
+            --         child:SetEnabled(D.isLootMaster and not lootItem.sold)
+            --         child:SetText(D.Dunk.dunkItem == lootItem.guid and "Cancel Dunk" or "Start Dunk")
+            --     elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootAuctionButton) then
+            --         -- The Auction button!
+            --         child:SetEnabled(D.isLootMaster and not lootItem.sold)
+            --         child:SetText(D.Auction.auctionItem == lootItem.guid and "Cancel Auction" or "Start Auction")
+            --     elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootItemNameString) then
+            --         if lootItem.sold then
+            --             child:SetFontObject("GameFontDisable")
+            --         else
+            --             child:SetFontObject("GameFontNormal")
+            --         end
+            --     end
+            -- end
         end
     end
 end
