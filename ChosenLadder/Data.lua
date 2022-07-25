@@ -88,14 +88,8 @@ function Data:GenerateSyncData(localDebug)
     local timeMessage = Data.Constants.BeginSyncFlag .. ChosenLadder:Database().factionrealm.ladder.lastModified
     local channel = "RAID"
 
-    local fullMessage = timeMessage .. "|"
-
-    for _, player in ipairs(ChosenLadder:GetLadderPlayers()) do
-        fullMessage = fullMessage .. player.name .. "|"
-    end
-
-    local endMessage = Data.Constants.EndSyncFlag
-    fullMessage = fullMessage .. endMessage
+    local fullMessage = string.format("%s|%s|%s", timeMessage, string.gsub(Data:FormatNames(), "\n", "|"),
+        Data.Constants.EndSyncFlag)
 
     if localDebug then
         print(fullMessage)
@@ -204,4 +198,14 @@ function Data:SetBidSteps(input)
     end
 
     ChosenLadder:Database().factionrealm.bidSteps = newSteps
+end
+
+---Formats the Ladder names for backup/restore
+---@return string
+function Data:FormatNames()
+    local names = {}
+    for k, v in pairs(ChosenLadder:GetLadderPlayers()) do
+        table.insert(names, string.format("%s:%s:%s", v.id, v.name, (v.guid or "")))
+    end
+    return table.concat(names, "\n")
 end

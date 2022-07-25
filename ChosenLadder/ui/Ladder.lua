@@ -104,16 +104,6 @@ local function CreatePlayerRowItem(parentScrollFrame, player, idx)
     return row
 end
 
----Formats the Ladder names for backup/restore
----@return string
-function FormatNames()
-    local names = {}
-    for k, v in pairs(ChosenLadder:GetLadderPlayers()) do
-        table.insert(names, string.format("%s:%s:%s", v.id, v.name, (v.guid or "")))
-    end
-    return table.concat(names, "\n")
-end
-
 function Ladder:PopulatePlayerList()
     -- If there's no scrollChild yet, we have nothing to populate.
     if UI.scrollChild == nil then
@@ -221,11 +211,11 @@ local function CreateImportFrame()
     editBox:SetMultiLine(true)
     editBox:SetWidth(scrollFrame:GetWidth())
     editBox:SetHeight(scrollFrame:GetHeight())
-    editBox:SetText(FormatNames())
+    editBox:SetText(D:FormatNames())
     editBox:SetScript(
         "OnShow",
         function(self)
-            self:SetText(FormatNames())
+            self:SetText(D:FormatNames())
         end
     )
     scrollFrame:SetScrollChild(editBox)

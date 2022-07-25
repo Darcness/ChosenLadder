@@ -190,6 +190,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
 
         if F.StartsWith(message, beginSyncFlag) then
             local vars = F.Split(message, "|")
+            ---@type string[]
             local players = {}
 
             ChosenLadder:PrintToWindow(message)
