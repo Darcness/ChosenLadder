@@ -25,6 +25,7 @@
         "DEFAULT_CHAT_FRAME",
         "ChatFontNormal",
         "UIDropDownMenu_GetSelectedValue",
-        "RegisterAddonMessagePrefix"
+        "RegisterAddonMessagePrefix",
+        "MAX_CONTAINER_ITEMS"
     ],
 }

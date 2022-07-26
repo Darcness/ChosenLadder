@@ -216,11 +216,15 @@ function Dunk:Complete(id)
 
     table.insert(Dunk.history, historyItem)
 
-    -- This will no-op if Dunk.dunkItem is an itemLink
-    D:RemoveLootItemByGUID(Dunk.dunkItem)
-    UI.Loot:PopulateLootList()
+    local lootItem = D:GetLootItemByGUID(Dunk.dunkItem)
+    if lootItem ~= nil then
+        lootItem.sold = true
+    end
 
     clearDunkSession()
+
+    UI.Loot:PopulateLootList()
+    ChosenLadder:SetInventoryOverlays()
 
     D:GenerateSyncData(false)
 end
@@ -231,6 +235,7 @@ function Dunk:Start(dunkItem)
     Dunk.dunkItem = dunkItem
     ChosenLadder:PutOnBlast(string.format("Beginning Dunks for %s, please whisper DUNK to %s", Dunk:GetItemLink(),
         UnitName("player")))
+    UI.Loot:PopulateLootList()
 end
 
 ---Registers a dunk by a player's guid, returns their position in the list (0 if none)
