@@ -105,6 +105,11 @@ function Auction:Start(auctionItem)
         return
     end
 
+    if D.Dunk.dunkItem ~= nil then
+        ChosenLadder:PrintToWindow("You're still running a dunk session for " .. (D.Dunk:GetItemLink() or "UNKNOWN"))
+        return
+    end
+
     clearAuction(Auction)
     Auction.auctionItem = auctionItem
     local itemLink = Auction:GetItemLink() or "UNKNOWN"

@@ -231,6 +231,17 @@ end
 
 ---@param dunkItem string Item link or GUID
 function Dunk:Start(dunkItem)
+    if Dunk.dunkItem ~= nil then
+        local itemLink = Dunk:GetItemLink()
+        ChosenLadder:PrintToWindow("Error: Still running a dunk session for " .. (itemLink or "UNKNOWN"))
+        return
+    end
+
+    if D.Auction.auctionItem ~= nil then
+        local itemLink = D.Auction:GetItemLink();
+        ChosenLadder:PrintToWindow("Error: Still running an auction for " .. (itemLink or "UNKNOWN"))
+    end
+
     clearDunkSession()
     Dunk.dunkItem = dunkItem
     ChosenLadder:PutOnBlast(string.format("Beginning Dunks for %s, please whisper DUNK to %s", Dunk:GetItemLink(),
