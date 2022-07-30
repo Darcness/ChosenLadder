@@ -268,12 +268,7 @@ function ChosenLadder:Dunk(input)
         ChosenLadder:PrintToWindow("Usage: /cldunk <itemLink>|cancel")
     elseif F.IsItemLink(arg1) then
         -- starting a dunk session
-        if D.Dunk.dunkItem == nil then
-            D.Dunk:Start(arg1)
-        else
-            local itemLink = D.Dunk:GetItemLink()
-            ChosenLadder:PrintToWindow("Error: Still running a dunk session for " .. (itemLink or "UNKNOWN"))
-        end
+        D.Dunk:Start(arg1)
     elseif string.lower(arg1) == "cancel" then
         D.Dunk:Cancel()
     else
@@ -292,12 +287,7 @@ function ChosenLadder:Auction(input)
         ChosenLadder:PrintToWindow("Usage: /clauction <itemLink>|stop")
     elseif F.IsItemLink(arg1) then
         -- starting an auction
-        if D.Auction.auctionItem == nil then
-            D.Auction:Start(arg1)
-        else
-            local itemLink = D.Auction:GetItemLink()
-            ChosenLadder:PrintToWindow("Error: Still running an auction for " .. (itemLink or "UNKNOWN"))
-        end
+        D.Auction:Start(arg1)
     elseif string.lower(arg1) == "stop" then
         D.Auction:Complete()
     elseif string.lower(arg1) == "cancel" then
