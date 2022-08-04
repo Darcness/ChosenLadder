@@ -46,7 +46,7 @@ end
 ---@param forceCancel? boolean
 function Auction:Complete(forceCancel)
     if not D.isLootMaster then
-        ChosenLadder:PrintToWindow("You're not the loot master!")
+        ChosenLadder:PrintToWindow("Error: Not the loot master!")
         return
     end
 
@@ -96,17 +96,17 @@ end
 ---@param auctionItem string
 function Auction:Start(auctionItem)
     if not D.isLootMaster then
-        ChosenLadder:PrintToWindow("You're not the loot master!")
+        ChosenLadder:PrintToWindow("Error: Not the loot master!")
         return
     end
 
     if Auction.auctionItem ~= nil then
-        ChosenLadder:PrintToWindow("You're still running an auction for " .. (Auction:GetItemLink() or "UKNOWN"))
+        ChosenLadder:PrintToWindow("Error: Still running an auction for " .. (Auction:GetItemLink() or "UKNOWN"))
         return
     end
 
     if D.Dunk.dunkItem ~= nil then
-        ChosenLadder:PrintToWindow("You're still running a dunk session for " .. (D.Dunk:GetItemLink() or "UNKNOWN"))
+        ChosenLadder:PrintToWindow("Error: Still running a dunk session for " .. (D.Dunk:GetItemLink() or "UNKNOWN"))
         return
     end
 

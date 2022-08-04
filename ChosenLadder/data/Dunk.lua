@@ -44,7 +44,7 @@ end
 
 function Dunk:Cancel()
     if not D.isLootMaster then
-        ChosenLadder:PrintToWindow("You're not the loot master!")
+        ChosenLadder:PrintToWindow("Error: Not the loot master!")
         return
     end
 
@@ -56,7 +56,7 @@ function Dunk:Cancel()
     end
 
     ChosenLadder:PutOnBlast("Cancelling dunk session for " .. Dunk:GetItemLink())
-    Dunk.dunks = {}
+    clearDunkSession()
 end
 
 ---Forces the found player to the end of the list.
@@ -231,6 +231,11 @@ end
 
 ---@param dunkItem string Item link or GUID
 function Dunk:Start(dunkItem)
+    if not D.isLootMaster then
+        ChosenLadder:PrintToWindow("Error: Not the loot master!")
+        return
+    end
+
     if Dunk.dunkItem ~= nil then
         local itemLink = Dunk:GetItemLink()
         ChosenLadder:PrintToWindow("Error: Still running a dunk session for " .. (itemLink or "UNKNOWN"))
