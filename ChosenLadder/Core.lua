@@ -190,7 +190,7 @@ end
 
 function ChosenLadder:IAmTheCaptainNow()
     local name, _ = UnitName("player")
-    if name == "Fastandan" or name == "Foladocus" or name == "Firannor" then
+    if name == "Fastandan" or name == "Foladocus" or name == "Firannor" or name == "Yanagi" then
         D.isLootMaster = true
         ChosenLadder:PrintToWindow("Aye Aye, Captain!")
         for bag = 0, 4 do
