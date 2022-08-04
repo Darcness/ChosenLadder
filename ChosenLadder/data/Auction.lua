@@ -21,10 +21,10 @@ local Auction = {
 
 D.Auction = Auction
 
-local function clearAuction(obj)
-    obj.auctionItem = nil
-    obj.currentBid = 0
-    obj.currentWinnter = nil
+local function clearAuction()
+    Auction.auctionItem = nil
+    Auction.currentBid = 0
+    Auction.currentWinnter = nil
 end
 
 function Auction:GetItemLink()
@@ -59,7 +59,7 @@ function Auction:Complete(forceCancel)
 
     if Auction.currentBid == 0 or forceCancel then
         ChosenLadder:PutOnBlast("Auction Canceled by " .. UnitName("player") .. "!")
-        clearAuction(Auction)
+        clearAuction()
         return
     end
 
@@ -88,7 +88,7 @@ function Auction:Complete(forceCancel)
         lootItem.sold = true
     end
 
-    clearAuction(Auction)
+    clearAuction()
     UI.Loot:PopulateLootList()
     ChosenLadder:SetInventoryOverlays()
 end
@@ -110,11 +110,13 @@ function Auction:Start(auctionItem)
         return
     end
 
-    clearAuction(Auction)
+    clearAuction()
     Auction.auctionItem = auctionItem
     local itemLink = Auction:GetItemLink() or "UNKNOWN"
     ChosenLadder:PutOnBlast(string.format("Beginning auction for %s, please whisper %s your bids.", itemLink,
         UnitName("player")))
+
+    UI.Loot:PopulateLootList()
 end
 
 function Auction:GetMinimumBid()
