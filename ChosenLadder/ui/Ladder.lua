@@ -22,7 +22,7 @@ local function RaidDrop_Initialize_Builder(id)
 
         ---@type RaidRosterInfo[]
         local sortedRoster = {}
-        for k, v in pairs(D.raidRoster) do
+        for k, v in pairs(D:GetRaidRoster()) do
             if k ~= nil and v ~= nil then
                 table.insert(sortedRoster, v)
             end
@@ -35,7 +35,7 @@ local function RaidDrop_Initialize_Builder(id)
         if player ~= nil then
             local myGuid = player:CurrentGuid()
             if myGuid ~= nil then
-                local raidPlayer, _ = F.Find(D.raidRoster,
+                local raidPlayer, _ = F.Find(sortedRoster,
                     ---@param a RaidRosterInfo
                     function(a) return F.ShortenPlayerGuid(UnitGUID(Ambiguate(a.name, "all"))) == myGuid end)
 
@@ -153,7 +153,7 @@ function Ladder:PopulatePlayerList()
         text:SetText(playerIdx .. " - " .. player.name)
 
         local raidDrop = _G[UI.UIPrefixes.RaidMemberDropDown .. player.id]
-        UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(player.id))
+        ChosenLadder_wait(1, UIDropDownMenu_Initialize, raidDrop, RaidDrop_Initialize_Builder(player.id))
     end
 end
 

@@ -93,11 +93,28 @@ function Data:GenerateSyncData(localDebug)
     end
 end
 
+---@return RaidRosterInfo[]
+function Data:GetRaidRoster()
+    -- return Data.raidRoster
+    local members = {}
+    for i = 1, MAX_RAID_MEMBERS do
+        local rosterInfo = BuildRaidRosterInfoByRaidIndex(i)
+        -- Break early if we hit a nil (this means we've reached the full number of players)
+        if rosterInfo.name == nil then
+            return members
+        end
+
+        table.insert(members, rosterInfo)
+    end
+
+    return members
+end
+
 ---@param playername string
 ---@return boolean
 function Data:IsPlayerInRaid(playername)
     if playername ~= nil then
-        for _, v in ipairs(Data.raidRoster) do
+        for _, v in ipairs(Data:GetRaidRoster()) do
             if v.name == Ambiguate(playername, "all") then
                 return true
             end

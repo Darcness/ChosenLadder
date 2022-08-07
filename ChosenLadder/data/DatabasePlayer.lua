@@ -35,7 +35,7 @@ function DatabasePlayer:IsPresent()
     local guidTable = F.Split(self.guids, "-")
     for _, guid in ipairs(guidTable) do
         ---@param a RaidRosterInfo
-        if F.Find(D.raidRoster, function(a)
+        if F.Find(D:GetRaidRoster(), function(a)
             return F.ShortenPlayerGuid(UnitGUID(Ambiguate(a.name, "all"))) == F.ShortenPlayerGuid(guid)
         end) then
             return true
@@ -49,9 +49,9 @@ end
 function DatabasePlayer:CurrentGuid()
     local guidTable = F.Split(self.guids, "-")
     for _, guid in ipairs(guidTable) do
-        for _, rosterInfo in ipairs(D.raidRoster) do
+        for _, rosterInfo in ipairs(D:GetRaidRoster()) do
             local playerGuid = F.ShortenPlayerGuid(UnitGUID(Ambiguate(rosterInfo.name, "all")))
-            if playerGuid == F.ShortenPlayerGuid(guid) then
+            if playerGuid == F.ShortenPlayerGuid(guid) and UnitIsConnected(Ambiguate(rosterInfo.name, "all")) then
                 return playerGuid
             end
         end
