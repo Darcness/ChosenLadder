@@ -21,10 +21,10 @@ local Auction = {
 
 D.Auction = Auction
 
-local function clearAuction(obj)
-    obj.auctionItem = nil
-    obj.currentBid = 0
-    obj.currentWinnter = nil
+local function clearAuction()
+    Auction.auctionItem = nil
+    Auction.currentBid = 0
+    Auction.currentWinnter = nil
 end
 
 function Auction:GetItemLink()
@@ -46,7 +46,7 @@ end
 ---@param forceCancel? boolean
 function Auction:Complete(forceCancel)
     if not D.isLootMaster then
-        ChosenLadder:PrintToWindow("You're not the loot master!")
+        ChosenLadder:PrintToWindow("Error: Not the loot master!")
         return
     end
 
@@ -59,7 +59,7 @@ function Auction:Complete(forceCancel)
 
     if Auction.currentBid == 0 or forceCancel then
         ChosenLadder:PutOnBlast("Auction Canceled by " .. UnitName("player") .. "!")
-        clearAuction(Auction)
+        clearAuction()
         return
     end
 
@@ -88,7 +88,7 @@ function Auction:Complete(forceCancel)
         lootItem.sold = true
     end
 
-    clearAuction(Auction)
+    clearAuction()
     UI.Loot:PopulateLootList()
     ChosenLadder:SetInventoryOverlays()
 end
@@ -96,25 +96,27 @@ end
 ---@param auctionItem string
 function Auction:Start(auctionItem)
     if not D.isLootMaster then
-        ChosenLadder:PrintToWindow("You're not the loot master!")
+        ChosenLadder:PrintToWindow("Error: Not the loot master!")
         return
     end
 
     if Auction.auctionItem ~= nil then
-        ChosenLadder:PrintToWindow("You're still running an auction for " .. (Auction:GetItemLink() or "UKNOWN"))
+        ChosenLadder:PrintToWindow("Error: Still running an auction for " .. (Auction:GetItemLink() or "UKNOWN"))
         return
     end
 
     if D.Dunk.dunkItem ~= nil then
-        ChosenLadder:PrintToWindow("You're still running a dunk session for " .. (D.Dunk:GetItemLink() or "UNKNOWN"))
+        ChosenLadder:PrintToWindow("Error: Still running a dunk session for " .. (D.Dunk:GetItemLink() or "UNKNOWN"))
         return
     end
 
-    clearAuction(Auction)
+    clearAuction()
     Auction.auctionItem = auctionItem
     local itemLink = Auction:GetItemLink() or "UNKNOWN"
     ChosenLadder:PutOnBlast(string.format("Beginning auction for %s, please whisper %s your bids.", itemLink,
         UnitName("player")))
+
+    UI.Loot:PopulateLootList()
 end
 
 function Auction:GetMinimumBid()

@@ -44,7 +44,7 @@ end
 
 function Dunk:Cancel()
     if not D.isLootMaster then
-        ChosenLadder:PrintToWindow("You're not the loot master!")
+        ChosenLadder:PrintToWindow("Error: Not the loot master!")
         return
     end
 
@@ -56,7 +56,7 @@ function Dunk:Cancel()
     end
 
     ChosenLadder:PutOnBlast("Cancelling dunk session for " .. Dunk:GetItemLink())
-    Dunk.dunks = {}
+    clearDunkSession()
 end
 
 ---Forces the found player to the end of the list.
@@ -114,7 +114,7 @@ local function ProcessFreezingDunk(id)
             if found == nil then
                 newPlayers[newPos] = v
                 newPos = newPos + 1
-            elseif not v.present then -- We've found a player, so we need to contend with players not present.
+            elseif not v:IsPresent() then -- We've found a player, so we need to contend with players not present.
                 -- Not present player, shove them into their current slot
                 newPlayers[currentPos] = v
             else
@@ -175,7 +175,10 @@ function Dunk:Complete(id)
     ---@param a DunkAttempt
     ---@param b DunkAttempt
     table.sort(Dunk.dunks, function(a, b)
-        return a.pos - b.pos
+        local left = (a or { pos = 0 })
+        local right = (b or { pos = 0 })
+
+        return (a.pos or 0) - (b.pos or 0)
     end)
 
     for _, v in ipairs(Dunk.dunks) do
@@ -231,6 +234,11 @@ end
 
 ---@param dunkItem string Item link or GUID
 function Dunk:Start(dunkItem)
+    if not D.isLootMaster then
+        ChosenLadder:PrintToWindow("Error: Not the loot master!")
+        return
+    end
+
     if Dunk.dunkItem ~= nil then
         local itemLink = Dunk:GetItemLink()
         ChosenLadder:PrintToWindow("Error: Still running a dunk session for " .. (itemLink or "UNKNOWN"))

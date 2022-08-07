@@ -92,11 +92,9 @@ function ChosenLadder:OnInitialize()
 
     local newPlayers = {}
     -- Do a little data validation on the ladder, just in case.
-    for _, player in ipairs(ChosenLadder:Database().factionrealm.ladder.players or {}) do
+    for _, player in ipairs(ChosenLadder:GetLadderPlayers() or {}) do
         if player.id ~= nil then
-            -- Initialize them as not present.
-            player.present = false
-            table.insert(newPlayers, player)
+            table.insert(newPlayers, DatabasePlayer:new(player))
         else
             -- no id? They're bad data.
             ChosenLadder:PrintToWindow("User missing ID. Ignoring...")
@@ -190,7 +188,7 @@ end
 
 function ChosenLadder:IAmTheCaptainNow()
     local name, _ = UnitName("player")
-    if name == "Fastandan" or name == "Foladocus" or name == "Firannor" then
+    if name == "Fastandan" or name == "Foladocus" or name == "Firannor" or name == "Yanagi" then
         D.isLootMaster = true
         ChosenLadder:PrintToWindow("Aye Aye, Captain!")
         for bag = 0, 4 do

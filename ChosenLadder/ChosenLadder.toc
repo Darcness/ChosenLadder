@@ -1,6 +1,6 @@
 ## Interface: 20504
 ## Title: ChosenLadder
-## Version: 1.5.1
+## Version: 1.6.0
 ## Notes: Ladder addon for The Chosen Guild
 ## Author: Darc
 ## SavedVariables: ChosenLadderDB
@@ -21,6 +21,7 @@ ChosenLadder.lua
 Data.lua
 UI.lua
 
+data\DatabasePlayer.lua
 data\Auction.lua
 data\Dunk.lua
 

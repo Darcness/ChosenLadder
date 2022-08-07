@@ -5,7 +5,6 @@ local F = NS.Functions
 
 ---@class Data
 ---@field Constants DataConstants
----@field raidRoster RaidRosterInfo[]
 ---@field isLootMaster boolean
 ---@field lootMasterItems LootItem[]
 ---@field Auction Auction
@@ -45,12 +44,13 @@ local Data = {
             ["SK w/ Freezing"] = 2
         }
     },
-    raidRoster = {},
     isLootMaster = false,
     lootMasterItems = {},
     syncing = 1
 }
 NS.Data = Data
+
+
 
 ---@param rows string[]
 function Data:BuildPlayerList(rows)
@@ -60,19 +60,12 @@ function Data:BuildPlayerList(rows)
     for _, v in ipairs(rows) do
         local nameParts = F.Split(v, ":")
         if #nameParts >= 2 then
-            ---@class DatabasePlayer
-            ---@field id string
-            ---@field name string
-            ---@field guid string
-            ---@field present boolean
-            ---@field log string
-            local player = {
+            local player = DatabasePlayer:new({
                 id = nameParts[1],
                 name = nameParts[2],
-                guid = nameParts[3] or "",
-                present = false,
+                guids = nameParts[3] or "",
                 log = ""
-            }
+            })
             table.insert(newPlayers, player)
         else
             ChosenLadder:PrintToWindow("Invalid Import Data: " .. v)
@@ -98,11 +91,27 @@ function Data:GenerateSyncData(localDebug)
     end
 end
 
+---@return RaidRosterInfo[]
+function Data:GetRaidRoster()
+    local members = {}
+    for i = 1, MAX_RAID_MEMBERS do
+        local rosterInfo = BuildRaidRosterInfoByRaidIndex(i)
+        -- Break early if we hit a nil (this means we've reached the full number of players)
+        if rosterInfo.name == nil then
+            return members
+        end
+
+        table.insert(members, rosterInfo)
+    end
+
+    return members
+end
+
 ---@param playername string
 ---@return boolean
 function Data:IsPlayerInRaid(playername)
     if playername ~= nil then
-        for _, v in ipairs(Data.raidRoster) do
+        for _, v in ipairs(Data:GetRaidRoster()) do
             if v.name == Ambiguate(playername, "all") then
                 return true
             end
@@ -117,7 +126,7 @@ end
 function Data:SetPlayerGUIDByID(id, guid)
     local player = Data:GetPlayerByID(id)
     if player ~= nil then
-        player.guid = guid
+        player:AddGuid(guid)
     else
         ChosenLadder:PrintToWindow(string.format("Selected Player unable to be found! %s - %s", player, guid))
     end
@@ -135,18 +144,10 @@ end
 ---@return integer|nil
 function Data:GetPlayerByGUID(guid)
     guid = F.ShortenPlayerGuid(guid)
-    ---@param player DatabasePlayer
-    local player, playerloc = F.Find(ChosenLadder:GetLadderPlayers(), function(player) return player.guid == guid end)
+    local player, playerloc = F.Find(ChosenLadder:GetLadderPlayers(),
+        ---@param player DatabasePlayer
+        function(player) return player:CurrentGuid() == guid end)
     return player, playerloc
-end
-
----@param id string
----@param present boolean
-function Data:SetPresentById(id, present)
-    local player = Data:GetPlayerByID(id)
-    if player ~= nil then
-        player.present = present
-    end
 end
 
 ---@param guid string
@@ -205,7 +206,7 @@ end
 function Data:FormatNames()
     local names = {}
     for k, v in pairs(ChosenLadder:GetLadderPlayers()) do
-        table.insert(names, string.format("%s:%s:%s", v.id, v.name, (v.guid or "")))
+        table.insert(names, string.format("%s:%s:%s", v.id, v.name, (v.guids or "")))
     end
     return table.concat(names, "\n")
 end
