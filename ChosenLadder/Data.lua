@@ -52,6 +52,8 @@ local Data = {
 }
 NS.Data = Data
 
+
+
 ---@param rows string[]
 function Data:BuildPlayerList(rows)
     ---@type DatabasePlayer[]
@@ -60,19 +62,12 @@ function Data:BuildPlayerList(rows)
     for _, v in ipairs(rows) do
         local nameParts = F.Split(v, ":")
         if #nameParts >= 2 then
-            ---@class DatabasePlayer
-            ---@field id string
-            ---@field name string
-            ---@field guid string
-            ---@field present boolean
-            ---@field log string
-            local player = {
+            local player = DatabasePlayer:new({
                 id = nameParts[1],
                 name = nameParts[2],
-                guid = nameParts[3] or "",
-                present = false,
+                guids = nameParts[3] or "",
                 log = ""
-            }
+            })
             table.insert(newPlayers, player)
         else
             ChosenLadder:PrintToWindow("Invalid Import Data: " .. v)
@@ -117,7 +112,7 @@ end
 function Data:SetPlayerGUIDByID(id, guid)
     local player = Data:GetPlayerByID(id)
     if player ~= nil then
-        player.guid = guid
+        player:AddGuid(guid)
     else
         ChosenLadder:PrintToWindow(string.format("Selected Player unable to be found! %s - %s", player, guid))
     end
@@ -135,18 +130,10 @@ end
 ---@return integer|nil
 function Data:GetPlayerByGUID(guid)
     guid = F.ShortenPlayerGuid(guid)
-    ---@param player DatabasePlayer
-    local player, playerloc = F.Find(ChosenLadder:GetLadderPlayers(), function(player) return player.guid == guid end)
+    local player, playerloc = F.Find(ChosenLadder:GetLadderPlayers(),
+        ---@param player DatabasePlayer
+        function(player) return player:CurrentGuid() == guid end)
     return player, playerloc
-end
-
----@param id string
----@param present boolean
-function Data:SetPresentById(id, present)
-    local player = Data:GetPlayerByID(id)
-    if player ~= nil then
-        player.present = present
-    end
 end
 
 ---@param guid string
@@ -205,7 +192,7 @@ end
 function Data:FormatNames()
     local names = {}
     for k, v in pairs(ChosenLadder:GetLadderPlayers()) do
-        table.insert(names, string.format("%s:%s:%s", v.id, v.name, (v.guid or "")))
+        table.insert(names, string.format("%s:%s:%s", v.id, v.name, (v.guids or "")))
     end
     return table.concat(names, "\n")
 end

@@ -114,7 +114,7 @@ local function ProcessFreezingDunk(id)
             if found == nil then
                 newPlayers[newPos] = v
                 newPos = newPos + 1
-            elseif not v.present then -- We've found a player, so we need to contend with players not present.
+            elseif not v:IsPresent() then -- We've found a player, so we need to contend with players not present.
                 -- Not present player, shove them into their current slot
                 newPlayers[currentPos] = v
             else

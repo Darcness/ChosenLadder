@@ -121,8 +121,11 @@ end
 
 Functions.Find = Find
 
+---@param guid string?
+---@return string
 function ShortenPlayerGuid(guid)
-    return string.gsub(guid, "Player%-4648%-", "")
+    local sub, _ = string.gsub(guid or "", "Player%-4648%-", "")
+    return sub
 end
 
 Functions.ShortenPlayerGuid = ShortenPlayerGuid

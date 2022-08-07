@@ -20,18 +20,6 @@ local function RaidDrop_Initialize_Builder(id)
         UIDropDownMenu_SetSelectedValue(frame, nil, nil)
         UIDropDownMenu_SetText(frame, "")
 
-        local clear = UIDropDownMenu_CreateInfo()
-        clear.value = "0"
-        clear.text = "Clear Selection"
-        clear.func = function(b)
-            UIDropDownMenu_SetSelectedValue(frame, "0", "0")
-            UIDropDownMenu_SetText(frame, "Clear Selection")
-            b.checked = true
-            D:SetPlayerGUIDByID(id, "0")
-        end
-
-        UIDropDownMenu_AddButton(clear, level)
-
         ---@type RaidRosterInfo[]
         local sortedRoster = {}
         for k, v in pairs(D.raidRoster) do
@@ -42,10 +30,44 @@ local function RaidDrop_Initialize_Builder(id)
 
         table.sort(sortedRoster, function(a, b) return a.name < b.name end)
 
+        -- Preselect the 'current' player if they exist.
+        local player, _ = D:GetPlayerByID(id)
+        if player ~= nil then
+            local myGuid = player:CurrentGuid()
+            print(player.name, myGuid)
+            if myGuid ~= nil then
+                local raidPlayer, _ = F.Find(D.raidRoster,
+                    ---@param a RaidRosterInfo
+                    function(a) return F.ShortenPlayerGuid(UnitGUID(Ambiguate(a.name, "all"))) == myGuid end)
+
+                print(F.Dump(raidPlayer))
+                if raidPlayer ~= nil then
+                    local myInfo = UIDropDownMenu_CreateInfo()
+
+                    myInfo.value = myGuid
+                    myInfo.text = raidPlayer.name
+                    myInfo.func = function(b)
+                        UIDropDownMenu_SetSelectedValue(frame, myGuid, myGuid)
+                        UIDropDownMenu_SetText(frame, raidPlayer.name)
+                        b.checked = true
+                    end
+
+                    UIDropDownMenu_AddButton(myInfo, level)
+
+                    UIDropDownMenu_SetSelectedValue(frame, myGuid, myGuid)
+                    UIDropDownMenu_SetText(frame, raidPlayer.name)
+                end
+            end
+        end
+
+        print("---")
+
         for _, raider in ipairs(sortedRoster) do
+            --- Add other raid members
             local name = raider.name
             local guid = UnitGUID(name)
-            if guid ~= nil then
+
+            if guid ~= nil and select(1, D:GetPlayerByGUID(guid)) == nil and raider.online then
                 local guid = F.ShortenPlayerGuid(guid)
 
                 local info = UIDropDownMenu_CreateInfo()
@@ -59,14 +81,6 @@ local function RaidDrop_Initialize_Builder(id)
                 end
 
                 UIDropDownMenu_AddButton(info, level)
-
-                local player = D:GetPlayerByGUID(guid)
-                if player ~= nil and player.id == id then
-                    -- This id (player row) has the guid for this raid member.  Select them.
-                    UIDropDownMenu_SetSelectedValue(frame, guid, guid)
-                    UIDropDownMenu_SetText(frame, name)
-                    D:SetPresentById(id, true)
-                end
             end
         end
     end
