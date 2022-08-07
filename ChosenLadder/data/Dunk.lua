@@ -175,7 +175,10 @@ function Dunk:Complete(id)
     ---@param a DunkAttempt
     ---@param b DunkAttempt
     table.sort(Dunk.dunks, function(a, b)
-        return a.pos - b.pos
+        local left = (a or { pos = 0 })
+        local right = (b or { pos = 0 })
+
+        return (a.pos or 0) - (b.pos or 0)
     end)
 
     for _, v in ipairs(Dunk.dunks) do
