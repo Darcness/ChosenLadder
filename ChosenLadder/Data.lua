@@ -5,7 +5,6 @@ local F = NS.Functions
 
 ---@class Data
 ---@field Constants DataConstants
----@field raidRoster RaidRosterInfo[]
 ---@field isLootMaster boolean
 ---@field lootMasterItems LootItem[]
 ---@field Auction Auction
@@ -45,7 +44,6 @@ local Data = {
             ["SK w/ Freezing"] = 2
         }
     },
-    raidRoster = {},
     isLootMaster = false,
     lootMasterItems = {},
     syncing = 1
@@ -95,7 +93,6 @@ end
 
 ---@return RaidRosterInfo[]
 function Data:GetRaidRoster()
-    -- return Data.raidRoster
     local members = {}
     for i = 1, MAX_RAID_MEMBERS do
         local rosterInfo = BuildRaidRosterInfoByRaidIndex(i)

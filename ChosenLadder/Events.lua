@@ -101,17 +101,6 @@ function ChosenLadder:GROUP_ROSTER_UPDATE()
 
     UI:UpdateElementsByPermission()
 
-    D.raidRoster = {}
-    for i = 1, MAX_RAID_MEMBERS do
-        local rosterInfo = BuildRaidRosterInfoByRaidIndex(i)
-        -- Break early if we hit a nil (this means we've reached the full number of players)
-        if rosterInfo.name == nil then
-            return
-        end
-
-        table.insert(D.raidRoster, rosterInfo)
-    end
-
     UI.Ladder:PopulatePlayerList()
 end
 
