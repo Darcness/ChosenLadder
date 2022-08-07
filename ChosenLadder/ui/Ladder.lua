@@ -34,13 +34,11 @@ local function RaidDrop_Initialize_Builder(id)
         local player, _ = D:GetPlayerByID(id)
         if player ~= nil then
             local myGuid = player:CurrentGuid()
-            print(player.name, myGuid)
             if myGuid ~= nil then
                 local raidPlayer, _ = F.Find(D.raidRoster,
                     ---@param a RaidRosterInfo
                     function(a) return F.ShortenPlayerGuid(UnitGUID(Ambiguate(a.name, "all"))) == myGuid end)
 
-                print(F.Dump(raidPlayer))
                 if raidPlayer ~= nil then
                     local myInfo = UIDropDownMenu_CreateInfo()
 
@@ -59,8 +57,6 @@ local function RaidDrop_Initialize_Builder(id)
                 end
             end
         end
-
-        print("---")
 
         for _, raider in ipairs(sortedRoster) do
             --- Add other raid members
