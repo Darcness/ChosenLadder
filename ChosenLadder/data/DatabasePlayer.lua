@@ -20,13 +20,9 @@ DatabasePlayer = {
 ---@param o DatabasePlayer
 ---@return DatabasePlayer
 function DatabasePlayer:new(o)
-    -- local base = {}
-    -- for k, v in pairs(DatabasePlayer) do base[k] = v end
     o = o or {}
-    -- for k, v in pairs(o) do base[k] = v end
     setmetatable(o, self)
     self.__index = self
-    -- return base
     return o
 end
 
@@ -67,4 +63,8 @@ function DatabasePlayer:AddGuid(guid)
         table.insert(guidTable, guid)
         self.guids = table.concat(guidTable, "-")
     end
+end
+
+function DatabasePlayer:ClearGuids()
+    self.guids = ""
 end
