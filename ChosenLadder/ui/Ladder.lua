@@ -82,6 +82,51 @@ local function RaidDrop_Initialize_Builder(id)
     end
 end
 
+---@param row BackdropTemplate|Frame
+---@param player DatabasePlayer
+---@return Button
+local function CreateDunkButton(row, player)
+    -- Dunk Button
+    local dunkButton = CreateFrame("Button", UI.UIPrefixes.PlayerDunkButton .. player.id, row, "UIPanelButtonTemplate")
+    dunkButton:SetText("Dunk")
+    dunkButton:SetWidth(64)
+    dunkButton:SetPoint("TOPRIGHT", row, -2, -2)
+    dunkButton:SetScript(
+        "OnClick",
+        function(self, button, down)
+            D.Dunk:Complete(player.id)
+            Ladder:PopulatePlayerList()
+        end
+    )
+
+    ---@diagnostic disable-next-line: return-type-mismatch
+    return dunkButton
+end
+
+---@param row BackdropTemplate|Frame
+---@param player DatabasePlayer
+---@param dunkButton Button
+---@return Button
+local function CreateClearAltsButton(row, player, dunkButton)
+    local clearButton = CreateFrame("Button", UI.UIPrefixes.PlayerClearAltsButton .. player.id, row,
+        "UIPanelButtonTemplate")
+    clearButton:SetText("Clear Alts")
+    clearButton:SetWidth(122);
+    clearButton:SetPoint("TOPRIGHT", dunkButton, -(dunkButton:GetWidth() + 4), 0)
+    clearButton:SetScript("OnClick", function()
+        player:ClearGuids()
+        ChosenLadder:PrintToWindow("Clearing Alts for " .. player.name)
+        Ladder:PopulatePlayerList()
+    end)
+
+    ---@diagnostic disable-next-line: return-type-mismatch
+    return clearButton
+end
+
+---@param parentScrollFrame Frame
+---@param player DatabasePlayer
+---@param idx number
+---@return BackdropTemplate|Frame
 local function CreatePlayerRowItem(parentScrollFrame, player, idx)
     -- Create a container frame
     local row = CreateFrame("Frame", UI.UIPrefixes.PlayerRow .. player.id, parentScrollFrame, "BackdropTemplate")
@@ -98,18 +143,8 @@ local function CreatePlayerRowItem(parentScrollFrame, player, idx)
     textFont:SetText(idx .. " - " .. player.name)
     textFont:SetPoint("TOPLEFT", raidDrop, raidDrop:GetWidth() + 4, -8)
 
-    -- Dunk Button
-    local dunkButton = CreateFrame("Button", UI.UIPrefixes.PlayerDunkButton .. player.id, row, "UIPanelButtonTemplate")
-    dunkButton:SetText("Dunk")
-    dunkButton:SetWidth(64)
-    dunkButton:SetPoint("TOPRIGHT", row, -2, -2)
-    dunkButton:SetScript(
-        "OnClick",
-        function(self, button, down)
-            D.Dunk:Complete(player.id)
-            Ladder:PopulatePlayerList()
-        end
-    )
+    local dunkButton = CreateDunkButton(row, player)
+    local clearButton = CreateClearAltsButton(row, player, dunkButton)
 
     return row
 end
@@ -138,7 +173,7 @@ function Ladder:PopulatePlayerList()
         playerRow:Show()
 
         -- Set up DunkButton values
-        local dunkButton = _G[UI.UIPrefixes.PlayerDunkButton .. player.id]
+        local dunkButton = _G[UI.UIPrefixes.PlayerDunkButton .. player.id] or CreateDunkButton(playerRow, player)
         local isDunking = false
         for _, dunker in ipairs(D.Dunk.dunks) do
             if dunker.player.id == player.id then
@@ -148,12 +183,16 @@ function Ladder:PopulatePlayerList()
         end
         dunkButton:SetEnabled(D.isLootMaster and isDunking)
 
+        local clearButton = _G[UI.UIPrefixes.PlayerClearAltsButton .. player.id] or
+            CreateClearAltsButton(playerRow, player, dunkButton)
+        clearButton:SetEnabled(D.isLootMaster)
+
         -- Fix the ordering
         local text = _G[UI.UIPrefixes.PlayerNameString .. player.id]
         text:SetText(playerIdx .. " - " .. player.name)
 
         local raidDrop = _G[UI.UIPrefixes.RaidMemberDropDown .. player.id]
-        ChosenLadder_wait(1, UIDropDownMenu_Initialize, raidDrop, RaidDrop_Initialize_Builder(player.id))
+        F.Wait(1, UIDropDownMenu_Initialize, raidDrop, RaidDrop_Initialize_Builder(player.id))
     end
 end
 

@@ -23,13 +23,15 @@ local defaultDB = {
     ---@class DatabaseChar
     ---@field minimap MinimapOptions
     ---@field ouputChannel number
+    ---@field log string[]
     char = {
         ---@class MinimapOptions
         ---@field hide boolean
         minimap = {
             hide = false
         },
-        outputChannel = 1
+        outputChannel = 1,
+        log = {}
     },
     ---@class DatabaseProfile
     ---@field ladderType number
@@ -351,4 +353,18 @@ end
 
 function ChosenLadder:GetLadderPlayers()
     return ChosenLadder:Database().factionrealm.ladder.players
+end
+
+
+function ChosenLadder:GetLog()
+    return ChosenLadder:Database().char.log
+end
+
+---@param message string
+function ChosenLadder:Log(message)
+    local logMaxSize = 2000
+    local log = ChosenLadder:GetLog()
+    if #log >= logMaxSize then
+        
+    end
 end
