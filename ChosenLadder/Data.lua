@@ -10,6 +10,7 @@ local F = NS.Functions
 ---@field Auction Auction
 ---@field Dunk Dunk
 ---@field syncing number
+---@field raidMembers RaidRosterInfo[]
 local Data = {
     ---@class DataConstants
     ---@field BeginSyncFlag string
@@ -93,18 +94,7 @@ end
 
 ---@return RaidRosterInfo[]
 function Data:GetRaidRoster()
-    local members = {}
-    for i = 1, MAX_RAID_MEMBERS do
-        local rosterInfo = BuildRaidRosterInfoByRaidIndex(i)
-        -- Break early if we hit a nil (this means we've reached the full number of players)
-        if rosterInfo.name == nil then
-            return members
-        end
-
-        table.insert(members, rosterInfo)
-    end
-
-    return members
+    return self.raidMembers
 end
 
 ---@param playername string

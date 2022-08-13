@@ -22,6 +22,7 @@ local StreamFlag = D.Constants.StreamFlag
 ---@field role string
 ---@field isML boolean
 ---@field combatRole string
+---@field guid string
 
 local tip = CreateFrame("GameTooltip", "Tooltip", nil, "GameTooltipTemplate")
 
@@ -34,7 +35,6 @@ local function isTradable(itemLocation)
             return true
         end
     end
-    -- tip:Hide()
 end
 
 function ChosenLadder:BAG_UPDATE_DELAYED()
@@ -90,7 +90,8 @@ function BuildRaidRosterInfoByRaidIndex(raidIndex)
         isDead = isDead,
         role = role,
         isML = isML,
-        combatRole = combatRole
+        combatRole = combatRole,
+        guid = UnitGUID(Ambiguate(name, "all")) or ""
     }
     return info
 end
@@ -98,6 +99,22 @@ end
 function ChosenLadder:GROUP_ROSTER_UPDATE()
     local lootMethod, masterLooterPartyId, _ = GetLootMethod()
     D.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0)
+
+    local members = {}
+    local i = 1
+    local done = false
+    while i <= MAX_RAID_MEMBERS and not done do
+        local rosterInfo = BuildRaidRosterInfoByRaidIndex(i)
+        -- Break early if we hit a nil (this means we've reached the full number of players)
+        if rosterInfo.name == nil then
+            done = true
+        else
+            table.insert(members, rosterInfo)
+        end
+        i = i + 1
+    end
+
+    D.raidMembers = members
 
     UI:UpdateElementsByPermission()
 
