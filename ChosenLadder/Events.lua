@@ -74,9 +74,13 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
     ChosenLadder:SetInventoryOverlays()
 end
 
----@return RaidRosterInfo
+---@return RaidRosterInfo | nil
 function BuildRaidRosterInfoByRaidIndex(raidIndex)
     local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex)
+    if name == nil then
+        return nil
+    end
+
     ---@type RaidRosterInfo
     local info = {
         name = name,
@@ -106,7 +110,7 @@ function ChosenLadder:GROUP_ROSTER_UPDATE()
     while i <= MAX_RAID_MEMBERS and not done do
         local rosterInfo = BuildRaidRosterInfoByRaidIndex(i)
         -- Break early if we hit a nil (this means we've reached the full number of players)
-        if rosterInfo.name == nil then
+        if rosterInfo == nil then
             done = true
         else
             table.insert(members, rosterInfo)
@@ -190,7 +194,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
 end
 
 function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
-    if prefix == A and distribution == "RAID" --[[ and sender ~= UnitName("player")]] then
+    if prefix == A and distribution == "RAID" and sender ~= UnitName("player") then
         local beginSyncFlag = D.Constants.BeginSyncFlag
         local endSyncFlag = D.Constants.EndSyncFlag
 

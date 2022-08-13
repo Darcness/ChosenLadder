@@ -8,13 +8,6 @@ local F = NS.Functions
 ---@type Data
 local D = NS.Data
 
----@class DatabasePlayer
----@field id string
----@field name string
----@field guid string
----@field present boolean
----@field log string
-
 ---@class Database
 ---@field char DatabaseChar
 ---@field profile DatabaseProfile
@@ -96,6 +89,12 @@ function ChosenLadder:OnInitialize()
     -- Do a little data validation on the ladder, just in case.
     for _, player in ipairs(ChosenLadder:GetLadderPlayers() or {}) do
         if player.id ~= nil then
+            -- Massaging the data since we migrated data types.
+            local guids = player.guids or {}
+            if type(guids) == "string" then
+                guids = F.Split(guids, "-")
+                player.guids = guids
+            end
             table.insert(newPlayers, DatabasePlayer:new(player))
         else
             -- no id? They're bad data.
@@ -355,7 +354,6 @@ function ChosenLadder:GetLadderPlayers()
     return ChosenLadder:Database().factionrealm.ladder.players
 end
 
-
 function ChosenLadder:GetLog()
     return ChosenLadder:Database().char.log
 end
@@ -364,7 +362,14 @@ end
 function ChosenLadder:Log(message)
     local logMaxSize = 2000
     local log = ChosenLadder:GetLog()
+
     if #log >= logMaxSize then
-        
+        local newLog = {}
+        for i, v in pairs(unpack(log, 2, logMaxSize - 1)) do
+            newLog[i] = v
+        end
+        log = newLog
     end
+
+    table.insert(log, message)
 end

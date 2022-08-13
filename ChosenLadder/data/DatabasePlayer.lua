@@ -8,12 +8,12 @@ local F = NS.Functions
 ---@class DatabasePlayer
 ---@field id string
 ---@field name string
----@field guids string
+---@field guids string[]
 ---@field log string
 DatabasePlayer = {
     id = "",
     name = "",
-    guids = "",
+    guids = {},
     log = ""
 }
 
@@ -28,8 +28,7 @@ end
 
 ---@return boolean
 function DatabasePlayer:IsPresent()
-    local guidTable = F.Split(self.guids, "-")
-    for _, guid in ipairs(guidTable) do
+    for _, guid in ipairs(self.guids) do
         ---@param a RaidRosterInfo
         if F.Find(D:GetRaidRoster(), function(a)
             return F.ShortenPlayerGuid(UnitGUID(Ambiguate(a.name, "all"))) == F.ShortenPlayerGuid(guid)
@@ -41,15 +40,21 @@ function DatabasePlayer:IsPresent()
     return false
 end
 
+---@param guid string
+---@return boolean
+function DatabasePlayer:HasGuid(guid)
+    local newGuid = F.ShortenPlayerGuid(guid);
+    ---@param a string
+    return select(1, F.Find(self.guids, function(a) return a == newGuid end)) ~= nil
+end
+
 ---@return string | nil
 function DatabasePlayer:CurrentGuid()
-    local guidTable = F.Split(self.guids, "-")
-    for _, guid in ipairs(guidTable) do
-        for _, rosterInfo in ipairs(D:GetRaidRoster()) do
-            local playerGuid = F.ShortenPlayerGuid(UnitGUID(Ambiguate(rosterInfo.name, "all")))
-            if playerGuid == F.ShortenPlayerGuid(guid) and UnitIsConnected(Ambiguate(rosterInfo.name, "all")) then
-                return playerGuid
-            end
+    for _, rosterInfo in ipairs(D:GetRaidRoster()) do
+        local playerGuid = rosterInfo.guid ~= nil and F.ShortenPlayerGuid(rosterInfo.guid) or
+            F.ShortenPlayerGuid(UnitGUID(Ambiguate(rosterInfo.name, "all")))
+        if self:HasGuid(playerGuid) then
+            return playerGuid
         end
     end
 
@@ -58,13 +63,12 @@ end
 
 ---@param guid string
 function DatabasePlayer:AddGuid(guid)
-    local guidTable = F.Split(self.guids, "-")
-    if not F.Find(guidTable, function(a) return a == guid end) then
-        table.insert(guidTable, guid)
-        self.guids = table.concat(guidTable, "-")
+    local newGuid = F.ShortenPlayerGuid(guid)
+    if not F.Find(self.guids, function(a) return a == newGuid end) then
+        table.insert(self.guids, newGuid)
     end
 end
 
 function DatabasePlayer:ClearGuids()
-    self.guids = ""
+    self.guids = {}
 end
