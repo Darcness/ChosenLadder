@@ -64,7 +64,7 @@ function Data:BuildPlayerList(rows)
             local player = DatabasePlayer:new({
                 id = nameParts[1],
                 name = nameParts[2],
-                guids = nameParts[3] or "",
+                guids = F.Split(nameParts[3] or "", "-"),
                 log = ""
             })
             table.insert(newPlayers, player)
@@ -196,7 +196,7 @@ end
 function Data:FormatNames()
     local names = {}
     for k, v in pairs(ChosenLadder:GetLadderPlayers()) do
-        table.insert(names, string.format("%s:%s:%s", v.id, v.name, (v.guids or "")))
+        table.insert(names, string.format("%s:%s:%s", v.id, v.name, table.concat(v.guids, "-")))
     end
     return table.concat(names, "\n")
 end

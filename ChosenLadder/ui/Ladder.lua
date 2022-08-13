@@ -37,7 +37,12 @@ local function RaidDrop_Initialize_Builder(id)
             if myGuid ~= nil then
                 local raidPlayer, _ = F.Find(sortedRoster,
                     ---@param a RaidRosterInfo
-                    function(a) return F.ShortenPlayerGuid(UnitGUID(Ambiguate(a.name, "all"))) == myGuid end)
+                    function(a)
+                        if a.guid ~= nil then
+                            return F.ShortenPlayerGuid(a.guid) == myGuid
+                        end
+                        return F.ShortenPlayerGuid(UnitGUID(Ambiguate(a.name, "all"))) == myGuid
+                    end)
 
                 if raidPlayer ~= nil then
                     local myInfo = UIDropDownMenu_CreateInfo()
