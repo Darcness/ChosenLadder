@@ -32,16 +32,13 @@ local defaultDB = {
         ladderType = D.Constants.LadderType.SKSSimple
     },
     ---@class DatabaseFactionRealm
-    ---@field ladder DatabaseLadder
+    ---@field ladder LadderList
     ---@field bidSteps DatabaseBidStep[]
     factionrealm = {
-        ---@class DatabaseLadder
-        ---@field lastModified number
-        ---@field players DatabasePlayer[]
-        ladder = {
+        ladder = LadderList:new({
             lastModified = 0,
             players = {}
-        },
+        }),
         bidSteps = {
             [1] = {
                 start = 50,
@@ -87,7 +84,7 @@ function ChosenLadder:OnInitialize()
 
     local newPlayers = {}
     -- Do a little data validation on the ladder, just in case.
-    for _, player in ipairs(ChosenLadder:GetLadderPlayers() or {}) do
+    for _, player in ipairs(ChosenLadder:GetLadder().players or {}) do
         if player.id ~= nil then
             -- Massaging the data since we migrated data types.
             local guids = player.guids or {}
@@ -102,7 +99,10 @@ function ChosenLadder:OnInitialize()
         end
     end
 
-    ChosenLadder:Database().factionrealm.ladder.players = newPlayers
+    ChosenLadder:Database().factionrealm.ladder = LadderList:new({
+        players = newPlayers,
+        lastModified = ChosenLadder:Database().factionrealm.ladder.lastModified or GetServerTime()
+    })
 end
 
 function YouSoBad(action)
@@ -350,8 +350,8 @@ function ChosenLadder:PrintToWindow(text)
     ChosenLadder:Print(chatFrame, text)
 end
 
-function ChosenLadder:GetLadderPlayers()
-    return ChosenLadder:Database().factionrealm.ladder.players
+function ChosenLadder:GetLadder()
+    return ChosenLadder:Database().factionrealm.ladder
 end
 
 function ChosenLadder:GetLog()

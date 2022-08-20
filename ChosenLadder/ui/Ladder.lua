@@ -20,9 +20,9 @@ local function RaidDrop_Initialize_Builder(id)
         UIDropDownMenu_SetSelectedValue(frame, nil, nil)
         UIDropDownMenu_SetText(frame, "")
 
-        ---@type RaidRosterInfo[]
+        ---@type RaidMember[]
         local sortedRoster = {}
-        for k, v in pairs(D:GetRaidRoster()) do
+        for k, v in pairs(D:GetRaidRoster().members) do
             if k ~= nil and v ~= nil then
                 table.insert(sortedRoster, v)
             end
@@ -35,14 +35,7 @@ local function RaidDrop_Initialize_Builder(id)
         if player ~= nil then
             local myGuid = player:CurrentGuid()
             if myGuid ~= nil then
-                local raidPlayer, _ = F.Find(sortedRoster,
-                    ---@param a RaidRosterInfo
-                    function(a)
-                        if a.guid ~= nil then
-                            return F.ShortenPlayerGuid(a.guid) == myGuid
-                        end
-                        return F.ShortenPlayerGuid(UnitGUID(Ambiguate(a.name, "all"))) == myGuid
-                    end)
+                local raidPlayer = D:GetRaidRoster().members[myGuid]
 
                 if raidPlayer ~= nil then
                     local myInfo = UIDropDownMenu_CreateInfo()
@@ -88,7 +81,7 @@ local function RaidDrop_Initialize_Builder(id)
 end
 
 ---@param row BackdropTemplate|Frame
----@param player DatabasePlayer
+---@param player LadderPlayer
 ---@return Button
 local function CreateDunkButton(row, player)
     -- Dunk Button
@@ -109,7 +102,7 @@ local function CreateDunkButton(row, player)
 end
 
 ---@param row BackdropTemplate|Frame
----@param player DatabasePlayer
+---@param player LadderPlayer
 ---@param dunkButton Button
 ---@return Button
 local function CreateClearAltsButton(row, player, dunkButton)
@@ -129,7 +122,7 @@ local function CreateClearAltsButton(row, player, dunkButton)
 end
 
 ---@param parentScrollFrame Frame
----@param player DatabasePlayer
+---@param player LadderPlayer
 ---@param idx number
 ---@return BackdropTemplate|Frame
 local function CreatePlayerRowItem(parentScrollFrame, player, idx)
@@ -166,7 +159,7 @@ function Ladder:PopulatePlayerList()
         child:Hide()
     end
 
-    for playerIdx, player in ipairs(ChosenLadder:GetLadderPlayers()) do
+    for playerIdx, player in ipairs(ChosenLadder:GetLadder().players) do
         -- Store the player row, since we can't count on the WoW client to garbage collect
         if _G[UI.UIPrefixes.PlayerRow .. player.id] == nil then
             _G[UI.UIPrefixes.PlayerRow .. player.id] = CreatePlayerRowItem(UI.scrollChild, player, playerIdx)
@@ -237,7 +230,7 @@ local function CreateImportFrame()
                     table.insert(lines, F.Trim(line))
                 end
             end
-            D:BuildPlayerList(lines)
+            ChosenLadder:GetLadder():BuildFromPlayerList(lines)
 
             Ladder:ToggleImportFrame()
         end

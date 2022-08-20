@@ -9,20 +9,7 @@ local F = NS.Functions
 
 local StreamFlag = D.Constants.StreamFlag
 
----@class RaidRosterInfo
----@field name string
----@field rank number
----@field subgroup number
----@field level number
----@field class string
----@field fileName string
----@field zone string?
----@field online boolean
----@field isDead boolean
----@field role string
----@field isML boolean
----@field combatRole string
----@field guid string
+
 
 local tip = CreateFrame("GameTooltip", "Tooltip", nil, "GameTooltipTemplate")
 
@@ -74,32 +61,6 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
     ChosenLadder:SetInventoryOverlays()
 end
 
----@return RaidRosterInfo | nil
-function BuildRaidRosterInfoByRaidIndex(raidIndex)
-    local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex)
-    if name == nil then
-        return nil
-    end
-
-    ---@type RaidRosterInfo
-    local info = {
-        name = name,
-        rank = rank,
-        subgroup = subgroup,
-        level = level,
-        class = class,
-        fileName = fileName,
-        zone = zone,
-        online = online,
-        isDead = isDead,
-        role = role,
-        isML = isML,
-        combatRole = combatRole,
-        guid = UnitGUID(Ambiguate(name, "all")) or ""
-    }
-    return info
-end
-
 function ChosenLadder:GROUP_ROSTER_UPDATE()
     local lootMethod, masterLooterPartyId, _ = GetLootMethod()
     D.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0)
@@ -108,12 +69,17 @@ function ChosenLadder:GROUP_ROSTER_UPDATE()
     local i = 1
     local done = false
     while i <= MAX_RAID_MEMBERS and not done do
-        local rosterInfo = BuildRaidRosterInfoByRaidIndex(i)
+        local rosterInfo = RaidMember:CreateByRaidIndex(i)
         -- Break early if we hit a nil (this means we've reached the full number of players)
         if rosterInfo == nil then
             done = true
         else
-            table.insert(members, rosterInfo)
+            table[rosterInfo.guid] = rosterInfo
+            ---@param a LadderPlayer
+            local myPlayer = F.Find(ChosenLadder:GetLadder().players, function(a) a:HasGuid(rosterInfo.guid) end)
+            if myPlayer ~= nil then
+                myPlayer:SetGuid(rosterInfo.guid)
+            end
         end
         i = i + 1
     end
@@ -126,7 +92,7 @@ function ChosenLadder:GROUP_ROSTER_UPDATE()
 end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
-    if not D:IsPlayerInRaid(playerName) then
+    if not D:GetRaidRoster():IsPlayerInRaid(playerName) then
         -- Nothing to process, this is just whisper chatter.
         return
     end
@@ -230,7 +196,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                 end
 
                 if D.syncing == StreamFlag.Complete then
-                    D:BuildPlayerList(players)
+                    ChosenLadder:GetLadder():BuildFromPlayerList(players)
                     UI.Ladder:PopulatePlayerList()
                     D.syncing = StreamFlag.Empty
                 end
