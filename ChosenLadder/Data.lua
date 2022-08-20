@@ -10,7 +10,7 @@ local F = NS.Functions
 ---@field Auction Auction
 ---@field Dunk Dunk
 ---@field syncing number
----@field raidMembers RaidRosterInfo[]
+---@field raidMembers RaidRoster
 local Data = {
     ---@class DataConstants
     ---@field BeginSyncFlag string
@@ -47,35 +47,10 @@ local Data = {
     },
     isLootMaster = false,
     lootMasterItems = {},
-    syncing = 1
+    syncing = 1,
+    raidMembers = RaidRoster:new()
 }
 NS.Data = Data
-
-
-
----@param rows string[]
-function Data:BuildPlayerList(rows)
-    ---@type DatabasePlayer[]
-    local newPlayers = {}
-
-    for _, v in ipairs(rows) do
-        local nameParts = F.Split(v, ":")
-        if #nameParts >= 2 then
-            local player = DatabasePlayer:new({
-                id = nameParts[1],
-                name = nameParts[2],
-                guids = F.Split(nameParts[3] or "", "-"),
-                log = ""
-            })
-            table.insert(newPlayers, player)
-        else
-            ChosenLadder:PrintToWindow("Invalid Import Data: " .. v)
-        end
-    end
-
-    ChosenLadder:Database().factionrealm.ladder.players = newPlayers
-    ChosenLadder:Database().factionrealm.ladder.lastModified = GetServerTime()
-end
 
 ---@param localDebug? boolean
 function Data:GenerateSyncData(localDebug)
@@ -92,23 +67,12 @@ function Data:GenerateSyncData(localDebug)
     end
 end
 
----@return RaidRosterInfo[]
+---@return RaidRoster
 function Data:GetRaidRoster()
-    return self.raidMembers
-end
-
----@param playername string
----@return boolean
-function Data:IsPlayerInRaid(playername)
-    if playername ~= nil then
-        for _, v in ipairs(Data:GetRaidRoster()) do
-            if v.name == Ambiguate(playername, "all") then
-                return true
-            end
-        end
+    if(self.raidMembers == nil) or (self.raidMembers.members == nil) then
+        self.raidMembers = RaidRoster:new()
     end
-
-    return false
+    return self.raidMembers
 end
 
 ---@param id string
@@ -124,18 +88,18 @@ end
 
 ---@param id string
 function Data:GetPlayerByID(id)
-    ---@param player DatabasePlayer
-    local player, playerloc = F.Find(ChosenLadder:GetLadderPlayers(), function(player) return player.id == id end)
+    ---@param player LadderPlayer
+    local player, playerloc = F.Find(ChosenLadder:GetLadder().players, function(player) return player.id == id end)
     return player, playerloc
 end
 
 ---@param guid string
----@return DatabasePlayer|nil
+---@return LadderPlayer|nil
 ---@return integer|nil
 function Data:GetPlayerByGUID(guid)
     guid = F.ShortenPlayerGuid(guid)
-    local player, playerloc = F.Find(ChosenLadder:GetLadderPlayers(),
-        ---@param player DatabasePlayer
+    local player, playerloc = F.Find(ChosenLadder:GetLadder().players,
+        ---@param player LadderPlayer
         function(player) return player:CurrentGuid() == guid end)
     return player, playerloc
 end
@@ -195,7 +159,7 @@ end
 ---@return string
 function Data:FormatNames()
     local names = {}
-    for k, v in pairs(ChosenLadder:GetLadderPlayers()) do
+    for k, v in pairs(ChosenLadder:GetLadder().players) do
         table.insert(names, string.format("%s:%s:%s", v.id, v.name, table.concat(v.guids, "-")))
     end
     return table.concat(names, "\n")

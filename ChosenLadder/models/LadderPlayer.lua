@@ -5,7 +5,7 @@ local D = NS.Data
 ---@type Functions
 local F = NS.Functions
 
----@class DatabasePlayer
+---@class LadderPlayer
 ---@field id string
 ---@field name string
 ---@field guids string[]
@@ -17,8 +17,8 @@ DatabasePlayer = {
     log = ""
 }
 
----@param o DatabasePlayer
----@return DatabasePlayer
+---@param o LadderPlayer
+---@return LadderPlayer
 function DatabasePlayer:new(o)
     o = o or {}
     setmetatable(o, self)
@@ -28,16 +28,7 @@ end
 
 ---@return boolean
 function DatabasePlayer:IsPresent()
-    for _, guid in ipairs(self.guids) do
-        ---@param a RaidRosterInfo
-        if F.Find(D:GetRaidRoster(), function(a)
-            return F.ShortenPlayerGuid(UnitGUID(Ambiguate(a.name, "all"))) == F.ShortenPlayerGuid(guid)
-        end) then
-            return true
-        end
-    end
-
-    return false
+    return self.currentGuid ~= nil
 end
 
 ---@param guid string
@@ -50,15 +41,12 @@ end
 
 ---@return string | nil
 function DatabasePlayer:CurrentGuid()
-    for _, rosterInfo in ipairs(D:GetRaidRoster()) do
-        local playerGuid = rosterInfo.guid ~= nil and F.ShortenPlayerGuid(rosterInfo.guid) or
-            F.ShortenPlayerGuid(UnitGUID(Ambiguate(rosterInfo.name, "all")))
-        if self:HasGuid(playerGuid) then
-            return playerGuid
-        end
-    end
+    return self.currentGuid
+end
 
-    return nil
+---@param guid string
+function DatabasePlayer:SetGuid(guid)
+    self.currentGuid = guid
 end
 
 ---@param guid string

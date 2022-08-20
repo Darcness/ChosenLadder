@@ -61,12 +61,12 @@ end
 
 ---Forces the found player to the end of the list.
 ---@param id string
----@return DatabasePlayer[]
----@return DatabasePlayer|nil
+---@return LadderPlayer[]
+---@return LadderPlayer|nil
 ---@return integer|nil
 ---@return integer
 local function ProcessStandardDunk(id)
-    local newPlayers = { unpack(ChosenLadder:GetLadderPlayers()) }
+    local newPlayers = { unpack(ChosenLadder:GetLadder().players) }
 
     local found, foundPos =
     F.Find(
@@ -86,8 +86,8 @@ end
 
 ---Processes a 'Freezing' dunk, which means that players where 'present = false' are frozen into their current ladder spot.
 ---@param id string
----@return DatabasePlayer[]
----@return DatabasePlayer|nil
+---@return LadderPlayer[]
+---@return LadderPlayer|nil
 ---@return integer|nil
 ---@return integer
 local function ProcessFreezingDunk(id)
@@ -95,16 +95,16 @@ local function ProcessFreezingDunk(id)
     ---@type integer|nil
     local foundPos = nil
     local newPos = 1
-    ---@type DatabasePlayer|nil
+    ---@type LadderPlayer|nil
     local found = nil
-    local len = #ChosenLadder:GetLadderPlayers()
+    local len = #ChosenLadder:GetLadder().players
 
     -- Initialize newPlayers with nulls, since we're inserting in weird places.
     for k = 1, len do
         newPlayers[k] = nil
     end
 
-    for currentPos, v in pairs(ChosenLadder:GetLadderPlayers()) do
+    for currentPos, v in pairs(ChosenLadder:GetLadder().players) do
         if id == v.id then
             -- Let's save this guy for later.
             found = v
@@ -264,7 +264,7 @@ function Dunk:RegisterByGUID(guid)
     local player, pos = D:GetPlayerByGUID(guid)
     if player ~= nil and pos ~= nil then
         ---@class DunkAttempt
-        ---@field player DatabasePlayer
+        ---@field player LadderPlayer
         ---@field pos integer
         local dunkAttempt = { player = player, pos = pos }
         table.insert(Dunk.dunks, dunkAttempt)
