@@ -18,7 +18,7 @@ local F = NS.Functions
 ---@field role string
 ---@field isML boolean
 ---@field combatRole string
----@field guid string
+---@field shortGuid string
 
 RaidMember = {
     name = "",
@@ -32,7 +32,7 @@ RaidMember = {
     role = "",
     isML = false,
     combatRole = "",
-    guid = ""
+    shortGuid = ""
 }
 
 ---@param o RaidMember
@@ -65,7 +65,7 @@ function RaidMember:CreateByRaidIndex(raidIndex)
         role = role,
         isML = isML,
         combatRole = combatRole,
-        guid = UnitGUID(Ambiguate(name, "all")) or ""
+        shortGuid = F.ShortenPlayerGuid(UnitGUID(Ambiguate(name, "all")))
     })
     return member
 end

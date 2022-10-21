@@ -57,7 +57,7 @@ function Data:GenerateSyncData(localDebug)
     local timeMessage = Data.Constants.BeginSyncFlag .. ChosenLadder:Database().factionrealm.ladder.lastModified
     local channel = "RAID"
 
-    local fullMessage = string.format("%s|%s|%s", timeMessage, string.gsub(Data:FormatNames(), "\n", "|"),
+    local fullMessage = string.format("%s|%s|%s", timeMessage, string.gsub(ChosenLadder:GetLadder():FormatNames(), "\n", "|"),
         Data.Constants.EndSyncFlag)
 
     if localDebug then
@@ -69,10 +69,10 @@ end
 
 ---@return RaidRoster
 function Data:GetRaidRoster()
-    if(self.raidMembers == nil) or (self.raidMembers.members == nil) then
-        self.raidMembers = RaidRoster:new()
+    if (Data.raidMembers == nil) or (Data.raidMembers.members == nil) then
+        Data.raidMembers = RaidRoster:new()
     end
-    return self.raidMembers
+    return Data.raidMembers
 end
 
 ---@param id string
@@ -81,6 +81,7 @@ function Data:SetPlayerGUIDByID(id, guid)
     local player = Data:GetPlayerByID(id)
     if player ~= nil then
         player:AddGuid(guid)
+        player:SetGuid(guid)
     else
         ChosenLadder:PrintToWindow(string.format("Selected Player unable to be found! %s - %s", player, guid))
     end
@@ -155,12 +156,28 @@ function Data:SetBidSteps(input)
     ChosenLadder:Database().factionrealm.bidSteps = newSteps
 end
 
----Formats the Ladder names for backup/restore
----@return string
-function Data:FormatNames()
-    local names = {}
-    for k, v in pairs(ChosenLadder:GetLadder().players) do
-        table.insert(names, string.format("%s:%s:%s", v.id, v.name, table.concat(v.guids, "-")))
+function Data:UpdateRaidData()
+    local lootMethod, masterLooterPartyId, _ = GetLootMethod()
+    Data.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0)
+
+    local raidMembers = Data:GetRaidRoster();
+    raidMembers:Clear();
+
+    local i = 1
+    local done = false
+    while i <= MAX_RAID_MEMBERS and not done do
+        local rosterInfo = RaidMember:CreateByRaidIndex(i)
+        -- Break early if we hit a nil (this means we've reached the full number of players)
+        if rosterInfo == nil then
+            done = true
+        else
+            raidMembers.members[rosterInfo.shortGuid] = rosterInfo
+            ---@param a LadderPlayer
+            local myPlayer = F.Find(ChosenLadder:GetLadder().players, function(a) a:HasGuid(rosterInfo.shortGuid) end)
+            if myPlayer ~= nil then
+                myPlayer:SetGuid(rosterInfo.shortGuid)
+            end
+        end
+        i = i + 1
     end
-    return table.concat(names, "\n")
 end

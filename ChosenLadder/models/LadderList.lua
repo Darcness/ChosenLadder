@@ -48,3 +48,13 @@ function LadderList:BuildFromPlayerList(rows)
 
     ChosenLadder:Database().factionrealm.ladder = newPlayerList
 end
+
+---Formats the Ladder names for backup/restore
+---@return string
+function LadderList:FormatNames()
+    local names = {}
+    for k, v in pairs(self.players) do
+        table.insert(names, string.format("%s:%s:%s", v.id, v.name, table.concat(v.guids, "-")))
+    end
+    return table.concat(names, "\n")
+end

@@ -180,16 +180,18 @@ function ChosenLadder:OnEnable()
     self:RegisterChatCommand("cllog", "PrintHistory")
     self:RegisterChatCommand("clhelp", "Help")
     self:RegisterChatCommand("iamthecaptainnow", "IAmTheCaptainNow")
-    self:RegisterEvent("GROUP_ROSTER_UPDATE", ChosenLadder:GROUP_ROSTER_UPDATE())
-    self:RegisterEvent("CHAT_MSG_WHISPER", ChosenLadder:CHAT_MSG_WHISPER())
-    self:RegisterEvent("BAG_UPDATE_DELAYED", ChosenLadder:BAG_UPDATE_DELAYED())
+    self:RegisterEvent("GROUP_ROSTER_UPDATE")
+    self:RegisterEvent("CHAT_MSG_WHISPER")
+    self:RegisterEvent("BAG_UPDATE_DELAYED")
 
     UI.InterfaceOptions:CreatePanel()
+
+    D:UpdateRaidData()
 end
 
 function ChosenLadder:IAmTheCaptainNow()
     local name, _ = UnitName("player")
-    if name == "Fastandan" or name == "Foladocus" or name == "Firannor" or name == "Yanagi" then
+    if name == "Fastandan" or name == "Foladocus" or name == "Firannor" or name == "Yanagi" or name == "Foghli" then
         D.isLootMaster = true
         ChosenLadder:PrintToWindow("Aye Aye, Captain!")
         for bag = 0, 4 do
@@ -350,6 +352,7 @@ function ChosenLadder:PrintToWindow(text)
     ChosenLadder:Print(chatFrame, text)
 end
 
+---@return LadderList
 function ChosenLadder:GetLadder()
     return ChosenLadder:Database().factionrealm.ladder
 end

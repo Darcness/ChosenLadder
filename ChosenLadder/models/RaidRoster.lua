@@ -24,6 +24,10 @@ end
 ---@return boolean
 function RaidRoster:IsPlayerInRaid(playername)
     if playername == nil then return false end
-    local playerGuid = UnitGUID(Ambiguate(playername, "all"))
+    local playerGuid = F.ShortenPlayerGuid(UnitGUID(Ambiguate(playername, "all")))
     return self.members[playerGuid] ~= nil
+end
+
+function RaidRoster:Clear()
+    self.members = {}
 end

@@ -42,10 +42,12 @@ local function RaidDrop_Initialize_Builder(id)
 
                     myInfo.value = myGuid
                     myInfo.text = raidPlayer.name
-                    myInfo.func = function(b)
+                    myInfo.func = function(self, arg1, arg2, checked)
                         UIDropDownMenu_SetSelectedValue(frame, myGuid, myGuid)
                         UIDropDownMenu_SetText(frame, raidPlayer.name)
-                        b.checked = true
+                        self.checked = true
+                        player:AddGuid(myGuid)
+                        player:SetGuid(myGuid)
                     end
 
                     UIDropDownMenu_AddButton(myInfo, level)
@@ -258,11 +260,12 @@ local function CreateImportFrame()
     editBox:SetMultiLine(true)
     editBox:SetWidth(scrollFrame:GetWidth())
     editBox:SetHeight(scrollFrame:GetHeight())
-    editBox:SetText(D:FormatNames())
+    editBox:SetText(ChosenLadder:GetLadder():FormatNames())
     editBox:SetScript(
         "OnShow",
         function(self)
-            self:SetText(D:FormatNames())
+            ChosenLadder:PrintToWindow("editbox onshow")
+            self:SetText(ChosenLadder:GetLadder():FormatNames())
         end
     )
     scrollFrame:SetScrollChild(editBox)
