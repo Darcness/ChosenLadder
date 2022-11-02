@@ -161,7 +161,7 @@ function Dunk:Complete(id)
         return
     end
 
-    local player = D:GetPlayerByID(id)
+    local player = ChosenLadder:GetLadder():GetPlayerByID(id)
 
     if player == nil then
         ChosenLadder:PutOnBlast("ERROR: Missing player. Dunk Session Cancelled")
@@ -261,7 +261,7 @@ end
 ---@param guid string
 ---@return integer
 function Dunk:RegisterByGUID(guid)
-    local player, pos = D:GetPlayerByGUID(guid)
+    local player, pos = ChosenLadder:GetLadder():GetPlayerByGUID(guid)
     if player ~= nil and pos ~= nil then
         ---@class DunkAttempt
         ---@field player LadderPlayer

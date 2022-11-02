@@ -31,7 +31,7 @@ local function RaidDrop_Initialize_Builder(id)
         table.sort(sortedRoster, function(a, b) return a.name < b.name end)
 
         -- Preselect the 'current' player if they exist.
-        local player, _ = D:GetPlayerByID(id)
+        local player, _ = ChosenLadder:GetLadder():GetPlayerByID(id)
         if player ~= nil then
             local myGuid = player:CurrentGuid()
             if myGuid ~= nil then
@@ -63,7 +63,7 @@ local function RaidDrop_Initialize_Builder(id)
             local name = raider.name
             local guid = UnitGUID(name)
 
-            if guid ~= nil and select(1, D:GetPlayerByGUID(guid)) == nil and raider.online then
+            if guid ~= nil and select(1, ChosenLadder:GetLadder():GetPlayerByGUID(guid)) == nil and raider.online then
                 local guid = F.ShortenPlayerGuid(guid)
 
                 local info = UIDropDownMenu_CreateInfo()
@@ -73,7 +73,7 @@ local function RaidDrop_Initialize_Builder(id)
                     UIDropDownMenu_SetSelectedValue(frame, guid, guid)
                     UIDropDownMenu_SetText(frame, name)
                     b.checked = true
-                    D:SetPlayerGUIDByID(id, guid)
+                    ChosenLadder:GetLadder():SetPlayerGUIDByID(id, guid)
                 end
 
                 UIDropDownMenu_AddButton(info, level)

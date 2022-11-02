@@ -57,7 +57,8 @@ function Data:GenerateSyncData(localDebug)
     local timeMessage = Data.Constants.BeginSyncFlag .. ChosenLadder:Database().factionrealm.ladder.lastModified
     local channel = "RAID"
 
-    local fullMessage = string.format("%s|%s|%s", timeMessage, string.gsub(ChosenLadder:GetLadder():FormatNames(), "\n", "|"),
+    local fullMessage = string.format("%s|%s|%s", timeMessage,
+        string.gsub(ChosenLadder:GetLadder():FormatNames(), "\n", "|"),
         Data.Constants.EndSyncFlag)
 
     if localDebug then
@@ -73,36 +74,6 @@ function Data:GetRaidRoster()
         Data.raidMembers = RaidRoster:new()
     end
     return Data.raidMembers
-end
-
----@param id string
----@param guid string
-function Data:SetPlayerGUIDByID(id, guid)
-    local player = Data:GetPlayerByID(id)
-    if player ~= nil then
-        player:AddGuid(guid)
-        player:SetGuid(guid)
-    else
-        ChosenLadder:PrintToWindow(string.format("Selected Player unable to be found! %s - %s", player, guid))
-    end
-end
-
----@param id string
-function Data:GetPlayerByID(id)
-    ---@param player LadderPlayer
-    local player, playerloc = F.Find(ChosenLadder:GetLadder().players, function(player) return player.id == id end)
-    return player, playerloc
-end
-
----@param guid string
----@return LadderPlayer|nil
----@return integer|nil
-function Data:GetPlayerByGUID(guid)
-    guid = F.ShortenPlayerGuid(guid)
-    local player, playerloc = F.Find(ChosenLadder:GetLadder().players,
-        ---@param player LadderPlayer
-        function(player) return player:CurrentGuid() == guid end)
-    return player, playerloc
 end
 
 ---@param guid string
