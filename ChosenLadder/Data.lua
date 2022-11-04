@@ -6,6 +6,7 @@ local F = NS.Functions
 ---@class Data
 ---@field Constants DataConstants
 ---@field isLootMaster boolean
+---@field isLootMasterOverride boolean
 ---@field lootMasterItems LootItem[]
 ---@field Auction Auction
 ---@field Dunk Dunk
@@ -46,6 +47,7 @@ local Data = {
         }
     },
     isLootMaster = false,
+    isLootMasterOverride = false,
     lootMasterItems = {},
     syncing = 1,
     raidMembers = RaidRoster:new()
@@ -151,4 +153,8 @@ function Data:UpdateRaidData()
         end
         i = i + 1
     end
+end
+
+function Data:IsLootMaster() 
+    return Data.isLootMaster or Data.isLootMasterOverride or false
 end

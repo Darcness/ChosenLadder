@@ -192,21 +192,26 @@ end
 function ChosenLadder:IAmTheCaptainNow()
     local name, _ = UnitName("player")
     if name == "Fastandan" or name == "Foladocus" or name == "Firannor" or name == "Yanagi" or name == "Foghli" then
-        D.isLootMaster = true
-        ChosenLadder:PrintToWindow("Aye Aye, Captain!")
-        for bag = 0, 4 do
-            for slot = 1, GetContainerNumSlots(bag) do
-                local itemID = GetContainerItemID(bag, slot)
-                if itemID then
-                    local item = Item:CreateFromBagAndSlot(bag, slot)
-                    local guid = item:GetItemGUID()
-                    local itemLink = item:GetItemLink()
+        if D.isLootMasterOverride then
+            D.isLootMasterOverride = false
+            ChosenLadder:PrintToWindow("You've been demoted!")
+        else
+            D.isLootMasterOverride = true
+            ChosenLadder:PrintToWindow("Aye Aye, Captain!")
+            for bag = 0, 4 do
+                for slot = 1, GetContainerNumSlots(bag) do
+                    local itemID = GetContainerItemID(bag, slot)
+                    if itemID then
+                        local item = Item:CreateFromBagAndSlot(bag, slot)
+                        local guid = item:GetItemGUID()
+                        local itemLink = item:GetItemLink()
 
-                    table.insert(D.lootMasterItems, {
-                        guid = guid,
-                        itemLink = itemLink,
-                        sold = false
-                    })
+                        table.insert(D.lootMasterItems, {
+                            guid = guid,
+                            itemLink = itemLink,
+                            sold = false
+                        })
+                    end
                 end
             end
         end
@@ -251,7 +256,7 @@ function ChosenLadder:ToggleLadder()
 end
 
 function ChosenLadder:SendMessage(message, destination)
-    if D.isLootMaster == nil or D.isLootMaster == false then
+    if not D:IsLootMaster() then
         YouSoBad("Send Addon Communications")
         return
     end
@@ -259,7 +264,7 @@ function ChosenLadder:SendMessage(message, destination)
 end
 
 function ChosenLadder:Dunk(input)
-    if not D.isLootMaster then
+    if not D:IsLootMaster() then
         ChosenLadder:PrintToWindow("You're not the loot master!")
         return
     end
@@ -278,7 +283,7 @@ function ChosenLadder:Dunk(input)
 end
 
 function ChosenLadder:Auction(input)
-    if not D.isLootMaster then
+    if not D:IsLootMaster() then
         ChosenLadder:PrintToWindow("You're not the loot master!")
         return
     end

@@ -149,30 +149,7 @@ function Loot:PopulateLootList()
 
     for lootIdx, lootItem in ipairs(D.lootMasterItems) do
         if lootItem ~= nil and lootItem.guid ~= nil then
-            -- Store the loot row, since we can't count on the WoW client to garbage collect
-            -- local row = _G[UI.UIPrefixes.LootRow .. lootItem.guid] or
-                CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
-            -- row:SetPoint("TOPLEFT", self.scrollChild, 4, (lootIdx - 1) * -28)
-            -- row:Show()
-
-
-            -- for _, child in ipairs({ row:GetChildren() }) do
-            --     if F.StartsWith(child:GetName(), UI.UIPrefixes.LootDunkButton) then
-            --         -- The Dunk button!
-            --         child:SetEnabled(D.isLootMaster and not lootItem.sold)
-            --         child:SetText(D.Dunk.dunkItem == lootItem.guid and "Cancel Dunk" or "Start Dunk")
-            --     elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootAuctionButton) then
-            --         -- The Auction button!
-            --         child:SetEnabled(D.isLootMaster and not lootItem.sold)
-            --         child:SetText(D.Auction.auctionItem == lootItem.guid and "Cancel Auction" or "Start Auction")
-            --     elseif F.StartsWith(child:GetName(), UI.UIPrefixes.LootItemNameString) then
-            --         if lootItem.sold then
-            --             child:SetFontObject("GameFontDisable")
-            --         else
-            --             child:SetFontObject("GameFontNormal")
-            --         end
-            --     end
-            -- end
+            CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
         end
     end
 end

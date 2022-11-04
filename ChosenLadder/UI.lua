@@ -141,11 +141,11 @@ end
 
 function UI:UpdateElementsByPermission()
     if UI.syncButton ~= nil then
-        UI.syncButton:SetEnabled(D.isLootMaster or false)
+        UI.syncButton:SetEnabled(D:IsLootMaster())
     end
 
     if UI.importSaveButton ~= nil then
-        UI.importSaveButton:SetEnabled(D.isLootMaster or false)
+        UI.importSaveButton:SetEnabled(D:IsLootMaster())
     end
 
     self.Ladder:PopulatePlayerList()

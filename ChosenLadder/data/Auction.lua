@@ -45,7 +45,7 @@ end
 
 ---@param forceCancel? boolean
 function Auction:Complete(forceCancel)
-    if not D.isLootMaster then
+    if not D:IsLootMaster() then
         ChosenLadder:PrintToWindow("Error: Not the loot master!")
         return
     end
@@ -95,7 +95,7 @@ end
 
 ---@param auctionItem string
 function Auction:Start(auctionItem)
-    if not D.isLootMaster then
+    if not D:IsLootMaster() then
         ChosenLadder:PrintToWindow("Error: Not the loot master!")
         return
     end

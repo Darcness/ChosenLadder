@@ -119,7 +119,7 @@ local function CreateClearAltsButton(row, player, dunkButton)
         Ladder:PopulatePlayerList()
     end)
 
-    if D.isLootMaster then
+    if D:IsLootMaster() then
         clearButton:SetEnabled(true)
     else
         clearButton:SetEnabled(false)
@@ -143,7 +143,7 @@ local function CreatePlayerRowItem(parentScrollFrame, player, idx)
     raidDrop:SetPoint("TOPLEFT", row, 0, 0)
     UIDropDownMenu_SetWidth(raidDrop, 100)
     UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(player.id))
-    if D.isLootMaster then
+    if D:IsLootMaster() then
         UIDropDownMenu_EnableDropDown(raidDrop)
     else
         UIDropDownMenu_DisableDropDown(raidDrop)
@@ -195,11 +195,11 @@ function Ladder:PopulatePlayerList()
                 break
             end
         end
-        dunkButton:SetEnabled(D.isLootMaster and isDunking)
+        dunkButton:SetEnabled(D:IsLootMaster() and isDunking)
 
         local clearButton = _G[UI.UIPrefixes.PlayerClearAltsButton .. player.id] or
             CreateClearAltsButton(playerRow, player, dunkButton)
-        clearButton:SetEnabled(D.isLootMaster)
+        clearButton:SetEnabled(D:IsLootMaster())
 
         -- Fix the ordering
         local text = _G[UI.UIPrefixes.PlayerNameString .. player.id]
@@ -235,7 +235,7 @@ local function CreateImportFrame()
     saveButton:SetWidth(64)
     saveButton:SetPoint("TOPRIGHT", mainFrame, -24, 0)
     saveButton:SetText("Save")
-    saveButton:SetEnabled(D.isLootMaster or false)
+    saveButton:SetEnabled(D:IsLootMaster())
     saveButton:SetScript(
         "OnClick",
         function(self, button, down)
@@ -324,7 +324,7 @@ function Ladder:CreateMainFrame(mainFrame)
     syncButton:SetWidth(UIC.actionButtonWidth)
     syncButton:SetPoint("TOPLEFT", importButton, 0, -(importButton:GetHeight() + 2))
     syncButton:SetText("Sync")
-    syncButton:SetEnabled(D.isLootMaster or false)
+    syncButton:SetEnabled(D:IsLootMaster())
     syncButton:SetScript(
         "OnClick",
         function(self, button, down)
