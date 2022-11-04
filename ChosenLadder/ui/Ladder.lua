@@ -108,16 +108,22 @@ end
 ---@param dunkButton Button
 ---@return Button
 local function CreateClearAltsButton(row, player, dunkButton)
-    local clearButton = CreateFrame("Button", UI.UIPrefixes.PlayerClearAltsButton .. player.id, row,
-        "UIPanelButtonTemplate")
+    local buttonName = UI.UIPrefixes.PlayerClearAltsButton .. player.id
+    local clearButton = _G[buttonName] or CreateFrame("Button", buttonName, row, "UIPanelButtonTemplate")
     clearButton:SetText("Clear Alts")
-    clearButton:SetWidth(122);
+    clearButton:SetWidth(96);
     clearButton:SetPoint("TOPRIGHT", dunkButton, -(dunkButton:GetWidth() + 4), 0)
     clearButton:SetScript("OnClick", function()
         player:ClearGuids()
         ChosenLadder:PrintToWindow("Clearing Alts for " .. player.name)
         Ladder:PopulatePlayerList()
     end)
+
+    if D.isLootMaster then
+        clearButton:SetEnabled(true)
+    else
+        clearButton:SetEnabled(false)
+    end
 
     ---@diagnostic disable-next-line: return-type-mismatch
     return clearButton
@@ -137,14 +143,22 @@ local function CreatePlayerRowItem(parentScrollFrame, player, idx)
     raidDrop:SetPoint("TOPLEFT", row, 0, 0)
     UIDropDownMenu_SetWidth(raidDrop, 100)
     UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(player.id))
-
-    -- Set the Font
-    local textFont = row:CreateFontString(UI.UIPrefixes.PlayerNameString .. player.id, nil, "GameFontNormal")
-    textFont:SetText(idx .. " - " .. player.name)
-    textFont:SetPoint("TOPLEFT", raidDrop, raidDrop:GetWidth() + 4, -8)
+    if D.isLootMaster then
+        UIDropDownMenu_EnableDropDown(raidDrop)
+    else
+        UIDropDownMenu_DisableDropDown(raidDrop)
+    end
 
     local dunkButton = CreateDunkButton(row, player)
     local clearButton = CreateClearAltsButton(row, player, dunkButton)
+
+    -- Set the Font last, since it requires the other elements to be in place first.
+    local textFont = row:CreateFontString(UI.UIPrefixes.PlayerNameString .. player.id, nil, "GameFontNormal")
+    textFont:SetText(idx .. " - " .. player.name)
+    textFont:SetPoint("TOPLEFT", raidDrop, raidDrop:GetWidth() - 4, -8)
+
+    textFont:SetPoint("TOPRIGHT", clearButton, -(clearButton:GetWidth() + 2), 0)
+    textFont:SetJustifyH("LEFT")
 
     return row
 end

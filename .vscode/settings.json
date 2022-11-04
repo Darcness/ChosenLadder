@@ -26,6 +26,8 @@
         "ChatFontNormal",
         "UIDropDownMenu_GetSelectedValue",
         "RegisterAddonMessagePrefix",
-        "MAX_CONTAINER_ITEMS"
+        "MAX_CONTAINER_ITEMS",
+        "UIDropDownMenu_EnableDropDown",
+        "UIDropDownMenu_DisableDropDown"
     ],
 }
