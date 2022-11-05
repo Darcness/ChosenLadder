@@ -247,7 +247,8 @@ local function CreateImportFrame()
                 end
             end
             ChosenLadder:GetLadder():BuildFromPlayerList(lines)
-
+            
+            Ladder:PopulatePlayerList()
             Ladder:ToggleImportFrame()
         end
     )
