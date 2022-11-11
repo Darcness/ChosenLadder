@@ -28,6 +28,7 @@
         "RegisterAddonMessagePrefix",
         "MAX_CONTAINER_ITEMS",
         "UIDropDownMenu_EnableDropDown",
-        "UIDropDownMenu_DisableDropDown"
+        "UIDropDownMenu_DisableDropDown",
+        "CHAT_MSG_WHISPER"
     ],
 }

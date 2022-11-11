@@ -1,4 +1,4 @@
-## Interface: 20504
+## Interface: 30400
 ## Title: ChosenLadder
 ## Version: 1.7.4
 ## Notes: Ladder addon for The Chosen Guild

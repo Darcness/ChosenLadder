@@ -9,8 +9,6 @@ local F = NS.Functions
 
 local StreamFlag = D.Constants.StreamFlag
 
-
-
 local tip = CreateFrame("GameTooltip", "Tooltip", nil, "GameTooltipTemplate")
 
 local function isTradable(itemLocation)
@@ -25,6 +23,7 @@ local function isTradable(itemLocation)
 end
 
 function ChosenLadder:BAG_UPDATE_DELAYED()
+    ChosenLadder:Log("Enter: BAG_UPDATE_DELAYED")
     if D.lootMasterItems == nil then
         D.lootMasterItems = {}
     end
@@ -59,19 +58,24 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
     end
     UI.Loot:PopulateLootList()
     ChosenLadder:SetInventoryOverlays()
+    ChosenLadder:Log("Exit: BAG_UPDATE_DELAYED")
 end
 
 function ChosenLadder:GROUP_ROSTER_UPDATE()
+    ChosenLadder:Log("Enter: GROUP_ROSTER_UPDATE")
     D:UpdateRaidData()
 
     UI:UpdateElementsByPermission()
 
     UI.Ladder:PopulatePlayerList()
+    ChosenLadder:Log("Exit: GROUP_ROSTER_UPDATE")
 end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
+    ChosenLadder:Log("Enter: CHAT_MSG_WHISPER ||" .. text .. "||" .. playerName)
     if not D:GetRaidRoster():IsPlayerInRaid(playerName) then
         -- Nothing to process, this is just whisper chatter.
+        ChosenLadder:Log("CHAT_MSG_WHISPER: User not in raid")
         return
     end
 
@@ -80,6 +84,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
     local dunkItem = D.Dunk:GetItemLink()
 
     if auctionItem ~= nil then
+        ChosenLadder:Log("CHAT_MSG_WHISPER: Auction Item Found!")
         local bid = tonumber(text)
         local minBid = D.Auction:GetMinimumBid()
 
@@ -98,9 +103,8 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
         D.Auction:Bid(playerName, bid)
         SendChatMessage("Current Bid: " .. bid, "RAID")
         return
-    end
-
-    if dunkItem ~= nil then
+    elseif dunkItem ~= nil then
+        ChosenLadder:Log("CHAT_MSG_WHISPER: Dunk Item Found!")
         text = string.lower(text)
         local dunkWord = F.Find(D.Constants.AsheosWords,
             ---@param word string
@@ -135,50 +139,57 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
 
         return
     end
+    ChosenLadder:Log("Exit: CHAT_MSG_WHISPER")
 end
 
 function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
-    if prefix == A and distribution == "RAID" and sender ~= UnitName("player") then
-        local beginSyncFlag = D.Constants.BeginSyncFlag
-        local endSyncFlag = D.Constants.EndSyncFlag
+    if prefix == A then
+        ChosenLadder:Log(string.format("Enter: OnCommReceived ||%s||%s||%s||%s", prefix, message, distribution, sender))
 
-        if F.StartsWith(message, beginSyncFlag) then
-            local vars = F.Split(message, "|")
-            ---@type string[]
-            local players = {}
+        if distribution == "RAID" and sender ~= UnitName("player") then
+            local beginSyncFlag = D.Constants.BeginSyncFlag
+            local endSyncFlag = D.Constants.EndSyncFlag
 
-            ChosenLadder:PrintToWindow(message)
+            if F.StartsWith(message, beginSyncFlag) then
+                ChosenLadder:Log("OnCommReceived: Found BeginSyncFlag")
+                local vars = F.Split(message, "|")
+                ---@type string[]
+                local players = {}
 
-            local lastModified = ChosenLadder:Database().factionrealm.ladder.lastModified
-            local timestampStr = vars[1]:gsub(beginSyncFlag, "")
-            local timestamp = tonumber(timestampStr)
-            ChosenLadder:PrintToWindow(string.format(
-                "Incoming Sync request from %s: %s - Local: %s",
-                sender, timestamp, lastModified
-            ))
-            if timestamp > lastModified then
-                -- Begin Sync
-                D.syncing = StreamFlag.Started
-            else
-                ChosenLadder:PrintToWindow("Sync Request Denied from " .. sender)
-            end
-
-            if D.syncing == StreamFlag.Started then
-                for k, v in ipairs(vars) do
-                    if F.StartsWith(v, beginSyncFlag) then
-                    elseif v == endSyncFlag then
-                        D.syncing = StreamFlag.Complete
-                    else
-                        table.insert(players, v)
-                    end
+                local lastModified = ChosenLadder:Database().factionrealm.ladder.lastModified
+                local timestampStr = vars[1]:gsub(beginSyncFlag, "")
+                local timestamp = tonumber(timestampStr)
+                ChosenLadder:PrintToWindow(string.format("Incoming Sync request from %s: %s - Local: %s", sender,
+                    timestamp, lastModified))
+                if timestamp > lastModified then
+                    -- Begin Sync
+                    D.syncing = StreamFlag.Started
+                else
+                    ChosenLadder:PrintToWindow("Sync Request Denied from " .. sender)
                 end
 
-                if D.syncing == StreamFlag.Complete then
-                    ChosenLadder:GetLadder():BuildFromPlayerList(players)
-                    UI.Ladder:PopulatePlayerList()
-                    D.syncing = StreamFlag.Empty
+                if D.syncing == StreamFlag.Started then
+                    for k, v in ipairs(vars) do
+                        if F.StartsWith(v, beginSyncFlag) then
+                            ChosenLadder:Log("OnCommReceived: Found extraneous BeginSyncFlag")
+                        elseif v == endSyncFlag then
+                            ChosenLadder:Log("OnCommReceived: Found EndSyncFlag")
+                            D.syncing = StreamFlag.Complete
+                        else
+                            ChosenLadder:Log("OnCommReceived: Found player: " .. v)
+                            table.insert(players, v)
+                        end
+                    end
+
+                    if D.syncing == StreamFlag.Complete then
+                        ChosenLadder:GetLadder():BuildFromPlayerList(players)
+                        UI.Ladder:PopulatePlayerList()
+                        D.syncing = StreamFlag.Empty
+                        ChosenLadder:Log("OnCommReceived: Updated Player List")
+                    end
                 end
             end
         end
+        ChosenLadder:Log("Exit: OnCommReceived")
     end
 end

@@ -155,6 +155,6 @@ function Data:UpdateRaidData()
     end
 end
 
-function Data:IsLootMaster() 
+function Data:IsLootMaster()
     return Data.isLootMaster or Data.isLootMasterOverride or false
 end
