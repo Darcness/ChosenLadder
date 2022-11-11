@@ -31,7 +31,7 @@ local function RaidDrop_Initialize_Builder(id)
         table.sort(sortedRoster, function(a, b) return a.name < b.name end)
 
         -- Preselect the 'current' player if they exist.
-        local player, _ = D:GetPlayerByID(id)
+        local player, _ = ChosenLadder:GetLadder():GetPlayerByID(id)
         if player ~= nil then
             local myGuid = player:CurrentGuid()
             if myGuid ~= nil then
@@ -42,10 +42,12 @@ local function RaidDrop_Initialize_Builder(id)
 
                     myInfo.value = myGuid
                     myInfo.text = raidPlayer.name
-                    myInfo.func = function(b)
+                    myInfo.func = function(self, arg1, arg2, checked)
                         UIDropDownMenu_SetSelectedValue(frame, myGuid, myGuid)
                         UIDropDownMenu_SetText(frame, raidPlayer.name)
-                        b.checked = true
+                        self.checked = true
+                        player:AddGuid(myGuid)
+                        player:SetGuid(myGuid)
                     end
 
                     UIDropDownMenu_AddButton(myInfo, level)
@@ -61,7 +63,7 @@ local function RaidDrop_Initialize_Builder(id)
             local name = raider.name
             local guid = UnitGUID(name)
 
-            if guid ~= nil and select(1, D:GetPlayerByGUID(guid)) == nil and raider.online then
+            if guid ~= nil and select(1, ChosenLadder:GetLadder():GetPlayerByGUID(guid)) == nil and raider.online then
                 local guid = F.ShortenPlayerGuid(guid)
 
                 local info = UIDropDownMenu_CreateInfo()
@@ -71,7 +73,7 @@ local function RaidDrop_Initialize_Builder(id)
                     UIDropDownMenu_SetSelectedValue(frame, guid, guid)
                     UIDropDownMenu_SetText(frame, name)
                     b.checked = true
-                    D:SetPlayerGUIDByID(id, guid)
+                    ChosenLadder:GetLadder():SetPlayerGUIDByID(id, guid)
                 end
 
                 UIDropDownMenu_AddButton(info, level)
@@ -106,16 +108,22 @@ end
 ---@param dunkButton Button
 ---@return Button
 local function CreateClearAltsButton(row, player, dunkButton)
-    local clearButton = CreateFrame("Button", UI.UIPrefixes.PlayerClearAltsButton .. player.id, row,
-        "UIPanelButtonTemplate")
+    local buttonName = UI.UIPrefixes.PlayerClearAltsButton .. player.id
+    local clearButton = _G[buttonName] or CreateFrame("Button", buttonName, row, "UIPanelButtonTemplate")
     clearButton:SetText("Clear Alts")
-    clearButton:SetWidth(122);
+    clearButton:SetWidth(96);
     clearButton:SetPoint("TOPRIGHT", dunkButton, -(dunkButton:GetWidth() + 4), 0)
     clearButton:SetScript("OnClick", function()
         player:ClearGuids()
         ChosenLadder:PrintToWindow("Clearing Alts for " .. player.name)
         Ladder:PopulatePlayerList()
     end)
+
+    if D:IsLootMaster() then
+        clearButton:SetEnabled(true)
+    else
+        clearButton:SetEnabled(false)
+    end
 
     ---@diagnostic disable-next-line: return-type-mismatch
     return clearButton
@@ -135,14 +143,22 @@ local function CreatePlayerRowItem(parentScrollFrame, player, idx)
     raidDrop:SetPoint("TOPLEFT", row, 0, 0)
     UIDropDownMenu_SetWidth(raidDrop, 100)
     UIDropDownMenu_Initialize(raidDrop, RaidDrop_Initialize_Builder(player.id))
-
-    -- Set the Font
-    local textFont = row:CreateFontString(UI.UIPrefixes.PlayerNameString .. player.id, nil, "GameFontNormal")
-    textFont:SetText(idx .. " - " .. player.name)
-    textFont:SetPoint("TOPLEFT", raidDrop, raidDrop:GetWidth() + 4, -8)
+    if D:IsLootMaster() then
+        UIDropDownMenu_EnableDropDown(raidDrop)
+    else
+        UIDropDownMenu_DisableDropDown(raidDrop)
+    end
 
     local dunkButton = CreateDunkButton(row, player)
     local clearButton = CreateClearAltsButton(row, player, dunkButton)
+
+    -- Set the Font last, since it requires the other elements to be in place first.
+    local textFont = row:CreateFontString(UI.UIPrefixes.PlayerNameString .. player.id, nil, "GameFontNormal")
+    textFont:SetText(idx .. " - " .. player.name)
+    textFont:SetPoint("TOPLEFT", raidDrop, raidDrop:GetWidth() - 4, -8)
+
+    textFont:SetPoint("TOPRIGHT", clearButton, -(clearButton:GetWidth() + 2), 0)
+    textFont:SetJustifyH("LEFT")
 
     return row
 end
@@ -179,11 +195,11 @@ function Ladder:PopulatePlayerList()
                 break
             end
         end
-        dunkButton:SetEnabled(D.isLootMaster and isDunking)
+        dunkButton:SetEnabled(D:IsLootMaster() and isDunking)
 
         local clearButton = _G[UI.UIPrefixes.PlayerClearAltsButton .. player.id] or
             CreateClearAltsButton(playerRow, player, dunkButton)
-        clearButton:SetEnabled(D.isLootMaster)
+        clearButton:SetEnabled(D:IsLootMaster())
 
         -- Fix the ordering
         local text = _G[UI.UIPrefixes.PlayerNameString .. player.id]
@@ -219,7 +235,7 @@ local function CreateImportFrame()
     saveButton:SetWidth(64)
     saveButton:SetPoint("TOPRIGHT", mainFrame, -24, 0)
     saveButton:SetText("Save")
-    saveButton:SetEnabled(D.isLootMaster or false)
+    saveButton:SetEnabled(D:IsLootMaster())
     saveButton:SetScript(
         "OnClick",
         function(self, button, down)
@@ -231,7 +247,8 @@ local function CreateImportFrame()
                 end
             end
             ChosenLadder:GetLadder():BuildFromPlayerList(lines)
-
+            
+            Ladder:PopulatePlayerList()
             Ladder:ToggleImportFrame()
         end
     )
@@ -258,11 +275,12 @@ local function CreateImportFrame()
     editBox:SetMultiLine(true)
     editBox:SetWidth(scrollFrame:GetWidth())
     editBox:SetHeight(scrollFrame:GetHeight())
-    editBox:SetText(D:FormatNames())
+    editBox:SetText(ChosenLadder:GetLadder():FormatNames())
     editBox:SetScript(
         "OnShow",
         function(self)
-            self:SetText(D:FormatNames())
+            ChosenLadder:PrintToWindow("editbox onshow")
+            self:SetText(ChosenLadder:GetLadder():FormatNames())
         end
     )
     scrollFrame:SetScrollChild(editBox)
@@ -307,7 +325,7 @@ function Ladder:CreateMainFrame(mainFrame)
     syncButton:SetWidth(UIC.actionButtonWidth)
     syncButton:SetPoint("TOPLEFT", importButton, 0, -(importButton:GetHeight() + 2))
     syncButton:SetText("Sync")
-    syncButton:SetEnabled(D.isLootMaster or false)
+    syncButton:SetEnabled(D:IsLootMaster())
     syncButton:SetScript(
         "OnClick",
         function(self, button, down)

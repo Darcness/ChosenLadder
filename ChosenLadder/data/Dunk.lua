@@ -43,7 +43,7 @@ function Dunk:GetItemLink()
 end
 
 function Dunk:Cancel()
-    if not D.isLootMaster then
+    if not D:IsLootMaster() then
         ChosenLadder:PrintToWindow("Error: Not the loot master!")
         return
     end
@@ -149,7 +149,7 @@ end
 ---Processes a Dunk
 ---@param id string ID of the player who wins
 function Dunk:Complete(id)
-    if not D.isLootMaster then
+    if not D:IsLootMaster() then
         ChosenLadder:PrintToWindow("You're not the loot master!")
         return
     end
@@ -161,7 +161,7 @@ function Dunk:Complete(id)
         return
     end
 
-    local player = D:GetPlayerByID(id)
+    local player = ChosenLadder:GetLadder():GetPlayerByID(id)
 
     if player == nil then
         ChosenLadder:PutOnBlast("ERROR: Missing player. Dunk Session Cancelled")
@@ -234,7 +234,7 @@ end
 
 ---@param dunkItem string Item link or GUID
 function Dunk:Start(dunkItem)
-    if not D.isLootMaster then
+    if not D:IsLootMaster() then
         ChosenLadder:PrintToWindow("Error: Not the loot master!")
         return
     end
@@ -261,7 +261,7 @@ end
 ---@param guid string
 ---@return integer
 function Dunk:RegisterByGUID(guid)
-    local player, pos = D:GetPlayerByGUID(guid)
+    local player, pos = ChosenLadder:GetLadder():GetPlayerByGUID(guid)
     if player ~= nil and pos ~= nil then
         ---@class DunkAttempt
         ---@field player LadderPlayer

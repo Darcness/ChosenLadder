@@ -50,21 +50,17 @@ end
 Functions.Split = Split
 
 function Dump(o)
-    if type(o) == "table" then
+    local varType = type(o)
+    if varType == "table" then
         local s = "{ "
         for k, v in pairs(o) do
-            if type(k) ~= "number" then
-                k = '"' .. k .. '"'
-            end
-            s = s .. "[" .. k .. "] = " .. Dump(v) .. ","
+            s = s .. "[" .. Dump(k) .. "] = " .. Dump(v) .. ","
         end
         return s .. "} "
+    elseif varType == "number" then
+        return tostring(o)
     else
-        if type(o) ~= "number" then
-            return string.format('"%s"', tostring(o))
-        else
-            return tostring(o)
-        end
+        return string.format('"%s"', tostring(o))
     end
 end
 

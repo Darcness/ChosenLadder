@@ -62,29 +62,7 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
 end
 
 function ChosenLadder:GROUP_ROSTER_UPDATE()
-    local lootMethod, masterLooterPartyId, _ = GetLootMethod()
-    D.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0)
-
-    local members = {}
-    local i = 1
-    local done = false
-    while i <= MAX_RAID_MEMBERS and not done do
-        local rosterInfo = RaidMember:CreateByRaidIndex(i)
-        -- Break early if we hit a nil (this means we've reached the full number of players)
-        if rosterInfo == nil then
-            done = true
-        else
-            table[rosterInfo.guid] = rosterInfo
-            ---@param a LadderPlayer
-            local myPlayer = F.Find(ChosenLadder:GetLadder().players, function(a) a:HasGuid(rosterInfo.guid) end)
-            if myPlayer ~= nil then
-                myPlayer:SetGuid(rosterInfo.guid)
-            end
-        end
-        i = i + 1
-    end
-
-    D.raidMembers = members
+    D:UpdateRaidData()
 
     UI:UpdateElementsByPermission()
 
