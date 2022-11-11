@@ -47,7 +47,7 @@ local function RaidDrop_Initialize_Builder(id)
                         UIDropDownMenu_SetText(frame, raidPlayer.name)
                         self.checked = true
                         player:AddGuid(myGuid)
-                        player:SetGuid(myGuid)
+                        player:SetCurrentGuid(myGuid)
                     end
 
                     UIDropDownMenu_AddButton(myInfo, level)
@@ -176,13 +176,8 @@ function Ladder:PopulatePlayerList()
     end
 
     for playerIdx, player in ipairs(ChosenLadder:GetLadder().players) do
-        -- Store the player row, since we can't count on the WoW client to garbage collect
-        if _G[UI.UIPrefixes.PlayerRow .. player.id] == nil then
-            _G[UI.UIPrefixes.PlayerRow .. player.id] = CreatePlayerRowItem(UI.scrollChild, player, playerIdx)
-        end
-
-        -- Grab the stored player row and visually reorder it.
-        local playerRow = _G[UI.UIPrefixes.PlayerRow .. player.id]
+        local playerRow = _G[UI.UIPrefixes.PlayerRow .. player.id] or
+            CreatePlayerRowItem(UI.scrollChild, player, playerIdx)
         playerRow:SetPoint("TOPLEFT", UI.scrollChild, 0, (playerIdx - 1) * -28)
         playerRow:Show()
 
@@ -246,8 +241,8 @@ local function CreateImportFrame()
                     table.insert(lines, F.Trim(line))
                 end
             end
-            ChosenLadder:GetLadder():BuildFromPlayerList(lines)
-            
+            ChosenLadder:GetLadder():BuildFromPlayerList(lines, D)
+
             Ladder:PopulatePlayerList()
             Ladder:ToggleImportFrame()
         end
@@ -279,7 +274,6 @@ local function CreateImportFrame()
     editBox:SetScript(
         "OnShow",
         function(self)
-            ChosenLadder:PrintToWindow("editbox onshow")
             self:SetText(ChosenLadder:GetLadder():FormatNames())
         end
     )

@@ -63,11 +63,14 @@ end
 
 function ChosenLadder:GROUP_ROSTER_UPDATE()
     ChosenLadder:Log("Enter: GROUP_ROSTER_UPDATE")
-    D:UpdateRaidData()
+    local requiresUIUpdate = D:UpdateRaidData()
 
     UI:UpdateElementsByPermission()
 
-    UI.Ladder:PopulatePlayerList()
+    if requiresUIUpdate then
+        UI.Ladder:PopulatePlayerList()
+    end
+
     ChosenLadder:Log("Exit: GROUP_ROSTER_UPDATE")
 end
 
@@ -85,6 +88,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
 
     if auctionItem ~= nil then
         ChosenLadder:Log("CHAT_MSG_WHISPER: Auction Item Found!")
+        text = string.gsub(text, ",", "")
         local bid = tonumber(text)
         local minBid = D.Auction:GetMinimumBid()
 
@@ -112,7 +116,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
 
         if dunkWord == nil then
             ChosenLadder:Whisper(string.format("[%s]: %s is currently running a Dunk session for loot.  If you'd like to dunk for it, type: /whisper %s DUNK"
-                , A, playerName, playerName), playerName)
+                , A, myName, myName), playerName)
             return
         end
 
@@ -182,7 +186,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                     end
 
                     if D.syncing == StreamFlag.Complete then
-                        ChosenLadder:GetLadder():BuildFromPlayerList(players)
+                        ChosenLadder:GetLadder():BuildFromPlayerList(players, D)
                         UI.Ladder:PopulatePlayerList()
                         D.syncing = StreamFlag.Empty
                         ChosenLadder:Log("OnCommReceived: Updated Player List")

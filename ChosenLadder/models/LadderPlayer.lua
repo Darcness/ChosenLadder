@@ -45,7 +45,7 @@ function DatabasePlayer:CurrentGuid()
 end
 
 ---@param guid string
-function DatabasePlayer:SetGuid(guid)
+function DatabasePlayer:SetCurrentGuid(guid)
     local newGuid = F.ShortenPlayerGuid(guid)
     self.currentGuid = newGuid
 end
