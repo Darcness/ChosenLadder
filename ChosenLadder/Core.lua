@@ -362,6 +362,7 @@ function ChosenLadder:GetLadder()
     return ChosenLadder:Database().factionrealm.ladder
 end
 
+---@return string[]
 function ChosenLadder:GetLog()
     return ChosenLadder:Database().char.log
 end

@@ -129,11 +129,15 @@ function Data:SetBidSteps(input)
     ChosenLadder:Database().factionrealm.bidSteps = newSteps
 end
 
+---Updates the Raid Data
+---@return boolean shouldUpdateUI
 function Data:UpdateRaidData()
     local lootMethod, masterLooterPartyId, _ = GetLootMethod()
     Data.isLootMaster = (lootMethod == "master" and masterLooterPartyId == 0)
 
-    local raidMembers = Data:GetRaidRoster();
+    local raidMembers = Data:GetRaidRoster()
+    local oldRaidCount = 0
+    for _ in pairs(raidMembers) do oldRaidCount = oldRaidCount + 1 end
     raidMembers:Clear();
 
     local i = 1
@@ -147,14 +151,16 @@ function Data:UpdateRaidData()
             raidMembers.members[rosterInfo.shortGuid] = rosterInfo
             ---@param a LadderPlayer
             local myPlayer = F.Find(ChosenLadder:GetLadder().players, function(a) a:HasGuid(rosterInfo.shortGuid) end)
-            if myPlayer ~= nil then
-                myPlayer:SetGuid(rosterInfo.shortGuid)
+            if myPlayer ~= nil and myPlayer:CurrentGuid() ~= rosterInfo.shortGuid then
+                myPlayer:SetCurrentGuid(rosterInfo.shortGuid)
             end
         end
         i = i + 1
     end
+
+    return oldRaidCount ~= GetNumGroupMembers()
 end
 
-function Data:IsLootMaster() 
+function Data:IsLootMaster()
     return Data.isLootMaster or Data.isLootMasterOverride or false
 end

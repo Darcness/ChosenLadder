@@ -31,3 +31,10 @@ end
 function RaidRoster:Clear()
     self.members = {}
 end
+
+---@param guid string
+---@return RaidMember?
+function RaidRoster:GetPlayerByGuid(guid)
+    local guid = F.ShortenPlayerGuid(guid)
+    return self.members[guid]
+end

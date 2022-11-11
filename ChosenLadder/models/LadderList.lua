@@ -22,7 +22,8 @@ function LadderList:new(o)
 end
 
 ---@param rows string[]
-function LadderList:BuildFromPlayerList(rows)
+---@param data Data
+function LadderList:BuildFromPlayerList(rows, data)
     ---@type LadderList
     local newPlayerList = LadderList:new({
         lastModified = GetServerTime(),
@@ -38,6 +39,14 @@ function LadderList:BuildFromPlayerList(rows)
                 guids = F.Split(nameParts[3] or "", "-"),
                 log = ""
             })
+
+            for _, guid in ipairs(player.guids) do
+                local rosterPlayer = data:GetRaidRoster():GetPlayerByGuid(guid)
+                if rosterPlayer ~= nil then
+                    player:SetCurrentGuid(guid)
+                end
+            end
+
             table.insert(newPlayerList.players, player)
         else
             ChosenLadder:PrintToWindow("Invalid Import Data: " .. v)
@@ -70,7 +79,7 @@ function LadderList:SetPlayerGUIDByID(id, guid)
     local player = self:GetPlayerByID(id)
     if player ~= nil then
         player:AddGuid(guid)
-        player:SetGuid(guid)
+        player:SetCurrentGuid(guid)
     else
         ChosenLadder:PrintToWindow(string.format("Selected Player unable to be found! %s - %s", player, guid))
     end
