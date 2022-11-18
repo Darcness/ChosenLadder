@@ -374,8 +374,10 @@ function ChosenLadder:Log(message)
 
     if #log >= logMaxSize then
         local newLog = {}
-        for i, v in pairs(unpack(log, 2, logMaxSize - 1)) do
-            newLog[i] = v
+        for i, v in ipairs(log) do
+            if i ~= 0 then
+                newLog[i - 1] = v
+            end
         end
         log = newLog
     end
