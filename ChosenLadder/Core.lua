@@ -14,17 +14,35 @@ local D = NS.Data
 ---@field factionrealm DatabaseFactionRealm
 local defaultDB = {
     ---@class DatabaseChar
+    ---@field announcements AnnouncementSettings
+    ---@field log string[]
     ---@field minimap MinimapOptions
     ---@field ouputChannel number
-    ---@field log string[]
     char = {
+        ---@class AnnouncementSettings
+        ---@field auctionStart boolean
+        ---@field auctionCancel boolean
+        ---@field auctionComplete boolean
+        ---@field auctionUpdate boolean
+        ---@field dunkStart boolean
+        ---@field dunkComplete boolean
+        ---@field dunkCancel boolean
+        announcements = {
+            auctionStart = true,
+            auctionCancel = true,
+            auctionComplete = true,
+            auctionUpdate = false,
+            dunkStart = true,
+            dunkComplete = true,
+            dunkCancel = true,
+        },
+        log = {},
         ---@class MinimapOptions
         ---@field hide boolean
         minimap = {
             hide = false
         },
-        outputChannel = 1,
-        log = {}
+        outputChannel = 1
     },
     ---@class DatabaseProfile
     ---@field ladderType number
@@ -58,6 +76,7 @@ local defaultDB = {
 
 ---@return Database
 function ChosenLadder:Database()
+    ---@diagnostic disable-next-line: return-type-mismatch
     return self.db
 end
 
