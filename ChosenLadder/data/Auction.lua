@@ -58,7 +58,8 @@ function Auction:Complete(forceCancel)
     end
 
     if Auction.currentBid == 0 or forceCancel then
-        ChosenLadder:PutOnBlast("Auction Canceled by " .. UnitName("player") .. "!")
+        ChosenLadder:PutOnBlast("Auction Canceled by " .. UnitName("player") .. "!",
+            ChosenLadder:Database().char.announcements.auctionCancel)
         clearAuction()
         return
     end
@@ -69,7 +70,7 @@ function Auction:Complete(forceCancel)
             Ambiguate(Auction.currentWinner, "all"),
             Auction:GetItemLink(),
             Auction.currentBid
-        )
+        ), ChosenLadder:Database().char.announcements.auctionComplete
     )
 
     ---@class AuctionHistoryItem
@@ -114,7 +115,7 @@ function Auction:Start(auctionItem)
     Auction.auctionItem = auctionItem
     local itemLink = Auction:GetItemLink() or "UNKNOWN"
     ChosenLadder:PutOnBlast(string.format("Beginning auction for %s, please whisper %s your bids.", itemLink,
-        UnitName("player")))
+        UnitName("player")), ChosenLadder:Database().char.announcements.auctionStart)
 
     UI.Loot:PopulateLootList()
 end

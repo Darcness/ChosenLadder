@@ -248,9 +248,10 @@ end
 
 ---Sends out a big message to the entire raid.
 ---@param message string
-function ChosenLadder:PutOnBlast(message)
+---@param raidWarning boolean
+function ChosenLadder:PutOnBlast(message, raidWarning)
     local channel = "RAID"
-    if UnitIsGroupAssistant("player") or UnitIsGroupLeader("player") then
+    if raidWarning and (UnitIsGroupAssistant("player") or UnitIsGroupLeader("player")) then
         channel = "RAID_WARNING"
     end
     SendChatMessage(message, channel)

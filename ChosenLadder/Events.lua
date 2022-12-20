@@ -105,7 +105,7 @@ function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
         end
 
         D.Auction:Bid(playerName, bid)
-        SendChatMessage("Current Bid: " .. bid, "RAID")
+        ChosenLadder:PutOnBlast("Current Bid: " .. bid, ChosenLadder:Database().char.announcements.auctionUpdate)
         return
     elseif dunkItem ~= nil then
         ChosenLadder:Log("CHAT_MSG_WHISPER: Dunk Item Found!")
