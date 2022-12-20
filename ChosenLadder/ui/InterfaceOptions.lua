@@ -241,7 +241,7 @@ local function CreateAnnouncementsRow(panel, previousRow)
     local secondRow = CreateBaseRowFrame("ChosenLadderOptionsAnnouncementContainer2", panel, row)
 
     local auctionUpdateCheck = _G["ChosenLadderOptionsAnnouncementAuctionUpdateCheck"] or
-        CreateFrame("CheckButton", "ChosenLadderOptionsAnnouncementAuctionCancelCheck", secondRow,
+        CreateFrame("CheckButton", "ChosenLadderOptionsAnnouncementAuctionUpdateCheck", secondRow,
             "UICheckButtonTemplate")
     auctionUpdateCheck:SetSize(28, 28)
     auctionUpdateCheck:SetPoint("LEFT", secondRow, fontLabel:GetWidth() + 8, 0)
