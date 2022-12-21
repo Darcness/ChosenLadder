@@ -34,7 +34,8 @@ local Data = {
             "duni",
             "dunm",
             "dlunk",
-            "drunk"
+            "drunk",
+            "dukn"
         },
         StreamFlag = {
             Empty = 1,

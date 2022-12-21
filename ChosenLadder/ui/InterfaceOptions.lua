@@ -186,6 +186,7 @@ end
 ---@return string
 ---@return string
 local function AnnouncementFrameNames(type)
+    type = string.gsub(type, " ", "")
     local cbName = "ChosenLadderOptionsAnnouncement" .. type .. "Check"
     local lName = "ChosenLadderOptionsAnnouncement" .. type .. "Label"
 
@@ -207,7 +208,7 @@ local function CreateAnnounceCheckbox(type, parent, previousFrame, checked)
 
     local label = _G[lName] or parent:CreateFontString(lName, nil, "GameFontNormal")
     label:SetPoint("LEFT", checkBox, checkBox:GetWidth() + 2, 0)
-    label:SetText("Auction Start")
+    label:SetText(type)
     checkBox:SetFontString(label)
 
     return checkBox, label
@@ -231,11 +232,12 @@ local function CreateAnnouncementsRow(panel, previousRow)
     fontLabel:SetPoint("LEFT", row, 0, 0)
     fontLabel:SetText("Raid Warning")
 
-    local auctionStartCheck, auctionStartLabel = CreateAnnounceCheckbox("AuctionStart", row, fontLabel,
+    local auctionStartCheck, auctionStartLabel = CreateAnnounceCheckbox("Auction Start", row, fontLabel,
         ChosenLadder:Database().char.announcements.auctionStart)
-    local auctionCompleteCheck, auctionCompleteLabel = CreateAnnounceCheckbox("AuctionComplete", row, auctionStartLabel,
+    local auctionCompleteCheck, auctionCompleteLabel = CreateAnnounceCheckbox("Auction Complete", row, auctionStartLabel
+        ,
         ChosenLadder:Database().char.announcements.auctionComplete)
-    local auctionCancelCheck, auctionCancelLabel = CreateAnnounceCheckbox("AuctionCancel", row, auctionCompleteLabel,
+    local auctionCancelCheck, auctionCancelLabel = CreateAnnounceCheckbox("Auction Cancel", row, auctionCompleteLabel,
         ChosenLadder:Database().char.announcements.auctionCancel)
 
     local secondRow = CreateBaseRowFrame("ChosenLadderOptionsAnnouncementContainer2", panel, row)
@@ -253,11 +255,11 @@ local function CreateAnnouncementsRow(panel, previousRow)
     auctionUpdateLabel:SetText("Auction Update (Bid)")
     auctionUpdateCheck:SetFontString(auctionUpdateLabel)
 
-    local dunkStartCheck, dunkStartLabel = CreateAnnounceCheckbox("DunkStart", secondRow, auctionUpdateLabel,
+    local dunkStartCheck, dunkStartLabel = CreateAnnounceCheckbox("Dunk Start", secondRow, auctionUpdateLabel,
         ChosenLadder:Database().char.announcements.dunkStart)
-    local dunkCompleteCheck, dunkCompleteLabel = CreateAnnounceCheckbox("DunkComplete", secondRow, dunkStartLabel,
+    local dunkCompleteCheck, dunkCompleteLabel = CreateAnnounceCheckbox("Dunk Complete", secondRow, dunkStartLabel,
         ChosenLadder:Database().char.announcements.dunkComplete)
-    local dunkCancelCheck, dunkCancelLabel = CreateAnnounceCheckbox("DunkCancel", secondRow, dunkCompleteLabel,
+    local dunkCancelCheck, dunkCancelLabel = CreateAnnounceCheckbox("Dunk Cancel", secondRow, dunkCompleteLabel,
         ChosenLadder:Database().char.announcements.dunkCancel)
 
     return secondRow, auctionStartCheck, auctionCompleteCheck, auctionCancelCheck, auctionUpdateCheck, dunkStartCheck,
