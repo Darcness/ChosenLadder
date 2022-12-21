@@ -29,6 +29,8 @@
         "MAX_CONTAINER_ITEMS",
         "UIDropDownMenu_EnableDropDown",
         "UIDropDownMenu_DisableDropDown",
-        "CHAT_MSG_WHISPER"
+        "CHAT_MSG_WHISPER",
+        "GetContainerNumSlots",
+        "GetContainerItemID"
     ],
 }

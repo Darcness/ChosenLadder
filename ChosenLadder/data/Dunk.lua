@@ -55,7 +55,7 @@ function Dunk:Cancel()
         return
     end
 
-    ChosenLadder:PutOnBlast("Cancelling dunk session for " .. Dunk:GetItemLink())
+    ChosenLadder:PutOnBlast("Cancelling dunk session for " .. Dunk:GetItemLink(), ChosenLadder:Database().char.announcements.dunkCancel)
     clearDunkSession()
 end
 
@@ -164,21 +164,22 @@ function Dunk:Complete(id)
     local player = ChosenLadder:GetLadder():GetPlayerByID(id)
 
     if player == nil then
-        ChosenLadder:PutOnBlast("ERROR: Missing player. Dunk Session Cancelled")
+        ChosenLadder:PutOnBlast("ERROR: Missing player. Dunk Session Cancelled", false)
         ChosenLadder:PrintToWindow("Unable to find player by id: " .. id)
         return
     end
 
-    ChosenLadder:PutOnBlast(string.format("%s won by %s! Congrats!", item, player.name))
+    ChosenLadder:PutOnBlast(string.format("%s won by %s! Congrats!", item, player.name), ChosenLadder:Database().char.announcements.dunkComplete)
     ChosenLadder:PrintToWindow("Registered Dunks:")
 
     ---@param a DunkAttempt
     ---@param b DunkAttempt
+    ---@return integer
     table.sort(Dunk.dunks, function(a, b)
         local left = (a or { pos = 0 })
         local right = (b or { pos = 0 })
 
-        return (a.pos or 0) - (b.pos or 0)
+        return left.pos - right.pos
     end)
 
     for _, v in ipairs(Dunk.dunks) do
@@ -253,7 +254,7 @@ function Dunk:Start(dunkItem)
     clearDunkSession()
     Dunk.dunkItem = dunkItem
     ChosenLadder:PutOnBlast(string.format("Beginning Dunks for %s, please whisper DUNK to %s", Dunk:GetItemLink(),
-        UnitName("player")))
+        UnitName("player")), ChosenLadder:Database().char.announcements.dunkStart)
     UI.Loot:PopulateLootList()
 end
 
