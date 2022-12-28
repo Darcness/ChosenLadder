@@ -1,6 +1,6 @@
 # ChosenLadder
 
-ChosenLadder is a Raid Administration assistant for The Chosen guild on Bloodsail Buccaneers - US East / TBC
+ChosenLadder is a Raid Administration assistant for The Chosen guild on Bloodsail Buccaneers - US East / Wrath
 
 ## Features
 1. Ladder window based on Suicide Kings rules
