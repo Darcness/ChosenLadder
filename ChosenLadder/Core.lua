@@ -218,6 +218,7 @@ function ChosenLadder:IAmTheCaptainNow()
     if name == "Fastandan" or name == "Foladocus" or name == "Firannor" or name == "Yanagi" or name == "Foghli" then
         if D.isLootMasterOverride then
             D.isLootMasterOverride = false
+            D.isTestMode = false
             ChosenLadder:PrintToWindow("You've been demoted!")
         else
             D.isLootMasterOverride = true
@@ -415,4 +416,5 @@ function ChosenLadder:Log(message)
     end
 
     table.insert(log, GetServerTime() .. "||" .. message)
+    ChosenLadder:Database().char.log = log
 end

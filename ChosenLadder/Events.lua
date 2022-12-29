@@ -147,11 +147,11 @@ end
 function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
     if prefix == A then
         ChosenLadder:Log(string.format("Enter: OnCommReceived ||%s||%s||%s||%s", prefix, message, distribution, sender))
-
         if distribution == "RAID" and sender ~= UnitName("player") then
             local beginSyncFlag = D.Constants.BeginSyncFlag
             local endSyncFlag = D.Constants.EndSyncFlag
 
+            print(message)
             if F.StartsWith(message, beginSyncFlag) then
                 ChosenLadder:Log("OnCommReceived: Found BeginSyncFlag")
                 local vars = F.Split(message, "|")
@@ -190,20 +190,23 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                         ChosenLadder:Log("OnCommReceived: Updated Player List")
                     end
                 end
-            elseif F.StartsWith(message, "AuctionStart") then
+            elseif F.StartsWith(message, D.Constants.AuctionStartFlag) then
                 local vars = F.Split(message, "|")
-                if F.IsItemLink(vars[1]) then
-                    D.Auction.auctionItem = vars[1]
-                end
-            elseif F.StartsWith(message, "AuctionEnd") then
+
+                D.Auction.auctionItem = vars[1]
+                UI.Loot:PopulateLootList()
+
+            elseif F.StartsWith(message, D.Constants.AuctionEndFlag) then
                 D.Auction:ClearAuction()
-            elseif F.StartsWith(message, "DunkStart") then
+                UI.Loot:PopulateLootList()
+            elseif F.StartsWith(message, D.Constants.DunkStartFlag) then
                 local vars = F.Split(message, "|")
-                if F.IsItemLink(vars[1]) then
-                    D.Dunk.dunkItem = vars[1]
-                end
-            elseif F.StartsWith(message, "DunkEnd") then
+                D.Dunk.dunkItem = vars[1]
+                UI.Loot:PopulateLootList()
+
+            elseif F.StartsWith(message, D.Constants.DunkEndFlag) then
                 D.Dunk:ClearDunk()
+                UI.Loot:PopulateLootList()
             end
         end
         ChosenLadder:Log("Exit: OnCommReceived")
