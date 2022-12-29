@@ -263,7 +263,7 @@ function ChosenLadder:PutOnBlast(message, raidWarning)
     end
 
     if D.isTestMode then
-        ChosenLadder:Print(message)
+        ChosenLadder:PrintToWindow(message)
     else
         SendChatMessage(message, channel)
     end
