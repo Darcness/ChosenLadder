@@ -8,6 +8,7 @@ local F = NS.Functions
 ---@field isLootMaster boolean
 ---@field isLootMasterOverride boolean
 ---@field lootMasterItems LootItem[]
+---@field isTestMode boolean
 ---@field Auction Auction
 ---@field Dunk Dunk
 ---@field syncing number
@@ -16,12 +17,20 @@ local Data = {
     ---@class DataConstants
     ---@field BeginSyncFlag string
     ---@field EndSyncFlag string
+    ---@field AuctionStartFlag string
+    ---@field AuctionEndFlag string
+    ---@field DunkStartFlag string
+    ---@field DunkEndFlag string
     ---@field AsheosWords string[]
     ---@field StreamFlag table<string, number>
     ---@field LadderType table<string, number>
     Constants = {
         BeginSyncFlag = "BEGIN SYNC:",
         EndSyncFlag = "END SYNC",
+        AuctionStartFlag = "AUCTION START",
+        AuctionEndFlag = "AUCTION END",
+        DunkStartFlag = "DUNK START",
+        DunkEndFlag = "DUNK END",
         AsheosWords = {
             "dunk",
             "sunk",
@@ -49,6 +58,7 @@ local Data = {
     },
     isLootMaster = false,
     isLootMasterOverride = false,
+    isTestMode = false,
     lootMasterItems = {},
     syncing = 1,
     raidMembers = RaidRoster:new()

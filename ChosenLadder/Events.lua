@@ -29,9 +29,7 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
     end
 
     for bag = 0, 4 do
-        local slotCount = GetContainerNumSlots(bag)
-        for slot = 1, slotCount do
-            local slotFrameNum = slotCount - (slot - 1)
+        for slot = 1, GetContainerNumSlots(bag) do
             local itemID = GetContainerItemID(bag, slot)
             if itemID then
                 local itemLocation = ItemLocation:CreateFromBagAndSlot(bag, slot)
@@ -76,7 +74,7 @@ end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
     ChosenLadder:Log("Enter: CHAT_MSG_WHISPER ||" .. text .. "||" .. playerName)
-    if not D:GetRaidRoster():IsPlayerInRaid(playerName) then
+    if not (D:GetRaidRoster():IsPlayerInRaid(playerName) or D.isTestMode) then
         -- Nothing to process, this is just whisper chatter.
         ChosenLadder:Log("CHAT_MSG_WHISPER: User not in raid")
         return
@@ -192,6 +190,20 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                         ChosenLadder:Log("OnCommReceived: Updated Player List")
                     end
                 end
+            elseif F.StartsWith(message, "AuctionStart") then
+                local vars = F.Split(message, "|")
+                if F.IsItemLink(vars[1]) then
+                    D.Auction.auctionItem = vars[1]
+                end
+            elseif F.StartsWith(message, "AuctionEnd") then
+                D.Auction:ClearAuction()
+            elseif F.StartsWith(message, "DunkStart") then
+                local vars = F.Split(message, "|")
+                if F.IsItemLink(vars[1]) then
+                    D.Dunk.dunkItem = vars[1]
+                end
+            elseif F.StartsWith(message, "DunkEnd") then
+                D.Dunk:ClearDunk()
             end
         end
         ChosenLadder:Log("Exit: OnCommReceived")

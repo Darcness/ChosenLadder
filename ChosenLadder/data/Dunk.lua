@@ -20,7 +20,7 @@ local Dunk = {
 }
 D.Dunk = Dunk
 
-local function clearDunkSession()
+function Dunk:ClearDunk()
     Dunk.dunkItem = nil
     Dunk.dunks = {}
 end
@@ -55,8 +55,11 @@ function Dunk:Cancel()
         return
     end
 
-    ChosenLadder:PutOnBlast("Cancelling dunk session for " .. Dunk:GetItemLink(), ChosenLadder:Database().char.announcements.dunkCancel)
-    clearDunkSession()
+    ChosenLadder:PutOnBlast("Cancelling dunk session for " .. Dunk:GetItemLink(),
+        ChosenLadder:Database().char.announcements.dunkCancel)
+    Dunk:ClearDunk()
+
+    ChosenLadder:SendMessage(D.Constants.DunkEndFlag, "RAID")
 end
 
 ---Forces the found player to the end of the list.
@@ -146,6 +149,33 @@ local function ProcessFreezingDunk(id)
     return newPlayers, found, foundPos, targetPos
 end
 
+---Sorts Dunks by position
+---@param dunks? DunkAttempt[]
+function Dunk:Sort(dunks)
+    dunks = dunks or Dunk.dunks
+    ChosenLadder:Log("Dunk:Sort")
+    ChosenLadder:Log(F.Dump(dunks))
+
+    -- Strip out any nils (how did that happen in the first place?)
+    local tempDumps = {}
+    for i = 1, #dunks do
+        if dunks[i] ~= nil then
+            table.insert(tempDumps, dunks[i])
+        end
+    end
+    dunks = tempDumps
+
+    ---@param a DunkAttempt
+    ---@param b DunkAttempt
+    ---@return integer
+    table.sort(dunks, function(a, b)
+        local left = (a or { pos = 0 })
+        local right = (b or { pos = 0 })
+
+        return left.pos - right.pos
+    end)
+end
+
 ---Processes a Dunk
 ---@param id string ID of the player who wins
 function Dunk:Complete(id)
@@ -169,25 +199,12 @@ function Dunk:Complete(id)
         return
     end
 
-    ChosenLadder:PutOnBlast(string.format("%s won by %s! Congrats!", item, player.name), ChosenLadder:Database().char.announcements.dunkComplete)
-    ChosenLadder:PrintToWindow("Registered Dunks:")
+    local preprocessedDunks = { unpack(Dunk.dunks) }
 
-    ---@param a DunkAttempt
-    ---@param b DunkAttempt
-    ---@return integer
-    table.sort(Dunk.dunks, function(a, b)
-        local left = (a or { pos = 0 })
-        local right = (b or { pos = 0 })
-
-        return left.pos - right.pos
-    end)
-
-    for _, v in ipairs(Dunk.dunks) do
-        ChosenLadder:PrintToWindow(string.format("%s - %d", v.player.name, v.pos))
-    end
+    ChosenLadder:PutOnBlast(string.format("%s won by %s! Congrats!", item, player.name),
+        ChosenLadder:Database().char.announcements.dunkComplete)
 
     local newPlayers, found, foundPos, targetPos = {}, nil, nil, nil
-
     if ChosenLadder:Database().profile.ladderType == D.Constants.LadderType["SK w/ Freezing"] then
         newPlayers, found, foundPos, targetPos = ProcessFreezingDunk(id)
     else
@@ -225,12 +242,19 @@ function Dunk:Complete(id)
         lootItem.sold = true
     end
 
-    clearDunkSession()
+    Dunk:ClearDunk()
+
+    ChosenLadder:PrintToWindow("Registered Dunks:")
+    Dunk:Sort(preprocessedDunks)
+    for _, v in ipairs(preprocessedDunks) do
+        ChosenLadder:PrintToWindow(string.format("%s - %d", v.player.name, v.pos))
+    end
 
     UI.Loot:PopulateLootList()
     ChosenLadder:SetInventoryOverlays()
 
     D:GenerateSyncData(false)
+    ChosenLadder:SendMessage(D.Constants.DunkEndFlag, "RAID")
 end
 
 ---@param dunkItem string Item link or GUID
@@ -251,9 +275,11 @@ function Dunk:Start(dunkItem)
         ChosenLadder:PrintToWindow("Error: Still running an auction for " .. (itemLink or "UNKNOWN"))
     end
 
-    clearDunkSession()
+    Dunk:ClearDunk()
     Dunk.dunkItem = dunkItem
-    ChosenLadder:PutOnBlast(string.format("Beginning Dunks for %s, please whisper DUNK to %s", Dunk:GetItemLink(),
+    local itemLink = Dunk:GetItemLink() or "UNKNOWN"
+    ChosenLadder:SendMessage(D.Constants.DunkStartFlag .. "|" .. itemLink, "RAID")
+    ChosenLadder:PutOnBlast(string.format("Beginning Dunks for %s, please whisper DUNK to %s", itemLink,
         UnitName("player")), ChosenLadder:Database().char.announcements.dunkStart)
     UI.Loot:PopulateLootList()
 end

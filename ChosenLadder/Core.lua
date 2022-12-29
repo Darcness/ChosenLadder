@@ -99,6 +99,7 @@ function ChosenLadder:OnInitialize()
 
     -- Register the Database
     self.db = LibStub("AceDB-3.0"):New("ChosenLadderDB", defaultDB)
+    ChosenLadder:Log("Enter: ChosenLadder:OnInitialize")
     NS.Icon:Register(A, clLDB, ChosenLadder:Database().char.minimap)
 
     local newPlayers = {}
@@ -122,6 +123,8 @@ function ChosenLadder:OnInitialize()
         players = newPlayers,
         lastModified = ChosenLadder:Database().factionrealm.ladder.lastModified or GetServerTime()
     })
+
+    ChosenLadder:Log("Exit: ChosenLadder:OnInitialize")
 end
 
 function YouSoBad(action)
@@ -189,6 +192,7 @@ function ChosenLadder:SetInventoryOverlays()
 end
 
 function ChosenLadder:OnEnable()
+    ChosenLadder:Log("Enter: ChosenLadder:OnEnable")
     hooksecurefunc(MasterLooterFrame, 'Hide', function(self) self:ClearAllPoints() end)
     hooksecurefunc("ContainerFrame_GenerateFrame", GenerateBagFrameOverlays)
     ChosenLadder:SetInventoryOverlays()
@@ -206,6 +210,7 @@ function ChosenLadder:OnEnable()
     UI.InterfaceOptions:CreatePanel()
 
     D:UpdateRaidData()
+    ChosenLadder:Log("Exit: ChosenLadder:OnEnable")
 end
 
 function ChosenLadder:IAmTheCaptainNow()
@@ -216,6 +221,7 @@ function ChosenLadder:IAmTheCaptainNow()
             ChosenLadder:PrintToWindow("You've been demoted!")
         else
             D.isLootMasterOverride = true
+            D.isTestMode = true
             ChosenLadder:PrintToWindow("Aye Aye, Captain!")
             for bag = 0, 4 do
                 for slot = 1, GetContainerNumSlots(bag) do
@@ -254,7 +260,13 @@ function ChosenLadder:PutOnBlast(message, raidWarning)
     if raidWarning and (UnitIsGroupAssistant("player") or UnitIsGroupLeader("player")) then
         channel = "RAID_WARNING"
     end
-    SendChatMessage(message, channel)
+
+    if D.isTestMode then
+        ChosenLadder:Print(message)
+    else
+        SendChatMessage(message, channel)
+    end
+
 end
 
 function ChosenLadder:SetMinimapHidden(hidden)
@@ -276,7 +288,7 @@ function ChosenLadder:ToggleLadder()
 end
 
 function ChosenLadder:SendMessage(message, destination)
-    if not D:IsLootMaster() then
+    if not (D:IsLootMaster() or D.isTestMode) then
         YouSoBad("Send Addon Communications")
         return
     end
@@ -402,5 +414,5 @@ function ChosenLadder:Log(message)
         log = newLog
     end
 
-    table.insert(log, message)
+    table.insert(log, GetServerTime() .. "||" .. message)
 end

@@ -5,6 +5,7 @@ local A, NS = ...
 local D = NS.Data
 ---@type UI
 local UI = NS.UI
+---@type Functions
 local F = NS.Functions
 
 ---@class Loot
@@ -71,6 +72,7 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
             else
                 D.Auction:Start(item.guid)
             end
+            Loot:PopulateLootList()
         end
     )
     auctionButton:SetEnabled(not item.sold)
@@ -81,6 +83,14 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
     clearButton:SetWidth(48)
     clearButton:SetPoint("TOPRIGHT", auctionButton, -(auctionButton:GetWidth() + 2), 0)
     clearButton:SetScript("OnClick", function(self, button, down)
+        if D.Auction.auctionItem == item.guid then
+            D.Auction:Complete(true)
+        end
+
+        if D.Dunk.dunkItem == item.guid then
+            D.Dunk:Cancel()
+        end
+
         D:RemoveLootItemByGUID(item.guid)
         Loot:PopulateLootList()
     end)
@@ -88,23 +98,88 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
     return row
 end
 
-function Loot:CreateMainFrame(mainFrame)
-    local actionFrame = CreateFrame("Frame", "ChosenLadderLootActionContentFrame", mainFrame, "BackdropTemplate")
+local function CreateLeftFrame(mainFrame)
+    local actionFrameName = "ChosenLadderLootActionContentFrame"
+    local actionFrame = _G[actionFrameName] or CreateFrame("Frame", actionFrameName, mainFrame, "BackdropTemplate")
     actionFrame:SetPoint("TOPLEFT", mainFrame, UIC.FrameInset.left, -UIC.FrameInset.top)
     actionFrame:SetPoint("BOTTOMRIGHT", mainFrame, -UIC.LeftFrame.width, UIC.FrameInset.bottom)
 
-    local clearButton = CreateFrame("Button", "ChosenLadderLootClearAllButton", actionFrame, "UIPanelButtonTemplate")
+    local clearButtonName = "ChosenLadderLootClearAllButton"
+    local clearButton = _G[clearButtonName] or
+        CreateFrame("Button", clearButtonName, actionFrame, "UIPanelButtonTemplate")
     clearButton:SetWidth(UIC.actionButtonWidth)
     clearButton:SetPoint("TOPLEFT", actionFrame, 6, -6)
     clearButton:SetText("Clear All")
     clearButton:SetScript(
         "OnClick",
         function(self, button, down)
+            if D.Auction.auctionItem then
+                D.Auction:Complete(true)
+            end
+
+            if D.Dunk.dunkItem then
+                D.Dunk:Cancel()
+            end
+
             D.lootMasterItems = {}
             Loot:PopulateLootList()
         end
     )
 
+    local currentSessionType = ""
+    if D.Dunk.dunkItem then
+        currentSessionType = "Dunk"
+    elseif D.Auction.auctionItem then
+        currentSessionType = "Auction"
+    end
+
+    local sessionLabelName = "ChosenLadderLootSessionTypeFontString"
+    local sessionLabel = _G[sessionLabelName] or actionFrame:CreateFontString(sessionLabelName, nil, "GameFontNormal")
+    sessionLabel:SetPoint("TOPLEFT", clearButton, 0, -(clearButton:GetHeight() + 8))
+    sessionLabel:SetText(currentSessionType)
+
+    local sessionIconFrameName = "ChosenLadderLootSessionIcon"
+    local sessionIconFrame = _G[sessionIconFrameName] or
+        CreateFrame("Frame", sessionIconFrameName, mainFrame, "BackdropTemplate")
+    sessionIconFrame:SetPoint("TOPLEFT", sessionLabel, 0, -(sessionLabel:GetHeight() + 8))
+    sessionIconFrame:SetHeight(32)
+    sessionIconFrame:SetWidth(32)
+
+    local sessionIconTextureName = "ChosenLadderLootSessionTexture"
+    local sessionIconTexture = _G[sessionIconTextureName] or
+        sessionIconFrame:CreateTexture(sessionIconTextureName, "ARTWORK")
+    sessionIconTexture:SetAllPoints()
+
+    if currentSessionType == "" then
+        sessionIconTexture:SetTexture("")
+        sessionIconFrame:Hide()
+        sessionIconTexture:Hide()
+    else
+        local targetItem = D.Dunk.dunkItem or D.Auction.auctionItem
+        if targetItem == nil then
+            return
+        end
+
+        local item = nil
+        local itemLink = F.IsItemGUID(targetItem) and select(1, D:GetLootItemByGUID(targetItem)).itemLink or targetItem
+        item = Item:CreateFromItemLink(itemLink)
+        if item == nil then
+            return
+        end
+
+        sessionIconTexture:SetTexture(item:GetItemIcon())
+        sessionIconFrame:Show()
+        sessionIconTexture:Show()
+        sessionIconFrame:SetScript("OnEnter", function(self, link, text, button)
+            GameTooltip:SetOwner(sessionIconFrame, "ANCHOR_TOPLEFT")
+            GameTooltip:SetHyperlink(itemLink)
+            GameTooltip:Show()
+        end)
+        sessionIconFrame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    end
+end
+
+local function CreateScrollFrame(mainFrame)
     local contentFrame = CreateFrame("Frame", "ChosenLadderLootScrollContentFrame", mainFrame, "BackdropTemplate")
     contentFrame:SetPoint("TOPLEFT", mainFrame, UIC.LeftFrame.width, -UIC.FrameInset.top)
     contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, -UIC.FrameInset.right, UIC.FrameInset.bottom)
@@ -121,7 +196,7 @@ function Loot:CreateMainFrame(mainFrame)
     -- Create the scrolling child frame, set its width to fit
     local scrollChild = CreateFrame("Frame")
     scrollFrame:SetScrollChild(scrollChild)
-    self.scrollChild = scrollChild
+    Loot.scrollChild = scrollChild
 
     scrollChild:SetWidth(scrollFrame:GetWidth())
     scrollChild:SetHeight(scrollFrame:GetHeight())
@@ -131,6 +206,11 @@ function Loot:CreateMainFrame(mainFrame)
             Loot:PopulateLootList()
         end
     )
+end
+
+function Loot:CreateMainFrame(mainFrame)
+    CreateLeftFrame(mainFrame)
+    CreateScrollFrame(mainFrame)
 
     Loot:PopulateLootList()
 end
@@ -151,5 +231,10 @@ function Loot:PopulateLootList()
         if lootItem ~= nil and lootItem.guid ~= nil then
             CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
         end
+    end
+
+    local mainFrame = _G["TabPage2"]
+    if mainFrame ~= nil then
+        CreateLeftFrame(mainFrame)
     end
 end
