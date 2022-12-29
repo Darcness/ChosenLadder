@@ -151,7 +151,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
             local beginSyncFlag = D.Constants.BeginSyncFlag
             local endSyncFlag = D.Constants.EndSyncFlag
 
-            print(message)
+            -- print(message)
             if F.StartsWith(message, beginSyncFlag) then
                 ChosenLadder:Log("OnCommReceived: Found BeginSyncFlag")
                 local vars = F.Split(message, "|")
@@ -191,18 +191,22 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
                     end
                 end
             elseif F.StartsWith(message, D.Constants.AuctionStartFlag) then
-                local vars = F.Split(message, "|")
+                local vars = F.Split(message, "||")
 
-                D.Auction.auctionItem = vars[1]
-                UI.Loot:PopulateLootList()
+                if F.IsItemLink(vars[1]) then
+                    D.Auction.auctionItem = vars[1]
+                    UI.Loot:PopulateLootList()
+                end
 
             elseif F.StartsWith(message, D.Constants.AuctionEndFlag) then
                 D.Auction:ClearAuction()
                 UI.Loot:PopulateLootList()
             elseif F.StartsWith(message, D.Constants.DunkStartFlag) then
-                local vars = F.Split(message, "|")
-                D.Dunk.dunkItem = vars[1]
-                UI.Loot:PopulateLootList()
+                local vars = F.Split(message, "||")
+                if F.IsItemLink(vars[1]) then
+                    D.Dunk.dunkItem = vars[1]
+                    UI.Loot:PopulateLootList()
+                end
 
             elseif F.StartsWith(message, D.Constants.DunkEndFlag) then
                 D.Dunk:ClearDunk()

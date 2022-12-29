@@ -115,7 +115,7 @@ function Auction:Start(auctionItem)
     Auction:ClearAuction()
     Auction.auctionItem = auctionItem
     local itemLink = Auction:GetItemLink() or "UNKNOWN"
-    ChosenLadder:SendMessage(D.Constants.AuctionStartFlag .. "|" .. itemLink, "RAID")
+    ChosenLadder:SendMessage(D.Constants.AuctionStartFlag .. "||" .. itemLink, "RAID")
     ChosenLadder:PutOnBlast(string.format("Beginning auction for %s, please whisper %s your bids.", itemLink,
         UnitName("player")), ChosenLadder:Database().char.announcements.auctionStart)
 

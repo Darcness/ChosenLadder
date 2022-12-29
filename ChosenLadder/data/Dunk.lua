@@ -278,7 +278,7 @@ function Dunk:Start(dunkItem)
     Dunk:ClearDunk()
     Dunk.dunkItem = dunkItem
     local itemLink = Dunk:GetItemLink() or "UNKNOWN"
-    ChosenLadder:SendMessage(D.Constants.DunkStartFlag .. "|" .. itemLink, "RAID")
+    ChosenLadder:SendMessage(D.Constants.DunkStartFlag .. "||" .. itemLink, "RAID")
     ChosenLadder:PutOnBlast(string.format("Beginning Dunks for %s, please whisper DUNK to %s", itemLink,
         UnitName("player")), ChosenLadder:Database().char.announcements.dunkStart)
     UI.Loot:PopulateLootList()
