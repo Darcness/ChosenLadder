@@ -353,8 +353,8 @@ function ChosenLadder:PrintHistory(input)
         ChosenLadder:PrintToWindow("Ladder History")
         for k, v in pairs(D.Dunk.history) do
             ChosenLadder:PrintToWindow(
-                string.format("%s moved to position %d from position %d",
-                    Ambiguate(v.playerName, "all"), v.to, v.from)
+                string.format("%s moved from position %d to position %d",
+                    Ambiguate(v.playerName, "all"), v.from, v.to)
             )
         end
     else
