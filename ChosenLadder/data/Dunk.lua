@@ -171,8 +171,8 @@ function Dunk:Sort(dunks)
     table.sort(dunks, function(a, b)
         local left = (a or { pos = 0 })
         local right = (b or { pos = 0 })
-
-        return left.pos - right.pos
+        -- Apparently Lua is on drugs or something.  Sort functions are bool rather than integer like every other language on the planet.
+        return left.pos < right.pos
     end)
 end
 
