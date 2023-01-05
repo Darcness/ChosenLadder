@@ -216,7 +216,7 @@ function Dunk:Complete(id)
     end
 
     ChosenLadder:PrintToWindow(
-        string.format("%s moved to position %d from position %d", found.name, targetPos, foundPos)
+        string.format("%s moved from position %d to position %d", found.name, foundPos, targetPos)
     )
 
     ChosenLadder:Database().factionrealm.ladder.players = newPlayers
