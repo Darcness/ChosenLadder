@@ -163,7 +163,7 @@ local function GenerateBagFrameOverlays(frame)
     local name = frame:GetName();
     local bagstr = string.gsub(name, "ContainerFrame", "")
     local bag = (tonumber(bagstr) or 1) - 1
-    local slotCount = GetContainerNumSlots(bag)
+    local slotCount = C_Container.GetContainerNumSlots(bag)
     for slot = 1, slotCount do
         local slotFrameNum = slotCount - (slot - 1)
         -- Clear the overlay first, we'll re-colorize if necessary.
@@ -171,7 +171,7 @@ local function GenerateBagFrameOverlays(frame)
         overlayFrame:SetBackdropColor(0, 0, 0, 0)
         text:SetText("")
 
-        local itemID = GetContainerItemID(bag, slot)
+        local itemID = C_Container.GetContainerItemID(bag, slot)
         if itemID then
             local item = Item:CreateFromBagAndSlot(bag, slot)
             local guid = item:GetItemGUID()
@@ -225,8 +225,8 @@ function ChosenLadder:IAmTheCaptainNow()
             D.isTestMode = true
             ChosenLadder:PrintToWindow("Aye Aye, Captain!")
             for bag = 0, 4 do
-                for slot = 1, GetContainerNumSlots(bag) do
-                    local itemID = GetContainerItemID(bag, slot)
+                for slot = 1, C_Container.GetContainerNumSlots(bag) do
+                    local itemID = C_Container.GetContainerItemID(bag, slot)
                     if itemID then
                         local item = Item:CreateFromBagAndSlot(bag, slot)
                         local guid = item:GetItemGUID()

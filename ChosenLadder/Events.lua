@@ -29,8 +29,8 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
     end
 
     for bag = 0, 4 do
-        for slot = 1, GetContainerNumSlots(bag) do
-            local itemID = GetContainerItemID(bag, slot)
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            local itemID = C_Container.GetContainerItemID(bag, slot)
             if itemID then
                 local itemLocation = ItemLocation:CreateFromBagAndSlot(bag, slot)
                 local item = Item:CreateFromBagAndSlot(bag, slot)
