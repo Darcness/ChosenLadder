@@ -14,6 +14,32 @@ UI.Loot = Loot
 
 local UIC = UI.Constants
 
+---@param item LootItem
+local function UpdateTimerDisplayForItem(item)
+    local textFontName = UI.UIPrefixes.LootItemNameString .. item.guid
+    local textFont = _G[textFontName]
+
+    if textFont ~= nil then
+        -- Calculate the remaining timer
+        local remaining = item.expire - GetServerTime()
+        local timeStr = ""
+        local hours = math.floor(remaining / 3600)
+        if hours > 0 then
+            timeStr = timeStr .. tostring(hours) .. "h"
+        end
+        local minutes = math.floor((remaining % 3600) / 60)
+        if minutes > 0 then
+            timeStr = timeStr .. tostring(minutes) .. "m"
+        end
+        local seconds = remaining % 60
+        if seconds > 0 then
+            timeStr = timeStr .. tostring(seconds) .. "s"
+        end
+
+        textFont:SetText(string.format("%s (%s)%s", item.itemLink, timeStr, (item.sold and " - SOLD" or "")))
+    end
+end
+
 ---@param parentScrollFrame Frame
 ---@param item LootItem
 ---@param idx number
@@ -32,10 +58,11 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
     row:SetScript("OnLeave", function() GameTooltip:Hide() end)
     row:Show()
 
+    -- Build the Name
     local textFontName = UI.UIPrefixes.LootItemNameString .. item.guid
     local textFont = _G[textFontName] or
         row:CreateFontString(textFontName, nil, item.sold and "GameFontDisable" or "GameFontNormal")
-    textFont:SetText(item.itemLink .. (item.sold and " - SOLD" or ""))
+    UpdateTimerDisplayForItem(item)
     textFont:SetPoint("TOPLEFT", row, 4, -8)
 
     if D:IsLootMaster() then
@@ -253,4 +280,12 @@ function Loot:PopulateLootList()
     if mainFrame ~= nil then
         CreateLeftFrame(mainFrame)
     end
+end
+
+function Loot:UpdateTimerDisplays()
+    for _, v in ipairs(D.lootMasterItems.items) do
+        UpdateTimerDisplayForItem(v)
+    end
+
+    Wait(10, function() Loot:UpdateTimerDisplays() end)
 end

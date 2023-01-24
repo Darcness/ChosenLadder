@@ -314,11 +314,23 @@ function Ladder:CreateMainFrame(mainFrame)
         end
     )
 
-    -- Sync Button
+    -- Refresh button
+
+    local refreshButtonName = "ChosenLadderRefreshLadderButton"
+    local refreshButton = _G[refreshButtonName] or
+        CreateFrame("Button", refreshButtonName, actionFrame, "UIPanelButtonTemplate")
+    refreshButton:SetWidth(UIC.actionButtonWidth)
+    refreshButton:SetPoint("TOPLEFT", importButton, 0, -(importButton:GetHeight() + 2))
+    refreshButton:SetText("Refresh")
+    refreshButton:SetScript("OnClick", function(self, button, down)
+        ChosenLadder:SendMessage(D.Constants.RequestSyncFlag, "RAID", true)
+    end)
+
+    -- Push Button
     local syncButton = CreateFrame("Button", "ChosenLadderSyncButton", actionFrame, "UIPanelButtonTemplate")
     syncButton:SetWidth(UIC.actionButtonWidth)
-    syncButton:SetPoint("TOPLEFT", importButton, 0, -(importButton:GetHeight() + 2))
-    syncButton:SetText("Sync")
+    syncButton:SetPoint("TOPLEFT", refreshButton, 0, -(refreshButton:GetHeight() + 2))
+    syncButton:SetText("Push")
     syncButton:SetEnabled(D:IsLootMaster())
     syncButton:SetScript(
         "OnClick",

@@ -196,7 +196,7 @@ function ChosenLadder:OnEnable()
     hooksecurefunc(MasterLooterFrame, 'Hide', function(self) self:ClearAllPoints() end)
     hooksecurefunc("ContainerFrame_GenerateFrame", GenerateBagFrameOverlays)
     ChosenLadder:SetInventoryOverlays()
-    self:RegisterComm(A, ChosenLadder:OnCommReceived())
+    self:RegisterComm(A, "OnCommReceived")
     self:RegisterChatCommand("cl", "ToggleLadder")
     self:RegisterChatCommand("clauction", "Auction")
     self:RegisterChatCommand("cldunk", "Dunk")
@@ -208,6 +208,8 @@ function ChosenLadder:OnEnable()
     self:RegisterEvent("BAG_UPDATE_DELAYED")
 
     UI.InterfaceOptions:CreatePanel()
+
+    UI.Loot:UpdateTimerDisplays()
 
     D:UpdateRaidData()
     ChosenLadder:Log("Exit: ChosenLadder:OnEnable")
@@ -239,7 +241,8 @@ function ChosenLadder:IAmTheCaptainNow()
                             itemLink = itemLink,
                             sold = false,
                             player = UnitName("player") or "",
-                            itemId = itemID
+                            itemId = itemID,
+                            expire = GetServerTime() + (60 * 60)
                         }))
                     end
                 end
@@ -298,14 +301,16 @@ end
 ---@param message string
 ---@param destination string
 ---@param allowClient boolean?
-function ChosenLadder:SendMessage(message, destination, allowClient)
+---@param target string?
+function ChosenLadder:SendMessage(message, destination, allowClient, target)
     local debug = false
+    ChosenLadder:Log("Sending Message: " .. message)
     if not (allowClient or D:IsLootMaster() or D.isTestMode) then
         YouSoBad("Send Addon Communications")
         return
     end
 
-    self:SendCommMessage(A, message, destination, nil, "NORMAL", function(a, b, c)
+    self:SendCommMessage(A, message, destination, target, "NORMAL", function(a, b, c)
         if debug then print("a:" .. (a or "") .. " b:" .. b .. " c:" .. c) end
     end)
 end

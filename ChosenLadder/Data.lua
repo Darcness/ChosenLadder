@@ -21,6 +21,7 @@ local Data = {
     Constants = {
         BeginSyncFlag = "BEGIN SYNC:",
         EndSyncFlag = "END SYNC",
+        RequestSyncFlag = "REQUEST SYNC",
         AuctionStartFlag = "AUCTION START",
         AuctionEndFlag = "AUCTION END",
         DunkStartFlag = "DUNK START",

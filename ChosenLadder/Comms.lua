@@ -138,10 +138,21 @@ function Comms:LootRequest(message, distribution, sender)
     ChosenLadder:Log("Enter: Comms:LootRequest")
 
     if D:IsLootMaster() then
-        D.lootMasterItems:SendUpdate()
+        F.Wait(1, function() D.lootMasterItems:SendUpdate(sender) end)
     end
 
     ChosenLadder:Log("Exit: Comms:LootRequest")
+end
+
+---@param message string
+---@param distribution string
+---@param sender string
+function Comms:SyncRequest(message, distribution, sender)
+    ChosenLadder:Log("Enter: Comms:SyncRequest")
+
+    D:GenerateSyncData(false)
+
+    ChosenLadder:Log("Exit: Comms:SyncRequest")
 end
 
 ---Handles a potential Bid whisper

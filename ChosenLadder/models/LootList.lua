@@ -40,8 +40,10 @@ function LootList:Clear()
     self:Update({})
 end
 
-function LootList:SendUpdate()
-    ChosenLadder:SendMessage(self.data.Constants.LootListFlag .. "||" .. self:Serialize(), "RAID")
+---@param target string? Target player to receive update
+function LootList:SendUpdate(target)
+    ChosenLadder:Log("Sending Update")
+    ChosenLadder:SendMessage(self.data.Constants.LootListFlag .. "||" .. self:Serialize(), (target ~= nil and "WHISPER" or "RAID"), false, target)
 end
 
 ---@param guid string
