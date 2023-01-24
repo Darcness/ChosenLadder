@@ -124,7 +124,6 @@ function Comms:LootList(message, distribution, sender)
     ChosenLadder:Log("Enter: Comms:LootList")
 
     local newMessage = message:gsub(D.Constants.LootListFlag .. "||", "")
-    print(newMessage)
     local items = D.lootMasterItems:Deserialize(newMessage)
     D.lootMasterItems.items = items
     UI.Loot:PopulateLootList()

@@ -238,7 +238,8 @@ function ChosenLadder:IAmTheCaptainNow()
                             guid = guid,
                             itemLink = itemLink,
                             sold = false,
-                            player = UnitName("player") or ""
+                            player = UnitName("player") or "",
+                            itemId = itemID
                         }))
                     end
                 end
@@ -302,7 +303,8 @@ function ChosenLadder:SendMessage(message, destination)
         return
     end
     print("SendMessage -- " .. message)
-    self:SendCommMessage(A, message, destination, nil, "BULK")
+    self:SendCommMessage(A, message, destination, nil, "NORMAL",
+        function(a, b, c) print("a:" .. (a or "") .. " b:" .. b .. " c:" .. c) end)
 end
 
 function ChosenLadder:Dunk(input)

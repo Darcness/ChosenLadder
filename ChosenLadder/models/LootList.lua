@@ -37,8 +37,7 @@ end
 
 ---Clears the items list
 function LootList:Clear()
-    self.items = {}
-    self.lastModified = GetServerTime()
+    self:Update({})
 end
 
 ---@param guid string

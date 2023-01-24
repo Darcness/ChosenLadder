@@ -41,7 +41,8 @@ function ChosenLadder:BAG_UPDATE_DELAYED()
                         guid = guid,
                         itemLink = itemLink,
                         sold = false,
-                        player = UnitName("player") or ""
+                        player = UnitName("player") or "",
+                        itemId = itemID
                     })
                     table.insert(lootItems, lootItem)
                 end
@@ -101,7 +102,7 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
     if prefix == A then
         ChosenLadder:Log(string.format("Enter: OnCommReceived||%s||%s||%s||%s", prefix, message, distribution, sender))
         if distribution == "RAID" and sender ~= UnitName("player") then
-            print("OnCommReceived: " .. message)
+            ChosenLadder:PrintToWindow("OnCommReceived: " .. message)
             if F.StartsWith(message, D.Constants.BeginSyncFlag) then
                 ChosenLadder:Log("OnCommReceived: Found BeginSyncFlag")
                 Comms:LadderSync(message, distribution, sender)
@@ -123,7 +124,6 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
 
             elseif F.StartsWith(message, D.Constants.LootListFlag) then
                 ChosenLadder:Log("OnCommReceived: Found LootListFlag")
-                -- print("found! -- " .. message)
                 Comms:LootList(message, distribution, sender)
             end
         end

@@ -8,10 +8,12 @@ local F = NS.Functions
 ---@field itemLink string
 ---@field sold boolean
 ---@field player string
+---@field itemId number
 LootItem = {
     itemLink = "",
     sold = false,
-    player = ""
+    player = "",
+    itemId = 0
 }
 
 ---@param o? LootItem
@@ -29,21 +31,24 @@ function LootItem:IsMine()
 end
 
 function LootItem:Serialize()
-    return string.format("%s~%s~%s~%s", self.sold and "true" or "false", self.itemLink, self.player, self.guid or "")
+    return string.format("%s~%s~%s~%s", self.sold and "true" or "false", self.itemId, self.player, self.guid or "")
 end
 
 ---@param val string
 function LootItem:Deserialize(val)
     local vals = F.Split(val, "~")
     local sold = vals[1] == "true" and true or false
-    local itemLink = vals[2]
+    local itemId = tonumber(vals[2]) or 0
     local player = vals[3]
     local guid = vals[4]
 
+    local item = Item:CreateFromItemID(itemId)
+
     return LootItem:new({
         sold = sold,
-        itemLink = itemLink,
+        itemId = itemId,
         player = player,
-        guid = guid
+        guid = guid,
+        itemLink = item:GetItemLink()
     })
 end
