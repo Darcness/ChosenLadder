@@ -38,62 +38,65 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
     textFont:SetText(item.itemLink .. (item.sold and " - SOLD" or ""))
     textFont:SetPoint("TOPLEFT", row, 4, -8)
 
-    -- Dunk Button
-    local dunkButtonName = UI.UIPrefixes.LootDunkButton .. item.guid
-    local dunkButton = _G[dunkButtonName] or CreateFrame("Button", dunkButtonName, row, "UIPanelButtonTemplate")
-    dunkButton:SetText(D.Dunk.dunkItem == item.guid and "Cancel Dunk" or "Start Dunk")
-    dunkButton:SetWidth(92)
-    dunkButton:SetPoint("TOPRIGHT", row, -2, -2)
-    dunkButton:SetScript(
-        "OnClick",
-        function(self, button, down)
+    if D:IsLootMaster() then
+
+        -- Dunk Button
+        local dunkButtonName = UI.UIPrefixes.LootDunkButton .. item.guid
+        local dunkButton = _G[dunkButtonName] or CreateFrame("Button", dunkButtonName, row, "UIPanelButtonTemplate")
+        dunkButton:SetText(D.Dunk.dunkItem == item.guid and "Cancel Dunk" or "Start Dunk")
+        dunkButton:SetWidth(92)
+        dunkButton:SetPoint("TOPRIGHT", row, -2, -2)
+        dunkButton:SetScript(
+            "OnClick",
+            function(self, button, down)
+                if D.Dunk.dunkItem == item.guid then
+                    D.Dunk:Cancel()
+                else
+                    D.Dunk:Start(item.guid)
+                end
+                Loot:PopulateLootList()
+            end
+        )
+        dunkButton:SetEnabled(not item.sold)
+
+        -- Auction Button
+        local actionButtonName = UI.UIPrefixes.LootAuctionButton .. item.guid
+        local auctionButton = _G[actionButtonName] or CreateFrame("Button", actionButtonName, row,
+            "UIPanelButtonTemplate")
+        auctionButton:SetText(D.Auction.auctionItem == item.guid and "Cancel Auction" or "Start Auction")
+        auctionButton:SetWidth(102)
+        auctionButton:SetPoint("TOPRIGHT", dunkButton, -(dunkButton:GetWidth() + 2), 0)
+        auctionButton:SetScript(
+            "OnClick",
+            function(self, button, down)
+                if D.Auction.auctionItem == item.guid then
+                    D.Auction:Complete()
+                else
+                    D.Auction:Start(item.guid)
+                end
+                Loot:PopulateLootList()
+            end
+        )
+        auctionButton:SetEnabled(not item.sold)
+
+        local clearButtonName = UI.UIPrefixes.LootItemClearButton .. item.guid
+        local clearButton = _G[clearButtonName] or CreateFrame("Button", clearButtonName, row, "UIPanelButtonTemplate")
+        clearButton:SetText("Clear")
+        clearButton:SetWidth(48)
+        clearButton:SetPoint("TOPRIGHT", auctionButton, -(auctionButton:GetWidth() + 2), 0)
+        clearButton:SetScript("OnClick", function(self, button, down)
+            if D.Auction.auctionItem == item.guid then
+                D.Auction:Complete(true)
+            end
+
             if D.Dunk.dunkItem == item.guid then
                 D.Dunk:Cancel()
-            else
-                D.Dunk:Start(item.guid)
             end
+
+            D.lootMasterItems:RemoveByGUID(item.guid)
             Loot:PopulateLootList()
-        end
-    )
-    dunkButton:SetEnabled(not item.sold)
-
-    -- Auction Button
-    local actionButtonName = UI.UIPrefixes.LootAuctionButton .. item.guid
-    local auctionButton = _G[actionButtonName] or CreateFrame("Button", actionButtonName, row,
-        "UIPanelButtonTemplate")
-    auctionButton:SetText(D.Auction.auctionItem == item.guid and "Cancel Auction" or "Start Auction")
-    auctionButton:SetWidth(102)
-    auctionButton:SetPoint("TOPRIGHT", dunkButton, -(dunkButton:GetWidth() + 2), 0)
-    auctionButton:SetScript(
-        "OnClick",
-        function(self, button, down)
-            if D.Auction.auctionItem == item.guid then
-                D.Auction:Complete()
-            else
-                D.Auction:Start(item.guid)
-            end
-            Loot:PopulateLootList()
-        end
-    )
-    auctionButton:SetEnabled(not item.sold)
-
-    local clearButtonName = UI.UIPrefixes.LootItemClearButton .. item.guid
-    local clearButton = _G[clearButtonName] or CreateFrame("Button", clearButtonName, row, "UIPanelButtonTemplate")
-    clearButton:SetText("Clear")
-    clearButton:SetWidth(48)
-    clearButton:SetPoint("TOPRIGHT", auctionButton, -(auctionButton:GetWidth() + 2), 0)
-    clearButton:SetScript("OnClick", function(self, button, down)
-        if D.Auction.auctionItem == item.guid then
-            D.Auction:Complete(true)
-        end
-
-        if D.Dunk.dunkItem == item.guid then
-            D.Dunk:Cancel()
-        end
-        
-        D.lootMasterItems:RemoveByGUID(item.guid)
-        Loot:PopulateLootList()
-    end)
+        end)
+    end
 
     return row
 end
@@ -126,6 +129,18 @@ local function CreateLeftFrame(mainFrame)
         end
     )
 
+    local refreshButtonName = "ChosenLadderLootRefreshButton"
+    local refreshButton = _G[refreshButtonName] or
+        CreateFrame("Button", refreshButtonName, actionFrame, "UIPanelButtonTemplate")
+    refreshButton:SetWidth(UIC.actionButtonWidth)
+    refreshButton:SetPoint("TOPLEFT", clearButton, 0, -(clearButton:GetHeight() + 2))
+    refreshButton:SetText("Refresh")
+    refreshButton:SetScript("OnClick",
+        function(self, button, down)
+            ChosenLadder:SendMessage(D.Constants.LootRequestFlag, "RAID", true)
+        end
+    )
+
     local currentSessionType = ""
     if D.Dunk.dunkItem then
         currentSessionType = "Dunk"
@@ -135,7 +150,7 @@ local function CreateLeftFrame(mainFrame)
 
     local sessionLabelName = "ChosenLadderLootSessionTypeFontString"
     local sessionLabel = _G[sessionLabelName] or actionFrame:CreateFontString(sessionLabelName, nil, "GameFontNormal")
-    sessionLabel:SetPoint("TOPLEFT", clearButton, 0, -(clearButton:GetHeight() + 8))
+    sessionLabel:SetPoint("TOPLEFT", refreshButton, 0, -(refreshButton:GetHeight() + 8))
     sessionLabel:SetText(currentSessionType)
 
     local sessionIconFrameName = "ChosenLadderLootSessionIcon"
@@ -161,7 +176,8 @@ local function CreateLeftFrame(mainFrame)
         end
 
         local item = nil
-        local itemLink = F.IsItemGUID(targetItem) and select(1, D.lootMasterItems:GetByGUID(targetItem)).itemLink or targetItem
+        local itemLink = F.IsItemGUID(targetItem) and select(1, D.lootMasterItems:GetByGUID(targetItem)).itemLink or
+            targetItem
         item = Item:CreateFromItemLink(itemLink)
         if item == nil then
             return

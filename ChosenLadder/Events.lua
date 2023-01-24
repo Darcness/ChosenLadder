@@ -102,7 +102,6 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
     if prefix == A then
         ChosenLadder:Log(string.format("Enter: OnCommReceived||%s||%s||%s||%s", prefix, message, distribution, sender))
         if distribution == "RAID" and sender ~= UnitName("player") then
-            ChosenLadder:PrintToWindow("OnCommReceived: " .. message)
             if F.StartsWith(message, D.Constants.BeginSyncFlag) then
                 ChosenLadder:Log("OnCommReceived: Found BeginSyncFlag")
                 Comms:LadderSync(message, distribution, sender)
@@ -125,6 +124,10 @@ function ChosenLadder:OnCommReceived(prefix, message, distribution, sender)
             elseif F.StartsWith(message, D.Constants.LootListFlag) then
                 ChosenLadder:Log("OnCommReceived: Found LootListFlag")
                 Comms:LootList(message, distribution, sender)
+
+            elseif F.StartsWith(message, D.Constants.LootRequestFlag) then
+                ChosenLadder:Log("OnCommReceived: Found LootRequestFlag")
+                Comms:LootRequest(message, distribution, sender)
             end
         end
     end

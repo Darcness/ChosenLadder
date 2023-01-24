@@ -26,6 +26,7 @@ local Data = {
         DunkStartFlag = "DUNK START",
         DunkEndFlag = "DUNK END",
         LootListFlag = "LOOT LIST",
+        LootRequestFlag = "LOOT REQUEST",
         AsheosWords = {
             "dunk",
             "sunk",

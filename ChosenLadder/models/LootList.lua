@@ -30,7 +30,7 @@ function LootList:Update(items)
     local count = #self.items
     self.items = items
     if #self.items ~= count then
-        ChosenLadder:SendMessage(self.data.Constants.LootListFlag .. "||" .. self:Serialize(), "RAID")
+        self:SendUpdate()
     end
     self.lastModified = GetServerTime()
 end
@@ -38,6 +38,10 @@ end
 ---Clears the items list
 function LootList:Clear()
     self:Update({})
+end
+
+function LootList:SendUpdate()
+    ChosenLadder:SendMessage(self.data.Constants.LootListFlag .. "||" .. self:Serialize(), "RAID")
 end
 
 ---@param guid string

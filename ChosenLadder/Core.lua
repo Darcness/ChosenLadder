@@ -297,14 +297,17 @@ end
 
 ---@param message string
 ---@param destination string
-function ChosenLadder:SendMessage(message, destination)
-    if not (D:IsLootMaster() or D.isTestMode) then
+---@param allowClient boolean?
+function ChosenLadder:SendMessage(message, destination, allowClient)
+    local debug = false
+    if not (allowClient or D:IsLootMaster() or D.isTestMode) then
         YouSoBad("Send Addon Communications")
         return
     end
-    print("SendMessage -- " .. message)
-    self:SendCommMessage(A, message, destination, nil, "NORMAL",
-        function(a, b, c) print("a:" .. (a or "") .. " b:" .. b .. " c:" .. c) end)
+
+    self:SendCommMessage(A, message, destination, nil, "NORMAL", function(a, b, c)
+        if debug then print("a:" .. (a or "") .. " b:" .. b .. " c:" .. c) end
+    end)
 end
 
 function ChosenLadder:Dunk(input)
@@ -428,4 +431,9 @@ function ChosenLadder:Log(message)
 
     table.insert(log, GetServerTime() .. "||" .. message)
     ChosenLadder:Database().char.log = log
+
+    local localDebug = false
+    if localDebug then
+        ChosenLadder:PrintToWindow(message)
+    end
 end

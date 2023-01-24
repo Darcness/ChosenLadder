@@ -131,6 +131,19 @@ function Comms:LootList(message, distribution, sender)
     ChosenLadder:Log("Exit: Comms:LootList")
 end
 
+---@param message string
+---@param distribution string
+---@param sender string
+function Comms:LootRequest(message, distribution, sender)
+    ChosenLadder:Log("Enter: Comms:LootRequest")
+
+    if D:IsLootMaster() then
+        D.lootMasterItems:SendUpdate()
+    end
+
+    ChosenLadder:Log("Exit: Comms:LootRequest")
+end
+
 ---Handles a potential Bid whisper
 ---@param text string
 ---@param playerName string
