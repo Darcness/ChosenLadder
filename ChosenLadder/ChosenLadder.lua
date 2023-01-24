@@ -32,7 +32,15 @@ end
 
 Functions.StartsWith = StartsWith
 
----comment
+---@param str string
+---@param ender string
+---@return boolean
+function EndsWith(str, ender)
+    return str:sub(#ender * -1) == ender
+end
+
+Functions.EndsWith = EndsWith
+
 ---@param inputstr string
 ---@param sep string
 ---@return string[]
@@ -48,6 +56,27 @@ function Split(inputstr, sep)
 end
 
 Functions.Split = Split
+
+---@param table any
+---@param sep any
+---@return string
+function Join(table, sep)
+    ---@type string
+    local out = ""
+    for _, v in pairs(table) do
+        out = out .. tostring(v) .. sep
+    end
+
+    out = out .. ""
+
+    if EndsWith(out, sep) then
+        out = string.sub(out, 1, #sep * -1)
+    end
+
+    return out
+end
+
+Functions.Join = Join
 
 function Dump(o)
     local varType = type(o)
@@ -77,6 +106,10 @@ end
 
 Functions.ToArray = ToArray
 
+---Filters a table based on a predicate function
+---@param t table table to filter
+---@param f function (item) returns boolean
+---@return table
 function Filter(t, f)
     local ret = {}
     for k, v in pairs(t) do
@@ -90,9 +123,10 @@ end
 
 Functions.Filter = Filter
 
+---Filters a table based on a predicate function, guarantees an array
 ---@generic T : table
----@param t array<T>
----@param f function
+---@param t array<T> table to filter
+---@param f function (item) returns boolean
 ---@return array<T>
 function FilterArray(t, f)
     return ToArray(Filter(t, f))
@@ -100,9 +134,10 @@ end
 
 Functions.FilterArray = FilterArray
 
+---Finds the first value in the supplied array which matches the predicate function, nil if none
 ---@generic T : table
----@param t array<T>
----@param f function
+---@param t array<T> table to filter
+---@param f function (item) returns boolean
 ---@return T|nil
 ---@return integer|nil
 function Find(t, f)

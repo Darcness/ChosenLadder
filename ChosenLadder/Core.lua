@@ -175,7 +175,7 @@ local function GenerateBagFrameOverlays(frame)
         if itemID then
             local item = Item:CreateFromBagAndSlot(bag, slot)
             local guid = item:GetItemGUID()
-            local itemData = D:GetLootItemByGUID(guid)
+            local itemData = D.lootMasterItems:GetByGUID(guid)
             if itemData ~= nil and itemData.sold then
                 local overlayFrame, text = GetOverlayForBagFrame(name, slotFrameNum)
                 overlayFrame:SetBackdropColor(1, 0, 0, 0.4)
@@ -224,6 +224,8 @@ function ChosenLadder:IAmTheCaptainNow()
             D.isLootMasterOverride = true
             D.isTestMode = true
             ChosenLadder:PrintToWindow("Aye Aye, Captain!")
+            ---@type LootItem[]
+            local items = {}
             for bag = 0, 4 do
                 for slot = 1, C_Container.GetContainerNumSlots(bag) do
                     local itemID = C_Container.GetContainerItemID(bag, slot)
@@ -232,16 +234,20 @@ function ChosenLadder:IAmTheCaptainNow()
                         local guid = item:GetItemGUID()
                         local itemLink = item:GetItemLink()
 
-                        table.insert(D.lootMasterItems, {
+                        table.insert(items, LootItem:new({
                             guid = guid,
                             itemLink = itemLink,
-                            sold = false
-                        })
+                            sold = false,
+                            player = UnitName("player") or ""
+                        }))
                     end
                 end
             end
+
+            D.lootMasterItems:Update(items);
         end
         UI:UpdateElementsByPermission()
+        UI.Loot:PopulateLootList()
     end
 end
 
@@ -288,11 +294,14 @@ function ChosenLadder:ToggleLadder()
     UI:ToggleMainWindowFrame()
 end
 
+---@param message string
+---@param destination string
 function ChosenLadder:SendMessage(message, destination)
     if not (D:IsLootMaster() or D.isTestMode) then
         YouSoBad("Send Addon Communications")
         return
     end
+    print("SendMessage -- " .. message)
     self:SendCommMessage(A, message, destination, nil, "BULK")
 end
 

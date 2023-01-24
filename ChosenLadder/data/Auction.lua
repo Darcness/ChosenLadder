@@ -36,7 +36,7 @@ function Auction:GetItemLink()
         return Auction.auctionItem
     end
 
-    local item = D:GetLootItemByGUID(Auction.auctionItem)
+    local item = D.lootMasterItems:GetByGUID(Auction.auctionItem)
     if item == nil or item.itemLink == nil then
         return nil
     end
@@ -84,7 +84,7 @@ function Auction:Complete(forceCancel)
     }
     table.insert(Auction.history, historyItem)
 
-    local lootItem = D:GetLootItemByGUID(Auction.auctionItem)
+    local lootItem = D.lootMasterItems:GetByGUID(Auction.auctionItem)
     if lootItem ~= nil then
         lootItem.sold = true
     end

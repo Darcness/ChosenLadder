@@ -35,7 +35,7 @@ function Dunk:GetItemLink()
     end
 
     -- It's a guid, get the link
-    local item = D:GetLootItemByGUID(Dunk.dunkItem)
+    local item = D.lootMasterItems:GetByGUID(Dunk.dunkItem)
     if item == nil or item.itemLink == nil then
         return nil
     end
@@ -222,7 +222,7 @@ function Dunk:Complete(id)
     ChosenLadder:Database().factionrealm.ladder.players = newPlayers
     ChosenLadder:Database().factionrealm.ladder.lastModified = GetServerTime()
 
-    local item = D:GetLootItemByGUID(Dunk.dunkItem) or { guid = Dunk.dunkItem }
+    local item = D.lootMasterItems:GetByGUID(Dunk.dunkItem) or { guid = Dunk.dunkItem }
     ---@class DunkHistoryItem
     ---@field playerName string
     ---@field from number
@@ -232,12 +232,12 @@ function Dunk:Complete(id)
         playerName = found.name,
         from = foundPos,
         to = targetPos,
-        item = item.guid or Dunk.dunkItem
+        item = item.guid or Dunk.dunkItem or ""
     }
 
     table.insert(Dunk.history, historyItem)
 
-    local lootItem = D:GetLootItemByGUID(Dunk.dunkItem)
+    local lootItem = D.lootMasterItems:GetByGUID(Dunk.dunkItem)
     if lootItem ~= nil then
         lootItem.sold = true
     end

@@ -18,6 +18,8 @@ lib\AceDB-3.0\AceDB-3.0.xml
 
 ChosenLadder.lua
 
+models\LootItem.lua
+models\LootList.lua
 models\LadderPlayer.lua
 models\LadderList.lua
 models\RaidMember.lua
@@ -33,5 +35,6 @@ ui\Ladder.lua
 ui\Loot.lua
 ui\InterfaceOptions.lua
 
+Comms.lua
 Events.lua
 Core.lua

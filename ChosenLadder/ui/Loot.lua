@@ -90,8 +90,8 @@ local function CreateLootRowItem(parentScrollFrame, item, idx)
         if D.Dunk.dunkItem == item.guid then
             D.Dunk:Cancel()
         end
-
-        D:RemoveLootItemByGUID(item.guid)
+        
+        D.lootMasterItems:RemoveByGUID(item.guid)
         Loot:PopulateLootList()
     end)
 
@@ -121,7 +121,7 @@ local function CreateLeftFrame(mainFrame)
                 D.Dunk:Cancel()
             end
 
-            D.lootMasterItems = {}
+            D.lootMasterItems:Clear()
             Loot:PopulateLootList()
         end
     )
@@ -161,7 +161,7 @@ local function CreateLeftFrame(mainFrame)
         end
 
         local item = nil
-        local itemLink = F.IsItemGUID(targetItem) and select(1, D:GetLootItemByGUID(targetItem)).itemLink or targetItem
+        local itemLink = F.IsItemGUID(targetItem) and select(1, D.lootMasterItems:GetByGUID(targetItem)).itemLink or targetItem
         item = Item:CreateFromItemLink(itemLink)
         if item == nil then
             return
@@ -227,7 +227,7 @@ function Loot:PopulateLootList()
         child:Hide()
     end
 
-    for lootIdx, lootItem in ipairs(D.lootMasterItems) do
+    for lootIdx, lootItem in ipairs(D.lootMasterItems.items) do
         if lootItem ~= nil and lootItem.guid ~= nil then
             CreateLootRowItem(self.scrollChild, lootItem, lootIdx)
         end

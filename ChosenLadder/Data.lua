@@ -7,7 +7,7 @@ local F = NS.Functions
 ---@field Constants DataConstants
 ---@field isLootMaster boolean
 ---@field isLootMasterOverride boolean
----@field lootMasterItems LootItem[]
+---@field lootMasterItems LootList
 ---@field isTestMode boolean
 ---@field Auction Auction
 ---@field Dunk Dunk
@@ -15,12 +15,6 @@ local F = NS.Functions
 ---@field raidMembers RaidRoster
 local Data = {
     ---@class DataConstants
-    ---@field BeginSyncFlag string
-    ---@field EndSyncFlag string
-    ---@field AuctionStartFlag string
-    ---@field AuctionEndFlag string
-    ---@field DunkStartFlag string
-    ---@field DunkEndFlag string
     ---@field AsheosWords string[]
     ---@field StreamFlag table<string, number>
     ---@field LadderType table<string, number>
@@ -31,6 +25,7 @@ local Data = {
         AuctionEndFlag = "AUCTION END",
         DunkStartFlag = "DUNK START",
         DunkEndFlag = "DUNK END",
+        LootListFlag = "LOOT LIST",
         AsheosWords = {
             "dunk",
             "sunk",
@@ -59,10 +54,10 @@ local Data = {
     isLootMaster = false,
     isLootMasterOverride = false,
     isTestMode = false,
-    lootMasterItems = {},
     syncing = 1,
     raidMembers = RaidRoster:new()
 }
+Data.lootMasterItems = LootList:new(Data)
 NS.Data = Data
 
 ---@param localDebug? boolean
@@ -87,24 +82,6 @@ function Data:GetRaidRoster()
         Data.raidMembers = RaidRoster:new()
     end
     return Data.raidMembers
-end
-
----@param guid string
-function Data:GetLootItemByGUID(guid)
-    ---@param item LootItem
-    local loot, lootloc = F.Find(Data.lootMasterItems, function(item) return item.guid == guid end)
-    return loot, lootloc
-end
-
----@param guid string
-function Data:RemoveLootItemByGUID(guid)
-    local newItems = {}
-    for _, item in pairs(Data.lootMasterItems) do
-        if item.guid ~= guid then
-            table.insert(newItems, item)
-        end
-    end
-    Data.lootMasterItems = newItems
 end
 
 ---@return string
