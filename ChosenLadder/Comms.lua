@@ -68,10 +68,10 @@ end
 function Comms:AuctionStart(message, distribution, sender)
     ChosenLadder:Log("Enter: Comms:AuctionStart")
 
-    local vars = F.Split(message, "||")
+    local vars = F.Split(message, "//")
 
-    if F.IsItemLink(vars[1]) then
-        D.Auction.auctionItem = vars[1]
+    if F.IsItemLink(vars[2]) then
+        D.Auction.auctionItem = vars[2]
         UI.Loot:PopulateLootList()
     end
 
@@ -96,9 +96,11 @@ end
 function Comms:DunkStart(message, distribution, sender)
     ChosenLadder:Log("Enter: Comms:DunkStart")
 
-    local vars = F.Split(message, "||")
-    if F.IsItemLink(vars[1]) then
-        D.Dunk.dunkItem = vars[1]
+    local vars = F.Split(message, "//")
+    print(vars[2])
+    if F.IsItemLink(vars[2]) then
+        print("isItemLink")
+        D.Dunk.dunkItem = vars[2]
         UI.Loot:PopulateLootList()
     end
 
