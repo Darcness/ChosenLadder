@@ -1,6 +1,6 @@
 ## Interface: 30400
 ## Title: ChosenLadder
-## Version: 1.9.0
+## Version: 1.10.0
 ## Notes: Ladder addon for The Chosen Guild
 ## Author: Darc
 ## SavedVariables: ChosenLadderDB
