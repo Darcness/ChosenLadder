@@ -97,9 +97,7 @@ function Comms:DunkStart(message, distribution, sender)
     ChosenLadder:Log("Enter: Comms:DunkStart")
 
     local vars = F.Split(message, "//")
-    print(vars[2])
     if F.IsItemLink(vars[2]) then
-        print("isItemLink")
         D.Dunk.dunkItem = vars[2]
         UI.Loot:PopulateLootList()
     end
