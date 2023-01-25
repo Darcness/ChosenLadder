@@ -99,6 +99,7 @@ function ChosenLadder:OnInitialize()
 
     -- Register the Database
     self.db = LibStub("AceDB-3.0"):New("ChosenLadderDB", defaultDB)
+    ChosenLadder:Log("Enter: ChosenLadder:OnInitialize")
     NS.Icon:Register(A, clLDB, ChosenLadder:Database().char.minimap)
 
     local newPlayers = {}
@@ -122,6 +123,8 @@ function ChosenLadder:OnInitialize()
         players = newPlayers,
         lastModified = ChosenLadder:Database().factionrealm.ladder.lastModified or GetServerTime()
     })
+
+    ChosenLadder:Log("Exit: ChosenLadder:OnInitialize")
 end
 
 function YouSoBad(action)
@@ -160,7 +163,7 @@ local function GenerateBagFrameOverlays(frame)
     local name = frame:GetName();
     local bagstr = string.gsub(name, "ContainerFrame", "")
     local bag = (tonumber(bagstr) or 1) - 1
-    local slotCount = GetContainerNumSlots(bag)
+    local slotCount = C_Container.GetContainerNumSlots(bag)
     for slot = 1, slotCount do
         local slotFrameNum = slotCount - (slot - 1)
         -- Clear the overlay first, we'll re-colorize if necessary.
@@ -168,11 +171,11 @@ local function GenerateBagFrameOverlays(frame)
         overlayFrame:SetBackdropColor(0, 0, 0, 0)
         text:SetText("")
 
-        local itemID = GetContainerItemID(bag, slot)
+        local itemID = C_Container.GetContainerItemID(bag, slot)
         if itemID then
             local item = Item:CreateFromBagAndSlot(bag, slot)
             local guid = item:GetItemGUID()
-            local itemData = D:GetLootItemByGUID(guid)
+            local itemData = D.lootMasterItems:GetByGUID(guid)
             if itemData ~= nil and itemData.sold then
                 local overlayFrame, text = GetOverlayForBagFrame(name, slotFrameNum)
                 overlayFrame:SetBackdropColor(1, 0, 0, 0.4)
@@ -189,10 +192,11 @@ function ChosenLadder:SetInventoryOverlays()
 end
 
 function ChosenLadder:OnEnable()
+    ChosenLadder:Log("Enter: ChosenLadder:OnEnable")
     hooksecurefunc(MasterLooterFrame, 'Hide', function(self) self:ClearAllPoints() end)
     hooksecurefunc("ContainerFrame_GenerateFrame", GenerateBagFrameOverlays)
     ChosenLadder:SetInventoryOverlays()
-    self:RegisterComm(A, ChosenLadder:OnCommReceived())
+    self:RegisterComm(A, "OnCommReceived")
     self:RegisterChatCommand("cl", "ToggleLadder")
     self:RegisterChatCommand("clauction", "Auction")
     self:RegisterChatCommand("cldunk", "Dunk")
@@ -205,7 +209,10 @@ function ChosenLadder:OnEnable()
 
     UI.InterfaceOptions:CreatePanel()
 
+    UI.Loot:UpdateTimerDisplays()
+
     D:UpdateRaidData()
+    ChosenLadder:Log("Exit: ChosenLadder:OnEnable")
 end
 
 function ChosenLadder:IAmTheCaptainNow()
@@ -213,28 +220,38 @@ function ChosenLadder:IAmTheCaptainNow()
     if name == "Fastandan" or name == "Foladocus" or name == "Firannor" or name == "Yanagi" or name == "Foghli" then
         if D.isLootMasterOverride then
             D.isLootMasterOverride = false
+            D.isTestMode = false
             ChosenLadder:PrintToWindow("You've been demoted!")
         else
             D.isLootMasterOverride = true
+            D.isTestMode = true
             ChosenLadder:PrintToWindow("Aye Aye, Captain!")
+            ---@type LootItem[]
+            local items = {}
             for bag = 0, 4 do
-                for slot = 1, GetContainerNumSlots(bag) do
-                    local itemID = GetContainerItemID(bag, slot)
+                for slot = 1, C_Container.GetContainerNumSlots(bag) do
+                    local itemID = C_Container.GetContainerItemID(bag, slot)
                     if itemID then
                         local item = Item:CreateFromBagAndSlot(bag, slot)
                         local guid = item:GetItemGUID()
                         local itemLink = item:GetItemLink()
 
-                        table.insert(D.lootMasterItems, {
+                        table.insert(items, LootItem:new({
                             guid = guid,
                             itemLink = itemLink,
-                            sold = false
-                        })
+                            sold = false,
+                            player = UnitName("player") or "",
+                            itemId = itemID,
+                            expire = GetServerTime() + (60 * 60)
+                        }))
                     end
                 end
             end
+
+            D.lootMasterItems:Update(items);
         end
         UI:UpdateElementsByPermission()
+        UI.Loot:PopulateLootList()
     end
 end
 
@@ -254,7 +271,13 @@ function ChosenLadder:PutOnBlast(message, raidWarning)
     if raidWarning and (UnitIsGroupAssistant("player") or UnitIsGroupLeader("player")) then
         channel = "RAID_WARNING"
     end
-    SendChatMessage(message, channel)
+
+    if D.isTestMode then
+        ChosenLadder:PrintToWindow(message)
+    else
+        SendChatMessage(message, channel)
+    end
+
 end
 
 function ChosenLadder:SetMinimapHidden(hidden)
@@ -275,12 +298,21 @@ function ChosenLadder:ToggleLadder()
     UI:ToggleMainWindowFrame()
 end
 
-function ChosenLadder:SendMessage(message, destination)
-    if not D:IsLootMaster() then
+---@param message string
+---@param destination string
+---@param allowClient boolean?
+---@param target string?
+function ChosenLadder:SendMessage(message, destination, allowClient, target)
+    local debug = false
+    ChosenLadder:Log("Sending Message: " .. message)
+    if not (allowClient or D:IsLootMaster() or D.isTestMode) then
         YouSoBad("Send Addon Communications")
         return
     end
-    self:SendCommMessage(A, message, destination, nil, "BULK")
+
+    self:SendCommMessage(A, message, destination, target, "NORMAL", function(a, b, c)
+        if debug then print("a:" .. (a or "") .. " b:" .. b .. " c:" .. c) end
+    end)
 end
 
 function ChosenLadder:Dunk(input)
@@ -340,8 +372,8 @@ function ChosenLadder:PrintHistory(input)
         ChosenLadder:PrintToWindow("Ladder History")
         for k, v in pairs(D.Dunk.history) do
             ChosenLadder:PrintToWindow(
-                string.format("%s moved to position %d from position %d",
-                    Ambiguate(v.playerName, "all"), v.to, v.from)
+                string.format("%s moved from position %d to position %d",
+                    Ambiguate(v.playerName, "all"), v.from, v.to)
             )
         end
     else
@@ -402,5 +434,11 @@ function ChosenLadder:Log(message)
         log = newLog
     end
 
-    table.insert(log, message)
+    table.insert(log, GetServerTime() .. "||" .. message)
+    ChosenLadder:Database().char.log = log
+
+    local localDebug = false
+    if localDebug then
+        ChosenLadder:PrintToWindow(message)
+    end
 end

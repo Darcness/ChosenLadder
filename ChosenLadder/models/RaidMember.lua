@@ -38,7 +38,7 @@ RaidMember = {
 ---@param o RaidMember
 ---@return RaidMember
 function RaidMember:new(o)
-    o = o or {}
+    o = o or { unpack(LootItem) }
     setmetatable(o, self)
     self.__index = self
     return o

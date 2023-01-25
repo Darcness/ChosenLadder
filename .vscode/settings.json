@@ -31,6 +31,7 @@
         "UIDropDownMenu_DisableDropDown",
         "CHAT_MSG_WHISPER",
         "GetContainerNumSlots",
-        "GetContainerItemID"
+        "GetContainerItemID",
+        "message"
     ],
 }

@@ -21,10 +21,10 @@ local Auction = {
 
 D.Auction = Auction
 
-local function clearAuction()
+function Auction:ClearAuction()
     Auction.auctionItem = nil
     Auction.currentBid = 0
-    Auction.currentWinnter = nil
+    Auction.currentWinner = nil
 end
 
 function Auction:GetItemLink()
@@ -36,7 +36,7 @@ function Auction:GetItemLink()
         return Auction.auctionItem
     end
 
-    local item = D:GetLootItemByGUID(Auction.auctionItem)
+    local item = D.lootMasterItems:GetByGUID(Auction.auctionItem)
     if item == nil or item.itemLink == nil then
         return nil
     end
@@ -60,7 +60,7 @@ function Auction:Complete(forceCancel)
     if Auction.currentBid == 0 or forceCancel then
         ChosenLadder:PutOnBlast("Auction Canceled by " .. UnitName("player") .. "!",
             ChosenLadder:Database().char.announcements.auctionCancel)
-        clearAuction()
+        Auction:ClearAuction()
         return
     end
 
@@ -84,14 +84,15 @@ function Auction:Complete(forceCancel)
     }
     table.insert(Auction.history, historyItem)
 
-    local lootItem = D:GetLootItemByGUID(Auction.auctionItem)
+    local lootItem = D.lootMasterItems:GetByGUID(Auction.auctionItem)
     if lootItem ~= nil then
         lootItem.sold = true
     end
 
-    clearAuction()
+    Auction:ClearAuction()
     UI.Loot:PopulateLootList()
     ChosenLadder:SetInventoryOverlays()
+    ChosenLadder:SendMessage(D.Constants.AuctionEndFlag, "RAID")
 end
 
 ---@param auctionItem string
@@ -111,9 +112,10 @@ function Auction:Start(auctionItem)
         return
     end
 
-    clearAuction()
+    Auction:ClearAuction()
     Auction.auctionItem = auctionItem
     local itemLink = Auction:GetItemLink() or "UNKNOWN"
+    ChosenLadder:SendMessage(D.Constants.AuctionStartFlag .. "//" .. itemLink, "RAID")
     ChosenLadder:PutOnBlast(string.format("Beginning auction for %s, please whisper %s your bids.", itemLink,
         UnitName("player")), ChosenLadder:Database().char.announcements.auctionStart)
 
