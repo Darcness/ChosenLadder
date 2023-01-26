@@ -26,9 +26,14 @@ local function GetTradeableTime(itemLocation)
             for idx, linePart in ipairs(parts) do
                 if linePart == "hour" or linePart == "hours" then
                     timestamp = timestamp + ((tonumber(parts[idx - 1] or "0") or 0) * 60 * 60)
-                elseif linePart == "minute" or linePart == "minutes" then
+                elseif linePart == "minute" or linePart == "minutes" or linePart == "min" or linePart == "min." then
                     timestamp = timestamp + ((tonumber(parts[idx - 1] or "0") or 0) * 60)
-                elseif linePart == "second" or linePart == "seconds" then
+                elseif linePart == "second" or
+                    linePart == "second." or
+                    linePart == "seconds" or
+                    linePart == "seconds." or
+                    linePart == "sec" or
+                    linePart == "sec." then
                     timestamp = timestamp + (tonumber(parts[idx - 1] or "0") or 0)
                 end
             end
@@ -98,13 +103,12 @@ end
 
 function ChosenLadder:CHAT_MSG_WHISPER(self, text, playerName, ...)
     ChosenLadder:Log("Enter: CHAT_MSG_WHISPER||" .. text .. "||" .. playerName)
-    if not (D:GetRaidRoster():IsPlayerInRaid(playerName) or D.isTestMode) then
+    if not (D:GetRaidRoster():IsPlayerInRaid(playerName) and D:IsLootMaster()) then
         -- Nothing to process, this is just whisper chatter.
         ChosenLadder:Log("CHAT_MSG_WHISPER: User not in raid")
         return
     end
 
-    local myName = UnitName("player")
     local auctionItem = D.Auction:GetItemLink()
     local dunkItem = D.Dunk:GetItemLink()
 

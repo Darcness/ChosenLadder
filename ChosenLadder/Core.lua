@@ -128,10 +128,11 @@ function ChosenLadder:OnInitialize()
 end
 
 function YouSoBad(action)
-    SendChatMessage(
-        string.format("%s: %s has attempted to %s via illegal calls to addon code", A, UnitName("player"), action),
-        "RAID"
-    )
+    return
+    -- SendChatMessage(
+    --     string.format("%s: %s has attempted to %s via illegal calls to addon code", A, UnitName("player"), action),
+    --     "RAID"
+    -- )
 end
 
 ---Fetches the Overlay objects for a particular inventory item Frame, builds if they don't exist.
